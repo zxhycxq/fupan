@@ -2,6 +2,7 @@ import Dashboard from './pages/Dashboard';
 import Upload from './pages/Upload';
 import ExamList from './pages/ExamList';
 import ExamDetail from './pages/ExamDetail';
+import Settings from './pages/Settings';
 import GenerateData from './pages/GenerateData';
 import type { ReactNode } from 'react';
 
@@ -29,6 +30,12 @@ const routes: RouteConfig[] = [
     name: '考试记录',
     path: '/exams',
     element: <ExamList />,
+    visible: true,
+  },
+  {
+    name: '目标设置',
+    path: '/settings',
+    element: <Settings />,
     visible: true,
   },
   {

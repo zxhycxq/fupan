@@ -18,6 +18,7 @@ interface FileWithPreview {
 
 export default function Upload() {
   const [examNumber, setExamNumber] = useState<number>(1);
+  const [timeUsedMinutes, setTimeUsedMinutes] = useState<number>(0);
   const [selectedFiles, setSelectedFiles] = useState<FileWithPreview[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -144,8 +145,9 @@ export default function Upload() {
       setUploadProgress(((selectedFiles.length + 1) / totalSteps) * 100);
       const combinedText = allOcrTexts.join('\n\n');
 
-      // 5. 解析数据
-      const { examRecord, moduleScores } = parseExamData(combinedText, examNumber);
+      // 5. 解析数据 - 传入用户输入的用时(分钟转秒)
+      const timeUsedSeconds = timeUsedMinutes * 60;
+      const { examRecord, moduleScores } = parseExamData(combinedText, examNumber, timeUsedSeconds);
 
       // 6. 保存到数据库
       setCurrentStep('正在保存数据...');
@@ -206,6 +208,23 @@ export default function Upload() {
                 placeholder="请输入考试期数"
                 required
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="timeUsed">用时(分钟)</Label>
+              <Input
+                id="timeUsed"
+                type="number"
+                min="0"
+                step="1"
+                value={timeUsedMinutes}
+                onChange={(e) => setTimeUsedMinutes(parseInt(e.target.value) || 0)}
+                placeholder="请输入考试用时(分钟)"
+                required
+              />
+              <p className="text-sm text-muted-foreground">
+                请输入考试用时,单位为分钟
+              </p>
             </div>
 
             <div className="space-y-2">

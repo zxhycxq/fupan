@@ -3,7 +3,8 @@ import type { ExamRecord, ModuleScore } from '@/types';
 // 解析OCR识别的文本,提取考试数据
 export function parseExamData(
   ocrText: string,
-  examNumber: number
+  examNumber: number,
+  timeUsedSeconds: number = 0
 ): {
   examRecord: Omit<ExamRecord, 'id' | 'created_at' | 'updated_at'>;
   moduleScores: Omit<ModuleScore, 'id' | 'exam_record_id' | 'created_at'>[];
@@ -11,6 +12,7 @@ export function parseExamData(
   console.log('=== 开始解析OCR文本 ===');
   console.log('OCR文本长度:', ocrText.length);
   console.log('OCR文本前500字符:', ocrText.substring(0, 500));
+  console.log('用户输入用时:', timeUsedSeconds, '秒');
 
   // 提取总分 - 支持多种格式,包括紧凑格式
   const totalScoreMatch = ocrText.match(/我的得分[：:\s]*(\d+\.?\d*)/i) || 
@@ -19,13 +21,6 @@ export function parseExamData(
                           ocrText.match(/(\d+\.?\d*)[/／]100/);
   const totalScore = totalScoreMatch ? parseFloat(totalScoreMatch[1]) : 0;
   console.log('提取总分:', totalScore, '匹配结果:', totalScoreMatch?.[0]);
-
-  // 提取用时 - 支持多种格式,包括紧凑格式
-  const timeMatch = ocrText.match(/总?用时[：:\s]*(\d+)\s*分\s*(\d+)\s*秒/i) ||
-                    ocrText.match(/(\d+)\s*分\s*(\d+)\s*秒/) ||
-                    ocrText.match(/(\d+)分(\d+)秒/);
-  const timeUsed = timeMatch ? parseInt(timeMatch[1]) * 60 + parseInt(timeMatch[2]) : 0;
-  console.log('提取用时:', timeUsed, '秒, 匹配结果:', timeMatch?.[0]);
 
   // 提取最高分 - 增强匹配
   const maxScoreMatch = ocrText.match(/最高分[：:\s]*(\d+\.?\d*)/i) ||
@@ -63,7 +58,7 @@ export function parseExamData(
     difficulty: difficulty,
     beat_percentage: beatPercentage,
     pass_rate: passRate,
-    time_used: timeUsed,
+    time_used: timeUsedSeconds, // 使用用户输入的用时
   };
 
   console.log('考试记录:', examRecord);
@@ -73,8 +68,8 @@ export function parseExamData(
   console.log('=== 开始解析模块数据 ===');
   
   // 判断是否记录细分模块时间(总用时小于10分钟=600秒)
-  const shouldRecordSubModuleTime = timeUsed >= 600;
-  console.log('总用时:', timeUsed, '秒,', shouldRecordSubModuleTime ? '记录所有模块时间' : '只记录一级和二级模块时间');
+  const shouldRecordSubModuleTime = timeUsedSeconds >= 600;
+  console.log('总用时:', timeUsedSeconds, '秒,', shouldRecordSubModuleTime ? '记录所有模块时间' : '只记录一级和二级模块时间');
 
   // 定义模块结构
   const moduleStructure = [
