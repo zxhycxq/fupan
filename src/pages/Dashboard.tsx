@@ -165,15 +165,15 @@ export default function Dashboard() {
       type: 'scroll',
     },
     grid: {
-      left: '3%',
-      right: '4%',
+      left: '5%',
+      right: '5%',
       bottom: '3%',
       top: 80,
       containLabel: true,
     },
     xAxis: {
       type: 'category',
-      boundaryGap: false,
+      boundaryGap: ['5%', '5%'], // 左右留间隙
       data: moduleTrendData.exam_numbers.map(n => `第${n}次`),
       name: '考试期数',
     },
@@ -363,7 +363,8 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card>
+        {/* 模块趋势图独占一行 */}
+        <Card className="md:col-span-2">
           <CardHeader>
             <CardTitle>各模块正确率趋势</CardTitle>
             <CardDescription>各大模块在不同考试中的正确率变化趋势</CardDescription>
