@@ -8,6 +8,7 @@
     "lint": "tsgo -p tsconfig.check.json; npx biome lint; .rules/check.sh;npx tailwindcss -i ./src/index.css -o /dev/null 2>&1 | grep -E '^(CssSyntaxError|Error):.*' || true;vite build --minify false --logLevel error --outDir /tmp/outdir"
   },
   "dependencies": {
+    "@ant-design/icons": "^6.1.0",
     "@hookform/resolvers": "^5.2.2",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",
@@ -36,7 +37,9 @@
     "@radix-ui/react-toggle-group": "^1.1.11",
     "@radix-ui/react-tooltip": "^1.2.8",
     "@supabase/supabase-js": "^2.76.1",
+    "@types/react-sortable-hoc": "^0.7.1",
     "antd": "^6.0.0",
+    "array-move": "^4.0.0",
     "axios": "^1.13.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -62,6 +65,7 @@
     "react-resizable-panels": "^2.1.8",
     "react-router": "^6.28.0",
     "react-router-dom": "^6.28.0",
+    "react-sortable-hoc": "^2.0.0",
     "recharts": "^2.15.3",
     "sonner": "^2.0.7",
     "streamdown": "^1.4.0",

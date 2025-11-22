@@ -3,33 +3,32 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { getAllExamRecords, deleteExamRecord } from '@/db/api';
+import { getAllExamRecords, deleteExamRecord, updateExamRecord } from '@/db/api';
 import type { ExamRecord } from '@/types';
 import { Eye, Trash2, Plus } from 'lucide-react';
+import { Table, InputNumber, Modal } from 'antd';
+import type { ColumnsType } from 'antd/es/table';
+import { SortableContainer, SortableElement, SortableHandle } from 'react-sortable-hoc';
+import { MenuOutlined } from '@ant-design/icons';
+import { arrayMoveImmutable } from 'array-move';
+
+// 拖拽手柄
+const DragHandle = SortableHandle(() => (
+  <MenuOutlined style={{ cursor: 'grab', color: '#999' }} />
+));
+
+// 可排序的行
+const SortableItem = SortableElement((props: any) => <tr {...props} />);
+
+// 可排序的容器
+const SortableBody = SortableContainer((props: any) => <tbody {...props} />);
 
 export default function ExamList() {
   const [examRecords, setExamRecords] = useState<ExamRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [editingKey, setEditingKey] = useState<string>('');
+  const [editingRecord, setEditingRecord] = useState<Partial<ExamRecord>>({});
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -54,19 +53,80 @@ export default function ExamList() {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: string, examNumber: number) => {
+    Modal.confirm({
+      title: '确认删除',
+      content: `确定要删除第${examNumber}期的考试记录吗？此操作无法撤销。`,
+      okText: '删除',
+      cancelText: '取消',
+      okButtonProps: { danger: true },
+      onOk: async () => {
+        try {
+          await deleteExamRecord(id);
+          toast({
+            title: '成功',
+            description: '考试记录已删除',
+          });
+          loadExamRecords();
+        } catch (error) {
+          console.error('删除失败:', error);
+          toast({
+            title: '错误',
+            description: '删除失败，请重试',
+            variant: 'destructive',
+          });
+        }
+      },
+    });
+  };
+
+  const isEditing = (record: ExamRecord) => record.id === editingKey;
+
+  const edit = (record: ExamRecord) => {
+    setEditingKey(record.id);
+    setEditingRecord({ ...record });
+  };
+
+  const cancel = () => {
+    setEditingKey('');
+    setEditingRecord({});
+  };
+
+  const save = async (id: string) => {
     try {
-      await deleteExamRecord(id);
+      const updates: Partial<Omit<ExamRecord, 'id' | 'created_at'>> = {};
+      
+      if (editingRecord.exam_number !== undefined) {
+        updates.exam_number = editingRecord.exam_number;
+      }
+      if (editingRecord.total_score !== undefined) {
+        updates.total_score = editingRecord.total_score;
+      }
+      if (editingRecord.time_used !== undefined) {
+        updates.time_used = editingRecord.time_used;
+      }
+      if (editingRecord.average_score !== undefined) {
+        updates.average_score = editingRecord.average_score;
+      }
+      if (editingRecord.pass_rate !== undefined) {
+        updates.pass_rate = editingRecord.pass_rate;
+      }
+
+      await updateExamRecord(id, updates);
+      
       toast({
         title: '成功',
-        description: '考试记录已删除',
+        description: '考试记录已更新',
       });
+      
+      setEditingKey('');
+      setEditingRecord({});
       loadExamRecords();
     } catch (error) {
-      console.error('删除失败:', error);
+      console.error('保存失败:', error);
       toast({
         title: '错误',
-        description: '删除失败,请重试',
+        description: '保存失败，请重试',
         variant: 'destructive',
       });
     }
@@ -82,6 +142,207 @@ export default function ExamList() {
       minute: '2-digit',
     });
   };
+
+  // 拖拽排序处理
+  const onSortEnd = ({ oldIndex, newIndex }: { oldIndex: number; newIndex: number }) => {
+    if (oldIndex !== newIndex) {
+      const newData = arrayMoveImmutable(examRecords, oldIndex, newIndex);
+      setExamRecords(newData);
+    }
+  };
+
+  const DraggableContainer = (props: any) => (
+    <SortableBody
+      useDragHandle
+      disableAutoscroll
+      helperClass="row-dragging"
+      onSortEnd={onSortEnd}
+      {...props}
+    />
+  );
+
+  const DraggableBodyRow = ({ className, style, ...restProps }: any) => {
+    const index = examRecords.findIndex((x) => x.id === restProps['data-row-key']);
+    return <SortableItem index={index} {...restProps} />;
+  };
+
+  const columns: ColumnsType<ExamRecord> = [
+    {
+      title: '排序',
+      dataIndex: 'sort',
+      width: 60,
+      className: 'drag-visible',
+      render: () => <DragHandle />,
+    },
+    {
+      title: '期数',
+      dataIndex: 'exam_number',
+      key: 'exam_number',
+      width: 100,
+      render: (value: number, record: ExamRecord) => {
+        const editable = isEditing(record);
+        return editable ? (
+          <InputNumber
+            min={1}
+            value={editingRecord.exam_number}
+            onChange={(val) => setEditingRecord({ ...editingRecord, exam_number: val || 1 })}
+            style={{ width: '100%' }}
+          />
+        ) : (
+          `第${value}期`
+        );
+      },
+    },
+    {
+      title: '总分',
+      dataIndex: 'total_score',
+      key: 'total_score',
+      width: 120,
+      render: (value: number, record: ExamRecord) => {
+        const editable = isEditing(record);
+        return editable ? (
+          <InputNumber
+            min={0}
+            max={100}
+            precision={2}
+            value={editingRecord.total_score}
+            onChange={(val) => setEditingRecord({ ...editingRecord, total_score: val || 0 })}
+            style={{ width: '100%' }}
+          />
+        ) : (
+          <span
+            className={`font-semibold ${
+              value >= 80 ? 'text-green-600' : value >= 60 ? 'text-blue-600' : 'text-orange-600'
+            }`}
+          >
+            {value.toFixed(2)}
+          </span>
+        );
+      },
+    },
+    {
+      title: '用时',
+      dataIndex: 'time_used',
+      key: 'time_used',
+      width: 120,
+      render: (value: number | null, record: ExamRecord) => {
+        const editable = isEditing(record);
+        return editable ? (
+          <InputNumber
+            min={0}
+            precision={0}
+            value={editingRecord.time_used || undefined}
+            onChange={(val) => setEditingRecord({ ...editingRecord, time_used: val || null })}
+            placeholder="分钟"
+            style={{ width: '100%' }}
+          />
+        ) : value ? (
+          `${value}分钟`
+        ) : (
+          '-'
+        );
+      },
+    },
+    {
+      title: '平均分',
+      dataIndex: 'average_score',
+      key: 'average_score',
+      width: 120,
+      render: (value: number | null, record: ExamRecord) => {
+        const editable = isEditing(record);
+        return editable ? (
+          <InputNumber
+            min={0}
+            max={100}
+            precision={2}
+            value={editingRecord.average_score || undefined}
+            onChange={(val) => setEditingRecord({ ...editingRecord, average_score: val || null })}
+            style={{ width: '100%' }}
+          />
+        ) : value ? (
+          value.toFixed(2)
+        ) : (
+          '-'
+        );
+      },
+    },
+    {
+      title: '击败率',
+      dataIndex: 'pass_rate',
+      key: 'pass_rate',
+      width: 120,
+      render: (value: number | null, record: ExamRecord) => {
+        const editable = isEditing(record);
+        return editable ? (
+          <InputNumber
+            min={0}
+            max={100}
+            precision={1}
+            value={editingRecord.pass_rate || undefined}
+            onChange={(val) => setEditingRecord({ ...editingRecord, pass_rate: val || null })}
+            addonAfter="%"
+            style={{ width: '100%' }}
+          />
+        ) : value ? (
+          `${value.toFixed(1)}%`
+        ) : (
+          '-'
+        );
+      },
+    },
+    {
+      title: '上传时间',
+      dataIndex: 'created_at',
+      key: 'created_at',
+      width: 180,
+      render: (value: string) => formatDate(value),
+    },
+    {
+      title: '操作',
+      key: 'action',
+      width: 200,
+      render: (_: any, record: ExamRecord) => {
+        const editable = isEditing(record);
+        return editable ? (
+          <div className="flex gap-2">
+            <Button size="sm" onClick={() => save(record.id)}>
+              保存
+            </Button>
+            <Button size="sm" variant="outline" onClick={cancel}>
+              取消
+            </Button>
+          </div>
+        ) : (
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate(`/exam/${record.id}`)}
+              disabled={editingKey !== ''}
+            >
+              <Eye className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => edit(record)}
+              disabled={editingKey !== ''}
+            >
+              编辑
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleDelete(record.id, record.exam_number)}
+              disabled={editingKey !== ''}
+            >
+              <Trash2 className="h-4 w-4 text-destructive" />
+            </Button>
+          </div>
+        );
+      },
+    },
+  ];
 
   if (isLoading) {
     return (
@@ -128,80 +389,34 @@ export default function ExamList() {
               </Button>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>期数</TableHead>
-                  <TableHead>总分</TableHead>
-                  <TableHead>用时</TableHead>
-                  <TableHead>平均分</TableHead>
-                  <TableHead>击败率</TableHead>
-                  <TableHead>上传时间</TableHead>
-                  <TableHead className="text-right">操作</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {examRecords.map((record) => (
-                  <TableRow key={record.id}>
-                    <TableCell className="font-medium">第{record.exam_number}期</TableCell>
-                    <TableCell>
-                      <span className={`font-semibold ${
-                        record.total_score >= 80 ? 'text-green-600' :
-                        record.total_score >= 60 ? 'text-blue-600' :
-                        'text-orange-600'
-                      }`}>
-                        {record.total_score.toFixed(2)}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      {record.time_used ? `${record.time_used}分钟` : '-'}
-                    </TableCell>
-                    <TableCell>
-                      {record.average_score ? record.average_score.toFixed(2) : '-'}
-                    </TableCell>
-                    <TableCell>
-                      {record.pass_rate ? `${record.pass_rate.toFixed(1)}%` : '-'}
-                    </TableCell>
-                    <TableCell>{formatDate(record.created_at)}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => navigate(`/exam/${record.id}`)}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="outline" size="sm">
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>确认删除</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                确定要删除第{record.exam_number}期的考试记录吗?此操作无法撤销。
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>取消</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => handleDelete(record.id)}>
-                                删除
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <Table
+              columns={columns}
+              dataSource={examRecords}
+              rowKey="id"
+              pagination={false}
+              components={{
+                body: {
+                  wrapper: DraggableContainer,
+                  row: DraggableBodyRow,
+                },
+              }}
+              bordered
+            />
           )}
         </CardContent>
       </Card>
+      <style>{`
+        .row-dragging {
+          background: #fafafa;
+          border: 1px solid #ccc;
+        }
+        .row-dragging td {
+          padding: 16px;
+        }
+        .row-dragging .drag-visible {
+          visibility: visible;
+        }
+      `}</style>
     </div>
   );
 }
