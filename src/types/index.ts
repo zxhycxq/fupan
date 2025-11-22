@@ -87,3 +87,22 @@ export interface ModuleStats {
   average_accuracy: number;
   total_exams: number;
 }
+
+// 用户设置类型
+export interface UserSetting {
+  id: string;
+  user_id: string;
+  module_name: string;
+  target_accuracy: number;
+  created_at: string;
+  updated_at: string;
+}
+
+// 识别结果确认数据类型
+export interface RecognitionConfirmData {
+  exam_number: number;
+  total_score: number;
+  time_used: number;
+  module_scores: Omit<ModuleScore, 'id' | 'exam_record_id' | 'created_at'>[];
+  image_url: string;
+}

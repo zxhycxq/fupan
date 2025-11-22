@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import type { ExamRecord, ModuleScore, ExamRecordDetail } from '@/types';
+import type { ExamRecord, ModuleScore, ExamRecordDetail, UserSetting } from '@/types';
 
 // 获取所有考试记录
 export async function getAllExamRecords(): Promise<ExamRecord[]> {
@@ -206,6 +206,70 @@ export async function updateModuleScore(
 
   if (error) {
     console.error('更新模块得分失败:', error);
+    throw error;
+  }
+}
+
+// 获取用户设置
+export async function getUserSettings(userId: string = 'default'): Promise<UserSetting[]> {
+  const { data, error } = await supabase
+    .from('user_settings')
+    .select('*')
+    .eq('user_id', userId)
+    .order('module_name', { ascending: true });
+
+  if (error) {
+    console.error('获取用户设置失败:', error);
+    throw error;
+  }
+
+  return Array.isArray(data) ? data : [];
+}
+
+// 更新或创建用户设置
+export async function upsertUserSetting(
+  userId: string = 'default',
+  moduleName: string,
+  targetAccuracy: number
+): Promise<void> {
+  const { error } = await supabase
+    .from('user_settings')
+    .upsert(
+      {
+        user_id: userId,
+        module_name: moduleName,
+        target_accuracy: targetAccuracy,
+        updated_at: new Date().toISOString(),
+      },
+      {
+        onConflict: 'user_id,module_name',
+      }
+    );
+
+  if (error) {
+    console.error('更新用户设置失败:', error);
+    throw error;
+  }
+}
+
+// 批量更新用户设置
+export async function batchUpsertUserSettings(
+  settings: Array<{ module_name: string; target_accuracy: number }>,
+  userId: string = 'default'
+): Promise<void> {
+  const records = settings.map((s) => ({
+    user_id: userId,
+    module_name: s.module_name,
+    target_accuracy: s.target_accuracy,
+    updated_at: new Date().toISOString(),
+  }));
+
+  const { error } = await supabase.from('user_settings').upsert(records, {
+    onConflict: 'user_id,module_name',
+  });
+
+  if (error) {
+    console.error('批量更新用户设置失败:', error);
     throw error;
   }
 }
