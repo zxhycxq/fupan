@@ -4,8 +4,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Save, RotateCcw, Calendar } from 'lucide-react';
+import { useTheme, themes } from '@/hooks/use-theme';
+import { Loader2, Save, RotateCcw, Calendar, Palette } from 'lucide-react';
 import { getUserSettings, batchUpsertUserSettings, getExamConfig, saveExamConfig } from '@/db/api';
 import type { UserSetting } from '@/types';
 
@@ -32,6 +34,7 @@ export default function Settings() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
+  const { theme, setTheme } = useTheme();
 
   // 加载设置
   useEffect(() => {
@@ -216,6 +219,56 @@ export default function Settings() {
                   <li>默认目标为80%</li>
                   <li>设置后将在雷达图中显示目标线,方便对比实际表现</li>
                   <li>建议根据自身情况设置合理的目标</li>
+                </ul>
+              </div>
+            </div>
+
+            {/* 主题配置部分 */}
+            <div className="space-y-4">
+              <div className="border-b pb-2">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <Palette className="h-5 w-5" />
+                  主题肤色设置
+                </h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  选择您喜欢的主题配色方案
+                </p>
+              </div>
+
+              <RadioGroup value={theme} onValueChange={(value) => setTheme(value as typeof theme)}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {themes.map((themeOption) => (
+                    <div key={themeOption.value} className="relative">
+                      <RadioGroupItem
+                        value={themeOption.value}
+                        id={themeOption.value}
+                        className="peer sr-only"
+                      />
+                      <Label
+                        htmlFor={themeOption.value}
+                        className="flex flex-col gap-2 rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary cursor-pointer transition-all"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-semibold">{themeOption.label}</span>
+                          {theme === themeOption.value && (
+                            <div className="h-2 w-2 rounded-full bg-primary" />
+                          )}
+                        </div>
+                        <span className="text-sm text-muted-foreground">
+                          {themeOption.description}
+                        </span>
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </RadioGroup>
+
+              <div className="text-sm text-muted-foreground bg-muted p-4 rounded-lg">
+                <p className="font-medium mb-2">说明:</p>
+                <ul className="list-disc list-inside space-y-1">
+                  <li>主题配色会立即生效,无需保存</li>
+                  <li>主题设置会自动保存到浏览器本地</li>
+                  <li>不同主题适合不同的使用场景和个人喜好</li>
                 </ul>
               </div>
             </div>
