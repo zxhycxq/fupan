@@ -227,24 +227,30 @@ export default function ExamDetail() {
     tooltip: {
       trigger: 'item',
       formatter: (params: any) => {
-        const dataIndex = params.dataIndex;
-        const moduleName = mainModules[dataIndex].module_name;
-        const actualValue = mainModules[dataIndex].accuracy_rate || 0;
-        const targetValue = targetValues[dataIndex];
+        // params.name 是系列名称 ('我的' 或 '目标')
+        // params.value 是该系列的所有值数组
+        const seriesName = params.name;
         
-        return `
-          <div style="padding: 8px;">
-            <div style="font-weight: bold; margin-bottom: 4px;">${moduleName}</div>
-            <div style="display: flex; align-items: center; margin-bottom: 2px;">
-              <span style="display: inline-block; width: 10px; height: 10px; background-color: #FF9800; border-radius: 50%; margin-right: 6px;"></span>
-              <span>我的: ${actualValue.toFixed(1)}%</span>
+        if (!params.value || !Array.isArray(params.value)) {
+          return '';
+        }
+        
+        let result = `<div style="padding: 8px;">`;
+        result += `<div style="font-weight: bold; margin-bottom: 8px;">${seriesName}</div>`;
+        
+        params.value.forEach((value: number, index: number) => {
+          const moduleName = mainModules[index].module_name;
+          const color = seriesName === '我的' ? '#FF9800' : '#F44336';
+          result += `
+            <div style="display: flex; align-items: center; margin-bottom: 4px;">
+              <span style="display: inline-block; width: 10px; height: 10px; background-color: ${color}; border-radius: 50%; margin-right: 6px;"></span>
+              <span>${moduleName}: ${value.toFixed(2)}%</span>
             </div>
-            <div style="display: flex; align-items: center;">
-              <span style="display: inline-block; width: 10px; height: 10px; background-color: #F44336; border-radius: 50%; margin-right: 6px;"></span>
-              <span>目标: ${targetValue}%</span>
-            </div>
-          </div>
-        `;
+          `;
+        });
+        
+        result += `</div>`;
+        return result;
       },
     },
     legend: {

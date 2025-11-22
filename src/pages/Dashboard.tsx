@@ -62,6 +62,11 @@ export default function Dashboard() {
     },
     tooltip: {
       trigger: 'axis',
+      formatter: (params: any) => {
+        if (!params || params.length === 0) return '';
+        const param = params[0];
+        return `${param.axisValue}<br/>${param.marker}${param.seriesName}: ${param.value.toFixed(2)}分`;
+      },
     },
     grid: {
       left: window.innerWidth < 640 ? '5%' : '3%',
@@ -87,6 +92,7 @@ export default function Dashboard() {
       },
       axisLabel: {
         fontSize: window.innerWidth < 640 ? 10 : 12,
+        formatter: '{value}分',
       },
     },
     series: [
@@ -129,6 +135,11 @@ export default function Dashboard() {
       axisPointer: {
         type: 'shadow',
       },
+      formatter: (params: any) => {
+        if (!params || params.length === 0) return '';
+        const param = params[0];
+        return `${param.axisValue}<br/>${param.marker}${param.seriesName}: ${param.value.toFixed(2)}%`;
+      },
     },
     grid: {
       left: window.innerWidth < 640 ? '5%' : '3%',
@@ -156,6 +167,7 @@ export default function Dashboard() {
       },
       axisLabel: {
         fontSize: window.innerWidth < 640 ? 10 : 12,
+        formatter: '{value}%',
       },
     },
     series: [
@@ -235,6 +247,7 @@ export default function Dashboard() {
       },
       axisLabel: {
         fontSize: window.innerWidth < 640 ? 10 : 12,
+        formatter: '{value}%',
       },
     },
     series: moduleTrendData.modules.map((module, index) => ({
@@ -274,6 +287,9 @@ export default function Dashboard() {
     },
     tooltip: {
       trigger: 'item',
+      formatter: (params: any) => {
+        return `${params.name}<br/>${params.marker}${params.value}次 (${params.percent.toFixed(2)}%)`;
+      },
     },
     legend: {
       orient: window.innerWidth < 640 ? 'horizontal' : 'vertical',
@@ -313,6 +329,7 @@ export default function Dashboard() {
         ],
         label: {
           fontSize: window.innerWidth < 640 ? 10 : 12,
+          formatter: '{b}: {c}次 ({d}%)',
         },
         emphasis: {
           itemStyle: {
@@ -381,7 +398,7 @@ export default function Dashboard() {
             <Award className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalExams}</div>
+            <div className="text-2xl font-bold">{stats.totalExams}次</div>
             <p className="text-xs text-muted-foreground">累计考试次数</p>
           </CardContent>
         </Card>
@@ -392,7 +409,7 @@ export default function Dashboard() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.averageScore}</div>
+            <div className="text-2xl font-bold">{stats.averageScore}分</div>
             <p className="text-xs text-muted-foreground">所有考试平均分</p>
           </CardContent>
         </Card>
@@ -403,7 +420,7 @@ export default function Dashboard() {
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.highestScore}</div>
+            <div className="text-2xl font-bold">{stats.highestScore}分</div>
             <p className="text-xs text-muted-foreground">历史最高分数</p>
           </CardContent>
         </Card>
@@ -414,8 +431,8 @@ export default function Dashboard() {
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.averageTime}</div>
-            <p className="text-xs text-muted-foreground">分钟</p>
+            <div className="text-2xl font-bold">{stats.averageTime}分钟</div>
+            <p className="text-xs text-muted-foreground">平均答题时长</p>
           </CardContent>
         </Card>
       </div>
