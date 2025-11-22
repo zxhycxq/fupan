@@ -1,12 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { useToast } from '@/hooks/use-toast';
-import { Upload as UploadIcon, Loader2, X } from 'lucide-react';
+import { Button, Card, InputNumber, Progress, message, Space, Image } from 'antd';
+import { UploadOutlined, LoadingOutlined, CloseOutlined, DeleteOutlined } from '@ant-design/icons';
 import { fileToBase64, recognizeText, compressImage } from '@/services/imageRecognition';
 import { parseExamData } from '@/services/dataParser';
 import { createExamRecord, createModuleScores } from '@/db/api';
@@ -23,7 +18,6 @@ export default function Upload() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState('');
-  const { toast } = useToast();
   const navigate = useNavigate();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -36,21 +30,13 @@ export default function Upload() {
     for (const file of files) {
       // 验证文件类型
       if (!file.type.startsWith('image/')) {
-        toast({
-          title: '错误',
-          description: `${file.name} 不是图片文件`,
-          variant: 'destructive',
-        });
+        message.error(`${file.name} 不是图片文件`);
         continue;
       }
 
       // 验证文件大小(10MB)
       if (file.size > 10 * 1024 * 1024) {
-        toast({
-          title: '错误',
-          description: `${file.name} 大小超过10MB`,
-          variant: 'destructive',
-        });
+        message.error(`${file.name} 大小超过10MB`);
         continue;
       }
 
@@ -65,7 +51,6 @@ export default function Upload() {
   const removeFile = (index: number) => {
     setSelectedFiles(prev => {
       const newFiles = [...prev];
-      // 释放预览URL
       URL.revokeObjectURL(newFiles[index].previewUrl);
       newFiles.splice(index, 1);
       return newFiles;
@@ -76,39 +61,30 @@ export default function Upload() {
     e.preventDefault();
 
     if (selectedFiles.length === 0) {
-      toast({
-        title: '错误',
-        description: '请至少选择一张图片',
-        variant: 'destructive',
-      });
+      message.error('请至少选择一张图片');
       return;
     }
 
     if (!examNumber || examNumber < 1) {
-      toast({
-        title: '错误',
-        description: '请输入有效的考试期数',
-        variant: 'destructive',
-      });
+      message.error('请输入有效的考试期数');
       return;
     }
 
-    setIsUploading(true);
-    setUploadProgress(0);
-
     try {
-      // 存储所有图片的识别结果
-      const allOcrTexts: string[] = [];
-      const totalSteps = selectedFiles.length + 2; // 图片数量 + 解析 + 保存
+      setIsUploading(true);
+      setUploadProgress(0);
+      setCurrentStep('准备上传...');
 
-      // 依次处理每张图片
+      const totalSteps = selectedFiles.length + 2;
+      const allRecognizedTexts: string[] = [];
+
+      // 处理每张图片
       for (let i = 0; i < selectedFiles.length; i++) {
         const { file } = selectedFiles[i];
-        
-        setCurrentStep(`正在处理第 ${i + 1}/${selectedFiles.length} 张图片 - 压缩中...`);
-        setUploadProgress(((i + 0.3) / totalSteps) * 100);
+        setCurrentStep(`正在处理第 ${i + 1}/${selectedFiles.length} 张图片...`);
 
-        // 1. 压缩图片
+        // 压缩图片
+        setUploadProgress(((i + 0.3) / totalSteps) * 100);
         let processedFile = file;
         try {
           // 如果图片大于2MB,进行压缩
@@ -123,37 +99,47 @@ export default function Upload() {
           processedFile = file;
         }
 
-        setCurrentStep(`正在处理第 ${i + 1}/${selectedFiles.length} 张图片 - 识别中...`);
+        // 识别文字
+        setCurrentStep(`正在识别第 ${i + 1}/${selectedFiles.length} 张图片...`);
         setUploadProgress(((i + 0.6) / totalSteps) * 100);
-
-        // 2. 将图片转换为base64
-        const base64Image = await fileToBase64(processedFile);
-
-        // 3. 调用OCR识别
-        const ocrText = await recognizeText({
-          image: base64Image,
-          language_type: 'CHN_ENG',
-        });
         
-        allOcrTexts.push(ocrText);
-        
+        try {
+          // 将图片转换为base64
+          const base64Image = await fileToBase64(processedFile);
+          
+          // 调用OCR识别
+          const ocrText = await recognizeText({
+            image: base64Image,
+            language_type: 'CHN_ENG',
+          });
+          
+          if (ocrText && ocrText.trim()) {
+            allRecognizedTexts.push(ocrText);
+          }
+        } catch (error) {
+          console.error(`识别第 ${i + 1} 张图片失败:`, error);
+          // 继续处理下一张图片
+        }
+
         setUploadProgress(((i + 1) / totalSteps) * 100);
       }
 
-      // 4. 合并所有识别结果
-      setCurrentStep('正在解析识别结果...');
+      // 解析数据
+      setCurrentStep('正在解析数据...');
       setUploadProgress(((selectedFiles.length + 1) / totalSteps) * 100);
-      const combinedText = allOcrTexts.join('\n\n');
-
-      // 5. 解析数据 - 传入用户输入的用时(分钟转秒)
+      const combinedText = allRecognizedTexts.join('\n\n');
+      
+      // 传入用户输入的用时(分钟转秒)
       const timeUsedSeconds = timeUsedMinutes * 60;
       const { examRecord, moduleScores } = parseExamData(combinedText, examNumber, timeUsedSeconds);
 
-      // 6. 保存到数据库
+      // 保存到数据库
       setCurrentStep('正在保存数据...');
       setUploadProgress(((selectedFiles.length + 2) / totalSteps) * 100);
-      const savedRecord = await createExamRecord(examRecord);
       
+      const savedRecord = await createExamRecord(examRecord);
+
+      // 保存模块得分
       if (moduleScores.length > 0) {
         const scoresWithExamId = moduleScores.map(score => ({
           ...score,
@@ -162,10 +148,7 @@ export default function Upload() {
         await createModuleScores(scoresWithExamId);
       }
 
-      toast({
-        title: '成功',
-        description: `已成功上传并解析 ${selectedFiles.length} 张图片`,
-      });
+      message.success(`已成功上传并解析 ${selectedFiles.length} 张图片`);
 
       // 清理预览URL
       selectedFiles.forEach(f => URL.revokeObjectURL(f.previewUrl));
@@ -174,11 +157,7 @@ export default function Upload() {
       navigate(`/exam/${savedRecord.id}`);
     } catch (error) {
       console.error('上传失败:', error);
-      toast({
-        title: '错误',
-        description: error instanceof Error ? error.message : '上传失败,请重试',
-        variant: 'destructive',
-      });
+      message.error(error instanceof Error ? error.message : '上传失败,请重试');
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
@@ -188,150 +167,148 @@ export default function Upload() {
 
   return (
     <div className="container mx-auto py-8 px-4">
-      <Card className="max-w-4xl mx-auto">
-        <CardHeader>
-          <CardTitle>上传考试成绩</CardTitle>
-          <CardDescription>
-            上传考试成绩截图,系统将自动识别并分析数据。支持一次上传多张图片。
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="examNumber">考试期数</Label>
-                <Input
-                  id="examNumber"
-                  type="number"
-                  min="1"
-                  value={examNumber}
-                  onChange={(e) => setExamNumber(parseInt(e.target.value))}
-                  placeholder="请输入考试期数"
-                  required
-                />
-              </div>
+      <Card 
+        title="上传考试成绩"
+        className="max-w-4xl mx-auto"
+      >
+        <div className="mb-4 text-gray-500">
+          上传考试成绩截图,系统将自动识别并分析数据。支持一次上传多张图片。
+        </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="timeUsed">用时(分钟)</Label>
-                <Input
-                  id="timeUsed"
-                  type="number"
-                  min="0"
-                  step="1"
-                  value={timeUsedMinutes}
-                  onChange={(e) => setTimeUsedMinutes(parseInt(e.target.value) || 0)}
-                  placeholder="请输入考试用时(分钟)"
-                  required
-                />
-                <p className="text-sm text-muted-foreground">
-                  请输入考试用时,单位为分钟
-                </p>
-              </div>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <div>
+              <div className="mb-2 text-sm font-medium">考试期数</div>
+              <InputNumber
+                min={1}
+                value={examNumber}
+                onChange={(value) => setExamNumber(value || 1)}
+                placeholder="请输入考试期数"
+                style={{ width: '100%' }}
+                required
+              />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="images">考试成绩截图</Label>
-              <div className="flex items-center gap-4">
-                <Input
-                  id="images"
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={handleFileChange}
-                  className="flex-1"
-                  disabled={isUploading}
-                />
+            <div>
+              <div className="mb-2 text-sm font-medium">用时(分钟)</div>
+              <InputNumber
+                min={0}
+                value={timeUsedMinutes}
+                onChange={(value) => setTimeUsedMinutes(value || 0)}
+                placeholder="请输入考试用时(分钟)"
+                style={{ width: '100%' }}
+                required
+              />
+              <div className="text-sm text-gray-500 mt-1">
+                请输入考试用时,单位为分钟
               </div>
-              <p className="text-sm text-muted-foreground">
-                可以一次选择多张图片,每张图片最大10MB。建议按顺序选择图片以便更好地识别。
-              </p>
+            </div>
+          </div>
 
-              {selectedFiles.length > 0 && (
-                <div className="mt-4 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium">
-                      已选择 {selectedFiles.length} 张图片
-                    </p>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        selectedFiles.forEach(f => URL.revokeObjectURL(f.previewUrl));
-                        setSelectedFiles([]);
-                      }}
-                      disabled={isUploading}
+          <div>
+            <div className="mb-2 text-sm font-medium">考试成绩截图</div>
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleFileChange}
+              disabled={isUploading}
+              className="block w-full text-sm text-gray-500
+                file:mr-4 file:py-2 file:px-4
+                file:rounded file:border-0
+                file:text-sm file:font-semibold
+                file:bg-blue-50 file:text-blue-700
+                hover:file:bg-blue-100
+                disabled:opacity-50 disabled:cursor-not-allowed"
+            />
+            <div className="text-sm text-gray-500 mt-1">
+              可以一次选择多张图片,每张图片最大10MB。建议按顺序选择图片以便更好地识别。
+            </div>
+
+            {selectedFiles.length > 0 && (
+              <div className="mt-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm font-medium">
+                    已选择 {selectedFiles.length} 张图片
+                  </div>
+                  <Button
+                    type="default"
+                    size="small"
+                    icon={<DeleteOutlined />}
+                    onClick={() => {
+                      selectedFiles.forEach(f => URL.revokeObjectURL(f.previewUrl));
+                      setSelectedFiles([]);
+                    }}
+                    disabled={isUploading}
+                  >
+                    清空所有
+                  </Button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {selectedFiles.map((fileWithPreview, index) => (
+                    <div
+                      key={index}
+                      className="relative border rounded-lg p-4 group"
                     >
-                      清空所有
-                    </Button>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {selectedFiles.map((fileWithPreview, index) => (
-                      <div
-                        key={index}
-                        className="relative border rounded-lg p-4 group"
-                      >
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          size="icon"
-                          className="absolute top-2 right-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                          onClick={() => removeFile(index)}
-                          disabled={isUploading}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                        <div className="absolute top-2 left-2 bg-primary text-primary-foreground px-2 py-1 rounded text-xs font-medium">
-                          {index + 1}
-                        </div>
-                        <img
-                          src={fileWithPreview.previewUrl}
-                          alt={`预览 ${index + 1}`}
-                          className="w-full h-auto rounded"
-                        />
-                        <p className="mt-2 text-xs text-muted-foreground truncate">
-                          {fileWithPreview.file.name}
-                        </p>
+                      <Button
+                        type="primary"
+                        danger
+                        size="small"
+                        icon={<CloseOutlined />}
+                        className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => removeFile(index)}
+                        disabled={isUploading}
+                      />
+                      <div className="absolute top-2 left-2 bg-blue-500 text-white px-2 py-1 rounded text-xs font-medium">
+                        {index + 1}
                       </div>
-                    ))}
-                  </div>
+                      <Image
+                        src={fileWithPreview.previewUrl}
+                        alt={`预览 ${index + 1}`}
+                        className="w-full h-48 object-contain rounded"
+                        preview={{
+                          mask: '点击预览'
+                        }}
+                      />
+                      <div className="mt-2 text-sm text-gray-600 truncate">
+                        {fileWithPreview.file.name}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {(fileWithPreview.file.size / 1024 / 1024).toFixed(2)} MB
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              )}
-            </div>
-
-            {isUploading && (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">{currentStep}</span>
-                  <span className="font-medium">{Math.round(uploadProgress)}%</span>
-                </div>
-                <Progress value={uploadProgress} className="h-2" />
-                <p className="text-xs text-muted-foreground">
-                  图片识别可能需要较长时间,请耐心等待...
-                </p>
               </div>
             )}
+          </div>
 
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isUploading || selectedFiles.length === 0}
-            >
-              {isUploading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  处理中...
-                </>
-              ) : (
-                <>
-                  <UploadIcon className="mr-2 h-4 w-4" />
-                  上传并解析 ({selectedFiles.length} 张图片)
-                </>
-              )}
-            </Button>
-          </form>
-        </CardContent>
+          {isUploading && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span>{currentStep}</span>
+                <span>{Math.round(uploadProgress)}%</span>
+              </div>
+              <Progress percent={Math.round(uploadProgress)} status="active" />
+            </div>
+          )}
+
+          <Button
+            type="primary"
+            htmlType="submit"
+            size="large"
+            icon={isUploading ? <LoadingOutlined /> : <UploadOutlined />}
+            loading={isUploading}
+            disabled={isUploading || selectedFiles.length === 0}
+            block
+          >
+            {isUploading 
+              ? '处理中...' 
+              : `上传并解析 (${selectedFiles.length} 张图片)`
+            }
+          </Button>
+        </form>
       </Card>
     </div>
   );
