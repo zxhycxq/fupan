@@ -708,7 +708,7 @@ export default function ExamDetail() {
           <CardDescription>各模块的详细答题情况</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-6">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
             {mainModules.map(mainModule => {
               const subModules = examDetail.module_scores.filter(
                 m => m.parent_module === mainModule.module_name
@@ -727,7 +727,7 @@ export default function ExamDetail() {
                     </Badge>
                   </div>
                   
-                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-4 text-sm">
+                  <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
                     <div>
                       <span className="text-muted-foreground">总题数:</span>
                       <span className="ml-2 font-medium">{mainModule.total_questions}</span>
@@ -764,7 +764,7 @@ export default function ExamDetail() {
                               {subModule.accuracy_rate?.toFixed(1)}%
                             </Badge>
                           </div>
-                          <div className="grid grid-cols-1 xl:grid-cols-2 gap-2 text-xs text-muted-foreground">
+                          <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
                             <div>总题数: {subModule.total_questions}</div>
                             <div>答对: {subModule.correct_answers}</div>
                             <div>答错: {subModule.wrong_answers}</div>
