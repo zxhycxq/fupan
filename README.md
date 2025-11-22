@@ -96,4 +96,24 @@ Vite、TypeScript、React、Supabase
 
 ## 了解更多
 
+### 文档资源
+
+- 🚀 [快速调试指南](./docs/HOW_TO_DEBUG.md) - **遇到问题先看这里!**
+- 📖 [更新日志](./CHANGELOG.md) - 查看系统更新历史
+- 🔧 [故障排查指南](./docs/TROUBLESHOOTING.md) - 解决常见问题
+- 🐛 [调试指南](./docs/DEBUG_GUIDE.md) - 如何查看和分析调试日志
+- 🧪 [测试指南](./docs/TESTING_GUIDE.md) - 如何测试图片识别功能
+- 📚 [API迁移说明](./docs/API_MIGRATION.md) - API变更详情
+- 📝 [快速参考](./docs/QUICK_REFERENCE.md) - 常用操作速查
+- 💡 [改进总结](./docs/IMPROVEMENTS_SUMMARY.md) - 系统改进详情
+
+### 在线帮助
+
 您也可以查看帮助文档：[源码导出](https://cloud.baidu.com/doc/MIAODA/s/Xmewgmsq7)，了解更多详细内容。
+
+### 问题反馈
+
+如果遇到问题:
+1. 查看[故障排查指南](./docs/TROUBLESHOOTING.md)
+2. 查看[调试指南](./docs/DEBUG_GUIDE.md)获取详细日志
+3. 联系技术支持并提供日志信息

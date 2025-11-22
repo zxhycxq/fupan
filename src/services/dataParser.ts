@@ -15,13 +15,15 @@ export function parseExamData(
   // 提取总分 - 支持多种格式
   const totalScoreMatch = ocrText.match(/我的得分[：:\s]*(\d+\.?\d*)/i) || 
                           ocrText.match(/得分[：:\s]*(\d+\.?\d*)/i) ||
-                          ocrText.match(/(\d+\.?\d*)\s*[/／]\s*100/);
+                          ocrText.match(/(\d+\.?\d*)\s*[/／/]\s*100/) ||
+                          ocrText.match(/(\d+\.?\d*)[/／/]100/);
   const totalScore = totalScoreMatch ? parseFloat(totalScoreMatch[1]) : 0;
   console.log('提取总分:', totalScore, '匹配结果:', totalScoreMatch?.[0]);
 
   // 提取用时 - 支持多种格式
   const timeMatch = ocrText.match(/总?用时[：:\s]*(\d+)\s*分\s*(\d+)\s*秒/i) ||
-                    ocrText.match(/(\d+)\s*分\s*(\d+)\s*秒/);
+                    ocrText.match(/(\d+)\s*分\s*(\d+)\s*秒/) ||
+                    ocrText.match(/(\d+)分(\d+)秒/);
   const timeUsed = timeMatch ? parseInt(timeMatch[1]) * 60 + parseInt(timeMatch[2]) : 0;
   console.log('提取用时:', timeUsed, '秒, 匹配结果:', timeMatch?.[0]);
 

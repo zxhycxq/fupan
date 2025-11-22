@@ -43,7 +43,11 @@ export async function recognizeText(request: OcrRequest): Promise<string> {
       .map(item => item.words)
       .join('\n');
 
-    console.log('识别成功,识别到', result.data.words_result_num, '行文字');
+    console.log('=== OCR识别完成 ===');
+    console.log('识别到', result.data.words_result_num, '行文字');
+    console.log('识别结果:', text);
+    console.log('前200字符:', text.substring(0, 200));
+    
     return text;
   } catch (error) {
     console.error('文字识别失败:', error);
