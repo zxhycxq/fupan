@@ -531,10 +531,11 @@ export default function Dashboard() {
               return <span className="text-muted-foreground">-</span>;
             }
             
-            const target = getTargetAccuracy(record.module_name);
-            const isLow = examData.accuracy < target && record.key !== 'total';
+            // 只有低于50%才标红
+            const isLow = examData.accuracy < 50 && record.key !== 'total';
             
-            const content = `${examData.accuracy.toFixed(2)}%`;
+            // 保留1位小数
+            const content = `${examData.accuracy.toFixed(1)}%`;
             
             if (record.key === 'total') {
               return <strong>{content}</strong>;
@@ -722,6 +723,14 @@ export default function Dashboard() {
               size="middle"
               bordered
               scroll={{ x: 'max-content' }}
+              rowClassName={(record, index) => {
+                // 总计行使用特殊样式
+                if (record.key === 'total') {
+                  return 'bg-muted/50';
+                }
+                // 斑马线样式：偶数行使用浅色背景
+                return index % 2 === 0 ? '' : 'bg-muted/30';
+              }}
               expandable={{
                 defaultExpandAllRows: false,
                 rowExpandable: (record) => record.key !== 'total' && (record.children?.length || 0) > 0,
