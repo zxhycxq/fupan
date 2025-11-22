@@ -16,13 +16,14 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { getExamRecordById, updateModuleScore } from '@/db/api';
-import type { ExamRecordDetail, ModuleScore } from '@/types';
+import { getExamRecordById, updateModuleScore, getUserSettings } from '@/db/api';
+import type { ExamRecordDetail, ModuleScore, UserSetting } from '@/types';
 import { ArrowLeft, Clock, Target, TrendingUp, AlertCircle, Edit } from 'lucide-react';
 
 export default function ExamDetail() {
   const { id } = useParams<{ id: string }>();
   const [examDetail, setExamDetail] = useState<ExamRecordDetail | null>(null);
+  const [userSettings, setUserSettings] = useState<UserSetting[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [editingModule, setEditingModule] = useState<ModuleScore | null>(null);
   const [editTime, setEditTime] = useState<string>('');
@@ -33,8 +34,18 @@ export default function ExamDetail() {
   useEffect(() => {
     if (id) {
       loadExamDetail(id);
+      loadUserSettings();
     }
   }, [id]);
+
+  const loadUserSettings = async () => {
+    try {
+      const settings = await getUserSettings();
+      setUserSettings(settings);
+    } catch (error) {
+      console.error('加载用户设置失败:', error);
+    }
+  };
 
   const loadExamDetail = async (examId: string) => {
     try {
@@ -150,13 +161,25 @@ export default function ExamDetail() {
   // 获取弱势模块(正确率低于60%)
   const weakModules = mainModules.filter(m => (m.accuracy_rate || 0) < 60);
 
+  // 获取目标值数组
+  const targetValues = mainModules.map(m => {
+    const setting = userSettings.find(s => s.module_name === m.module_name);
+    return setting ? setting.target_accuracy : 80; // 默认80%
+  });
+
   // 模块正确率雷达图配置
   const radarOption = {
     title: {
-      text: '各模块正确率',
+      text: '各模块正确率对比',
       left: 'center',
     },
-    tooltip: {},
+    tooltip: {
+      trigger: 'item',
+    },
+    legend: {
+      data: ['我的', '目标'],
+      bottom: 10,
+    },
     radar: {
       indicator: mainModules.map(m => ({
         name: m.module_name,
@@ -165,20 +188,39 @@ export default function ExamDetail() {
     },
     series: [
       {
-        name: '正确率',
+        name: '正确率对比',
         type: 'radar',
         data: [
           {
             value: mainModules.map(m => m.accuracy_rate || 0),
-            name: '正确率',
+            name: '我的',
+            areaStyle: {
+              color: 'rgba(255, 152, 0, 0.3)', // 橙色填充
+            },
+            itemStyle: {
+              color: '#FF9800', // 橙色
+            },
+            lineStyle: {
+              color: '#FF9800',
+              width: 2,
+            },
+          },
+          {
+            value: targetValues,
+            name: '目标',
+            areaStyle: {
+              color: 'rgba(244, 67, 54, 0.1)', // 红色半透明填充
+            },
+            itemStyle: {
+              color: '#F44336', // 红色
+            },
+            lineStyle: {
+              color: '#F44336',
+              width: 2,
+              type: 'dashed', // 虚线
+            },
           },
         ],
-        areaStyle: {
-          color: 'rgba(24, 144, 255, 0.3)',
-        },
-        itemStyle: {
-          color: '#1890FF',
-        },
       },
     ],
   };

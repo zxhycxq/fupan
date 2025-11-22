@@ -132,34 +132,55 @@ export default function Settings() {
     <div className="container mx-auto py-8 px-4">
       <Card className="max-w-3xl mx-auto">
         <CardHeader>
-          <CardTitle>目标设置</CardTitle>
+          <CardTitle>系统设置</CardTitle>
           <CardDescription>
-            设置各模块的目标正确率,用于在雷达图中对比实际表现
+            配置系统参数和个人偏好
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {MAIN_MODULES.map((module) => (
-                <div key={module} className="space-y-2">
-                  <Label htmlFor={module}>{module}</Label>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      id={module}
-                      type="number"
-                      min="0"
-                      max="100"
-                      step="1"
-                      value={settings[module] || 80}
-                      onChange={(e) => handleChange(module, e.target.value)}
-                      className="flex-1"
-                    />
-                    <span className="text-sm text-muted-foreground w-8">%</span>
+          <div className="space-y-8">
+            {/* 目标设置部分 */}
+            <div className="space-y-4">
+              <div className="border-b pb-2">
+                <h3 className="text-lg font-semibold">目标正确率设置</h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  设置各模块的目标正确率,用于在雷达图中对比实际表现
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {MAIN_MODULES.map((module) => (
+                  <div key={module} className="space-y-2">
+                    <Label htmlFor={module}>{module}</Label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        id={module}
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="1"
+                        value={settings[module] || 80}
+                        onChange={(e) => handleChange(module, e.target.value)}
+                        className="flex-1"
+                      />
+                      <span className="text-sm text-muted-foreground w-8">%</span>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
+
+              <div className="text-sm text-muted-foreground bg-muted p-4 rounded-lg">
+                <p className="font-medium mb-2">说明:</p>
+                <ul className="list-disc list-inside space-y-1">
+                  <li>目标正确率范围: 0-100%</li>
+                  <li>默认目标为80%</li>
+                  <li>设置后将在雷达图中显示目标线,方便对比实际表现</li>
+                  <li>建议根据自身情况设置合理的目标</li>
+                </ul>
+              </div>
             </div>
 
+            {/* 操作按钮 */}
             <div className="flex items-center gap-4 pt-4 border-t">
               <Button
                 onClick={handleSave}
@@ -186,16 +207,6 @@ export default function Settings() {
                 <RotateCcw className="mr-2 h-4 w-4" />
                 恢复默认
               </Button>
-            </div>
-
-            <div className="text-sm text-muted-foreground bg-muted p-4 rounded-lg">
-              <p className="font-medium mb-2">说明:</p>
-              <ul className="list-disc list-inside space-y-1">
-                <li>目标正确率范围: 0-100%</li>
-                <li>默认目标为80%</li>
-                <li>设置后将在雷达图中显示目标线,方便对比实际表现</li>
-                <li>建议根据自身情况设置合理的目标</li>
-              </ul>
             </div>
           </div>
         </CardContent>

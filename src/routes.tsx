@@ -3,7 +3,6 @@ import Upload from './pages/Upload';
 import ExamList from './pages/ExamList';
 import ExamDetail from './pages/ExamDetail';
 import Settings from './pages/Settings';
-import GenerateData from './pages/GenerateData';
 import type { ReactNode } from 'react';
 
 interface RouteConfig {
@@ -33,15 +32,9 @@ const routes: RouteConfig[] = [
     visible: true,
   },
   {
-    name: '目标设置',
+    name: '设置',
     path: '/settings',
     element: <Settings />,
-    visible: true,
-  },
-  {
-    name: '生成数据',
-    path: '/generate',
-    element: <GenerateData />,
     visible: true,
   },
   {
