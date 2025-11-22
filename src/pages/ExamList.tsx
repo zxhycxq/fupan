@@ -1,18 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Input } from '@/components/ui/input';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useToast } from '@/hooks/use-toast';
+import { Card, Button, Skeleton, Input, Alert, Table, InputNumber, Modal, DatePicker, message, Space } from 'antd';
+import type { ColumnsType } from 'antd/es/table';
 import { getAllExamRecords, deleteExamRecord, updateExamRecord } from '@/db/api';
 import type { ExamRecord } from '@/types';
-import { Eye, Trash2, Plus, Edit, Save, X, Info } from 'lucide-react';
-import { Table, InputNumber, Modal, DatePicker } from 'antd';
-import type { ColumnsType } from 'antd/es/table';
+import { EyeOutlined, DeleteOutlined, PlusOutlined, EditOutlined, SaveOutlined, CloseOutlined, InfoCircleOutlined, MenuOutlined } from '@ant-design/icons';
 import { SortableContainer, SortableElement, SortableHandle } from 'react-sortable-hoc';
-import { MenuOutlined } from '@ant-design/icons';
 import { arrayMoveImmutable } from 'array-move';
 import dayjs from 'dayjs';
 
@@ -33,7 +26,6 @@ export default function ExamList() {
   const [editingKey, setEditingKey] = useState<string>('');
   const [editingRecord, setEditingRecord] = useState<Partial<ExamRecord>>({});
   const [hasUnsavedSort, setHasUnsavedSort] = useState(false); // 是否有未保存的排序
-  const { toast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -47,11 +39,7 @@ export default function ExamList() {
       setExamRecords(records);
     } catch (error) {
       console.error('加载考试记录失败:', error);
-      toast({
-        title: '错误',
-        description: '加载考试记录失败',
-        variant: 'destructive',
-      });
+      message.error('加载考试记录失败');
     } finally {
       setIsLoading(false);
     }
@@ -67,18 +55,11 @@ export default function ExamList() {
       onOk: async () => {
         try {
           await deleteExamRecord(id);
-          toast({
-            title: '成功',
-            description: '考试记录已删除',
-          });
+          message.success('考试记录已删除');
           loadExamRecords();
         } catch (error) {
           console.error('删除失败:', error);
-          toast({
-            title: '错误',
-            description: '删除失败，请重试',
-            variant: 'destructive',
-          });
+          message.error('删除失败，请重试');
         }
       },
     });
@@ -124,21 +105,14 @@ export default function ExamList() {
 
       await updateExamRecord(id, updates);
       
-      toast({
-        title: '成功',
-        description: '考试记录已更新',
-      });
+      message.success('考试记录已更新');
       
       setEditingKey('');
       setEditingRecord({});
       loadExamRecords();
     } catch (error) {
       console.error('保存失败:', error);
-      toast({
-        title: '错误',
-        description: '保存失败，请重试',
-        variant: 'destructive',
-      });
+      message.error('保存失败，请重试');
     }
   };
 
@@ -172,17 +146,10 @@ export default function ExamList() {
       await Promise.all(updates);
       
       setHasUnsavedSort(false);
-      toast({
-        title: '成功',
-        description: '排序已保存',
-      });
+      message.success('排序已保存');
     } catch (error) {
       console.error('保存排序失败:', error);
-      toast({
-        title: '错误',
-        description: '保存排序失败',
-        variant: 'destructive',
-      });
+      message.error('保存排序失败');
     }
   };
 
@@ -395,44 +362,50 @@ export default function ExamList() {
       render: (_: any, record: ExamRecord) => {
         const editable = isEditing(record);
         return editable ? (
-          <div className="flex gap-2">
-            <Button size="sm" variant="ghost" onClick={() => save(record.id)} title="保存">
-              <Save className="h-4 w-4 text-green-600" />
-            </Button>
-            <Button size="sm" variant="ghost" onClick={cancel} title="取消">
-              <X className="h-4 w-4 text-gray-600" />
-            </Button>
-          </div>
+          <Space size="small">
+            <Button 
+              size="small" 
+              type="text"
+              icon={<SaveOutlined className="text-green-600" />}
+              onClick={() => save(record.id)} 
+              title="保存"
+            />
+            <Button 
+              size="small" 
+              type="text"
+              icon={<CloseOutlined className="text-gray-600" />}
+              onClick={cancel} 
+              title="取消"
+            />
+          </Space>
         ) : (
-          <div className="flex gap-2">
+          <Space size="small">
             <Button
-              variant="ghost"
-              size="sm"
+              type="text"
+              size="small"
+              icon={<EyeOutlined />}
               onClick={() => navigate(`/exam/${record.id}`)}
               disabled={editingKey !== ''}
               title="查看详情"
-            >
-              <Eye className="h-4 w-4" />
-            </Button>
+            />
             <Button
-              variant="ghost"
-              size="sm"
+              type="text"
+              size="small"
+              icon={<EditOutlined />}
               onClick={() => edit(record)}
               disabled={editingKey !== ''}
               title="编辑"
-            >
-              <Edit className="h-4 w-4" />
-            </Button>
+            />
             <Button
-              variant="ghost"
-              size="sm"
+              type="text"
+              size="small"
+              danger
+              icon={<DeleteOutlined />}
               onClick={() => handleDelete(record.id, record.exam_number)}
               disabled={editingKey !== ''}
               title="删除"
-            >
-              <Trash2 className="h-4 w-4 text-destructive" />
-            </Button>
-          </div>
+            />
+          </Space>
         );
       },
     },
@@ -441,18 +414,12 @@ export default function ExamList() {
   if (isLoading) {
     return (
       <div className="container mx-auto py-8 px-4">
-        <Card>
-          <CardHeader>
-            <Skeleton className="h-8 w-48" />
-            <Skeleton className="h-4 w-64" />
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {[...Array(5)].map((_, i) => (
-                <Skeleton key={i} className="h-16 w-full" />
-              ))}
-            </div>
-          </CardContent>
+        <Card loading>
+          <div className="space-y-4">
+            {[...Array(5)].map((_, i) => (
+              <Skeleton key={i} active />
+            ))}
+          </div>
         </Card>
       </div>
     );
@@ -460,46 +427,60 @@ export default function ExamList() {
 
   return (
     <div className="container mx-auto py-8 px-4">
-      <Card>
-        <CardHeader>
+      <Card 
+        title={
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>考试记录</CardTitle>
-              <CardDescription>查看和管理所有考试记录</CardDescription>
+              <div className="text-xl font-semibold">考试记录</div>
+              <div className="text-sm text-gray-500 font-normal mt-1">查看和管理所有考试记录</div>
             </div>
-            <Button onClick={() => navigate('/upload')}>
-              <Plus className="mr-2 h-4 w-4" />
+            <Button 
+              type="primary" 
+              icon={<PlusOutlined />}
+              onClick={() => navigate('/upload')}
+            >
               上传新成绩
             </Button>
           </div>
-        </CardHeader>
-        <CardContent>
+        }
+      >
           {examRecords.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-muted-foreground mb-4">暂无考试记录</p>
-              <Button onClick={() => navigate('/upload')}>
-                <Plus className="mr-2 h-4 w-4" />
+              <p className="text-gray-500 mb-4">暂无考试记录</p>
+              <Button 
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={() => navigate('/upload')}
+              >
                 上传第一份成绩
               </Button>
             </div>
           ) : (
             <div className="space-y-4">
               {/* 排序提示 */}
-              <Alert>
-                <Info className="h-4 w-4" />
-                <AlertDescription className="flex items-center justify-between">
-                  <span>
-                    提示：可以拖动左侧图标调整考试记录顺序，建议按照考试时间顺序排列。
-                    {hasUnsavedSort && <span className="text-orange-600 ml-2">（有未保存的排序）</span>}
-                  </span>
-                  {hasUnsavedSort && (
-                    <Button size="sm" onClick={saveSortOrder}>
-                      <Save className="mr-2 h-4 w-4" />
-                      保存排序
-                    </Button>
-                  )}
-                </AlertDescription>
-              </Alert>
+              <Alert
+                message={
+                  <div className="flex items-center justify-between">
+                    <span>
+                      提示：可以拖动左侧图标调整考试记录顺序，建议按照考试时间顺序排列。
+                      {hasUnsavedSort && <span className="text-orange-600 ml-2">（有未保存的排序）</span>}
+                    </span>
+                    {hasUnsavedSort && (
+                      <Button 
+                        size="small" 
+                        type="primary"
+                        icon={<SaveOutlined />}
+                        onClick={saveSortOrder}
+                      >
+                        保存排序
+                      </Button>
+                    )}
+                  </div>
+                }
+                type="info"
+                icon={<InfoCircleOutlined />}
+                showIcon
+              />
               
               <Table
                 columns={columns}
@@ -516,7 +497,6 @@ export default function ExamList() {
               />
             </div>
           )}
-        </CardContent>
       </Card>
       <style>{`
         .row-dragging {
