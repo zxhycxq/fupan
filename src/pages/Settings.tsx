@@ -1,15 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { useToast } from '@/hooks/use-toast';
+import { Card, Button, InputNumber, Select, Radio, DatePicker, Space, message, Spin, Alert } from 'antd';
+import { SaveOutlined, ReloadOutlined, CalendarOutlined, BgColorsOutlined } from '@ant-design/icons';
 import { useTheme, themes } from '@/hooks/use-theme';
-import { Loader2, Save, RotateCcw, Calendar, Palette } from 'lucide-react';
 import { getUserSettings, batchUpsertUserSettings, getExamConfig, saveExamConfig } from '@/db/api';
 import type { UserSetting } from '@/types';
+import dayjs from 'dayjs';
 
 // 6大模块
 const MAIN_MODULES = [
@@ -33,7 +28,6 @@ export default function Settings() {
   const [examDate, setExamDate] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const { toast } = useToast();
   const { theme, setTheme } = useTheme();
 
   // 加载设置
@@ -69,11 +63,7 @@ export default function Settings() {
       }
     } catch (error) {
       console.error('加载设置失败:', error);
-      toast({
-        title: '错误',
-        description: '加载设置失败,请刷新页面重试',
-        variant: 'destructive',
-      });
+      message.error('加载设置失败,请刷新页面重试');
     } finally {
       setIsLoading(false);
     }
@@ -86,31 +76,19 @@ export default function Settings() {
       // 验证所有值
       for (const [module, value] of Object.entries(settings)) {
         if (value < 0 || value > 100) {
-          toast({
-            title: '错误',
-            description: `${module}的目标正确率必须在0-100之间`,
-            variant: 'destructive',
-          });
+          message.error(`${module}的目标正确率必须在0-100之间`);
           return;
         }
       }
 
       // 验证考试配置
       if (examType && !examDate) {
-        toast({
-          title: '错误',
-          description: '请选择考试日期',
-          variant: 'destructive',
-        });
+        message.error('请选择考试日期');
         return;
       }
 
       if (examDate && !examType) {
-        toast({
-          title: '错误',
-          description: '请选择考试类型',
-          variant: 'destructive',
-        });
+        message.error('请选择考试类型');
         return;
       }
 
@@ -129,17 +107,10 @@ export default function Settings() {
         await saveExamConfig(examType, examDate);
       }
 
-      toast({
-        title: '成功',
-        description: '设置已保存',
-      });
+      message.success('设置已保存');
     } catch (error) {
       console.error('保存设置失败:', error);
-      toast({
-        title: '错误',
-        description: '保存设置失败,请重试',
-        variant: 'destructive',
-      });
+      message.error('保存设置失败,请重试');
     } finally {
       setIsSaving(false);
     }
@@ -153,207 +124,190 @@ export default function Settings() {
     setSettings(defaultSettings);
   };
 
-  const handleChange = (module: string, value: string) => {
-    const numValue = parseInt(value) || 0;
+  const handleChange = (module: string, value: number | null) => {
     setSettings(prev => ({
       ...prev,
-      [module]: numValue,
+      [module]: value || 0,
     }));
   };
 
   if (isLoading) {
     return (
-      <div className="container mx-auto py-8 px-4">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Spin size="large" tip="加载中..." />
       </div>
     );
   }
 
   return (
     <div className="container mx-auto py-8 px-4">
-      <Card className="max-w-3xl mx-auto">
-        <CardHeader>
-          <CardTitle>系统设置</CardTitle>
-          <CardDescription>
-            配置系统参数和个人偏好
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-8">
-            {/* 目标设置部分 */}
-            <div className="space-y-4">
-              <div className="border-b pb-2">
-                <h3 className="text-lg font-semibold">目标正确率设置</h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  设置各模块的目标正确率,用于在雷达图中对比实际表现
-                </p>
-              </div>
+      <Card 
+        title="系统设置"
+        className="max-w-5xl mx-auto"
+        extra={
+          <Space>
+            <Button
+              icon={<ReloadOutlined />}
+              onClick={handleReset}
+            >
+              重置为默认值
+            </Button>
+            <Button
+              type="primary"
+              icon={<SaveOutlined />}
+              loading={isSaving}
+              onClick={handleSave}
+            >
+              保存设置
+            </Button>
+          </Space>
+        }
+      >
+        <Space direction="vertical" size="large" style={{ width: '100%' }}>
+          {/* 目标设置部分 */}
+          <div>
+            <div className="border-b pb-3 mb-4">
+              <h3 className="text-lg font-semibold">目标正确率设置</h3>
+              <p className="text-sm text-gray-500 mt-1">
+                设置各模块的目标正确率,用于在雷达图中对比实际表现
+              </p>
+            </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {MAIN_MODULES.map((module) => (
-                  <div key={module} className="space-y-2">
-                    <Label htmlFor={module}>{module}</Label>
-                    <div className="flex items-center gap-2">
-                      <Input
-                        id={module}
-                        type="number"
-                        min="0"
-                        max="100"
-                        step="1"
-                        value={settings[module] || 80}
-                        onChange={(e) => handleChange(module, e.target.value)}
-                        className="flex-1"
-                      />
-                      <span className="text-sm text-muted-foreground w-8">%</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {MAIN_MODULES.map((module) => (
+                <div key={module}>
+                  <div className="mb-2 text-sm font-medium">{module}</div>
+                  <Space.Compact style={{ width: '100%' }}>
+                    <InputNumber
+                      min={0}
+                      max={100}
+                      value={settings[module] || 80}
+                      onChange={(value) => handleChange(module, value)}
+                      style={{ width: '100%' }}
+                    />
+                    <Button disabled>%</Button>
+                  </Space.Compact>
+                </div>
+              ))}
+            </div>
 
-              <div className="text-sm text-muted-foreground bg-muted p-4 rounded-lg">
-                <p className="font-medium mb-2">说明:</p>
-                <ul className="list-disc list-inside space-y-1">
+            <Alert
+              message="说明"
+              description={
+                <ul className="list-disc list-inside space-y-1 text-sm">
                   <li>目标正确率范围: 0-100%</li>
                   <li>默认目标为80%</li>
                   <li>设置后将在雷达图中显示目标线,方便对比实际表现</li>
                   <li>建议根据自身情况设置合理的目标</li>
                 </ul>
-              </div>
+              }
+              type="info"
+              showIcon
+              className="mt-4"
+            />
+          </div>
+
+          {/* 主题配置部分 */}
+          <div>
+            <div className="border-b pb-3 mb-4">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <BgColorsOutlined />
+                主题肤色设置
+              </h3>
+              <p className="text-sm text-gray-500 mt-1">
+                选择您喜欢的主题配色方案
+              </p>
             </div>
 
-            {/* 主题配置部分 */}
-            <div className="space-y-4">
-              <div className="border-b pb-2">
-                <h3 className="text-lg font-semibold flex items-center gap-2">
-                  <Palette className="h-5 w-5" />
-                  主题肤色设置
-                </h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  选择您喜欢的主题配色方案
-                </p>
-              </div>
-
-              <RadioGroup value={theme} onValueChange={(value) => setTheme(value as typeof theme)}>
-                <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
-                  {themes.map((themeOption) => (
-                    <div key={themeOption.value} className="relative">
-                      <RadioGroupItem
-                        value={themeOption.value}
-                        id={themeOption.value}
-                        className="peer sr-only"
-                      />
-                      <Label
-                        htmlFor={themeOption.value}
-                        className="flex flex-col gap-2 rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary cursor-pointer transition-all"
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="font-semibold">{themeOption.label}</span>
-                          {theme === themeOption.value && (
-                            <div className="h-2 w-2 rounded-full bg-primary" />
-                          )}
-                        </div>
-                        <span className="text-sm text-muted-foreground">
-                          {themeOption.description}
-                        </span>
-                      </Label>
+            <Radio.Group 
+              value={theme} 
+              onChange={(e) => setTheme(e.target.value)}
+              className="w-full"
+            >
+              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
+                {themes.map((themeOption) => (
+                  <Radio.Button 
+                    key={themeOption.value} 
+                    value={themeOption.value}
+                    className="h-auto"
+                  >
+                    <div className="py-3 px-2 text-center">
+                      <div className="font-semibold">{themeOption.label}</div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        {themeOption.description}
+                      </div>
                     </div>
-                  ))}
-                </div>
-              </RadioGroup>
+                  </Radio.Button>
+                ))}
+              </div>
+            </Radio.Group>
 
-              <div className="text-sm text-muted-foreground bg-muted p-4 rounded-lg">
-                <p className="font-medium mb-2">说明:</p>
-                <ul className="list-disc list-inside space-y-1">
+            <Alert
+              message="说明"
+              description={
+                <ul className="list-disc list-inside space-y-1 text-sm">
                   <li>主题配色会立即生效,无需保存</li>
                   <li>主题设置会自动保存到浏览器本地</li>
                   <li>不同主题适合不同的使用场景和个人喜好</li>
                 </ul>
+              }
+              type="info"
+              showIcon
+              className="mt-4"
+            />
+          </div>
+
+          {/* 考试倒计时配置部分 */}
+          <div>
+            <div className="border-b pb-3 mb-4">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <CalendarOutlined />
+                考试倒计时设置
+              </h3>
+              <p className="text-sm text-gray-500 mt-1">
+                设置考试类型和日期,系统将在顶部显示倒计时
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <div className="mb-2 text-sm font-medium">考试类型</div>
+                <Select
+                  value={examType || undefined}
+                  onChange={setExamType}
+                  placeholder="请选择考试类型"
+                  style={{ width: '100%' }}
+                  options={EXAM_TYPES}
+                />
+              </div>
+
+              <div>
+                <div className="mb-2 text-sm font-medium">考试日期</div>
+                <DatePicker
+                  value={examDate ? dayjs(examDate) : null}
+                  onChange={(date) => setExamDate(date ? date.format('YYYY-MM-DD') : '')}
+                  placeholder="请选择考试日期"
+                  style={{ width: '100%' }}
+                  disabledDate={(current) => current && current < dayjs().startOf('day')}
+                />
               </div>
             </div>
 
-            {/* 考试倒计时配置部分 */}
-            <div className="space-y-4">
-              <div className="border-b pb-2">
-                <h3 className="text-lg font-semibold flex items-center gap-2">
-                  <Calendar className="h-5 w-5" />
-                  考试倒计时设置
-                </h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  设置考试类型和日期,系统将在顶部显示倒计时
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="examType">考试类型</Label>
-                  <Select value={examType} onValueChange={setExamType}>
-                    <SelectTrigger id="examType">
-                      <SelectValue placeholder="请选择考试类型" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {EXAM_TYPES.map((type) => (
-                        <SelectItem key={type.value} value={type.value}>
-                          {type.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="examDate">考试日期</Label>
-                  <Input
-                    id="examDate"
-                    type="date"
-                    value={examDate}
-                    onChange={(e) => setExamDate(e.target.value)}
-                    min={new Date().toISOString().split('T')[0]}
-                  />
-                </div>
-              </div>
-
-              <div className="text-sm text-muted-foreground bg-muted p-4 rounded-lg">
-                <p className="font-medium mb-2">说明:</p>
-                <ul className="list-disc list-inside space-y-1">
+            <Alert
+              message="说明"
+              description={
+                <ul className="list-disc list-inside space-y-1 text-sm">
                   <li>选择考试类型和日期后,系统将在顶部显示倒计时</li>
                   <li>倒计时会显示距离考试还有多少天</li>
                   <li>可以随时修改考试日期</li>
                 </ul>
-              </div>
-            </div>
-
-            {/* 操作按钮 */}
-            <div className="flex items-center gap-4 pt-4 border-t">
-              <Button
-                onClick={handleSave}
-                disabled={isSaving}
-                className="flex-1 md:flex-none"
-              >
-                {isSaving ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    保存中...
-                  </>
-                ) : (
-                  <>
-                    <Save className="mr-2 h-4 w-4" />
-                    保存设置
-                  </>
-                )}
-              </Button>
-              <Button
-                variant="outline"
-                onClick={handleReset}
-                disabled={isSaving}
-              >
-                <RotateCcw className="mr-2 h-4 w-4" />
-                恢复默认
-              </Button>
-            </div>
+              }
+              type="info"
+              showIcon
+              className="mt-4"
+            />
           </div>
-        </CardContent>
+        </Space>
       </Card>
     </div>
   );
