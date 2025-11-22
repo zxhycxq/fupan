@@ -96,8 +96,16 @@ export interface UserSetting {
   user_id: string;
   module_name: string;
   target_accuracy: number;
+  exam_type?: string; // 考试类型(国考/省考)
+  exam_date?: string; // 考试日期
   created_at: string;
   updated_at: string;
+}
+
+// 考试配置类型
+export interface ExamConfig {
+  exam_type: string; // 考试类型(国考/省考)
+  exam_date: string; // 考试日期
 }
 
 // 识别结果确认数据类型

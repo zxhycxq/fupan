@@ -3,9 +3,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Save, RotateCcw } from 'lucide-react';
-import { getUserSettings, batchUpsertUserSettings } from '@/db/api';
+import { Loader2, Save, RotateCcw, Calendar } from 'lucide-react';
+import { getUserSettings, batchUpsertUserSettings, getExamConfig, saveExamConfig } from '@/db/api';
 import type { UserSetting } from '@/types';
 
 // 6大模块
@@ -18,8 +19,16 @@ const MAIN_MODULES = [
   '资料分析',
 ];
 
+// 考试类型
+const EXAM_TYPES = [
+  { label: '国考', value: '国考' },
+  { label: '省考', value: '省考' },
+];
+
 export default function Settings() {
   const [settings, setSettings] = useState<Record<string, number>>({});
+  const [examType, setExamType] = useState<string>('');
+  const [examDate, setExamDate] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
@@ -48,6 +57,13 @@ export default function Settings() {
       }
       
       setSettings(settingsMap);
+
+      // 加载考试配置
+      const examConfig = await getExamConfig();
+      if (examConfig) {
+        setExamType(examConfig.exam_type || '');
+        setExamDate(examConfig.exam_date || '');
+      }
     } catch (error) {
       console.error('加载设置失败:', error);
       toast({
@@ -76,6 +92,25 @@ export default function Settings() {
         }
       }
 
+      // 验证考试配置
+      if (examType && !examDate) {
+        toast({
+          title: '错误',
+          description: '请选择考试日期',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      if (examDate && !examType) {
+        toast({
+          title: '错误',
+          description: '请选择考试类型',
+          variant: 'destructive',
+        });
+        return;
+      }
+
       // 转换为 UserSetting 数组
       const settingsArray: Omit<UserSetting, 'id' | 'created_at' | 'updated_at'>[] = 
         Object.entries(settings).map(([module_name, target_accuracy]) => ({
@@ -86,9 +121,14 @@ export default function Settings() {
 
       await batchUpsertUserSettings(settingsArray);
 
+      // 保存考试配置
+      if (examType && examDate) {
+        await saveExamConfig(examType, examDate);
+      }
+
       toast({
         title: '成功',
-        description: '目标设置已保存',
+        description: '设置已保存',
       });
     } catch (error) {
       console.error('保存设置失败:', error);
@@ -176,6 +216,57 @@ export default function Settings() {
                   <li>默认目标为80%</li>
                   <li>设置后将在雷达图中显示目标线,方便对比实际表现</li>
                   <li>建议根据自身情况设置合理的目标</li>
+                </ul>
+              </div>
+            </div>
+
+            {/* 考试倒计时配置部分 */}
+            <div className="space-y-4">
+              <div className="border-b pb-2">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <Calendar className="h-5 w-5" />
+                  考试倒计时设置
+                </h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  设置考试类型和日期,系统将在顶部显示倒计时
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="examType">考试类型</Label>
+                  <Select value={examType} onValueChange={setExamType}>
+                    <SelectTrigger id="examType">
+                      <SelectValue placeholder="请选择考试类型" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {EXAM_TYPES.map((type) => (
+                        <SelectItem key={type.value} value={type.value}>
+                          {type.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="examDate">考试日期</Label>
+                  <Input
+                    id="examDate"
+                    type="date"
+                    value={examDate}
+                    onChange={(e) => setExamDate(e.target.value)}
+                    min={new Date().toISOString().split('T')[0]}
+                  />
+                </div>
+              </div>
+
+              <div className="text-sm text-muted-foreground bg-muted p-4 rounded-lg">
+                <p className="font-medium mb-2">说明:</p>
+                <ul className="list-disc list-inside space-y-1">
+                  <li>选择考试类型和日期后,系统将在顶部显示倒计时</li>
+                  <li>倒计时会显示距离考试还有多少天</li>
+                  <li>可以随时修改考试日期</li>
                 </ul>
               </div>
             </div>

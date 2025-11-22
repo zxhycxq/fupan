@@ -273,3 +273,66 @@ export async function batchUpsertUserSettings(
     throw error;
   }
 }
+
+// 获取考试配置
+export async function getExamConfig(userId: string = 'default'): Promise<{ exam_type?: string; exam_date?: string } | null> {
+  const { data, error } = await supabase
+    .from('user_settings')
+    .select('exam_type, exam_date')
+    .eq('user_id', userId)
+    .not('exam_type', 'is', null)
+    .maybeSingle();
+
+  if (error) {
+    console.error('获取考试配置失败:', error);
+    return null;
+  }
+
+  return data;
+}
+
+// 保存考试配置
+export async function saveExamConfig(
+  examType: string,
+  examDate: string,
+  userId: string = 'default'
+): Promise<void> {
+  // 先获取一个现有的设置记录
+  const { data: existingSetting } = await supabase
+    .from('user_settings')
+    .select('id')
+    .eq('user_id', userId)
+    .limit(1)
+    .maybeSingle();
+
+  if (existingSetting) {
+    // 更新现有记录
+    const { error } = await supabase
+      .from('user_settings')
+      .update({
+        exam_type: examType,
+        exam_date: examDate,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', existingSetting.id);
+
+    if (error) {
+      console.error('更新考试配置失败:', error);
+      throw error;
+    }
+  } else {
+    // 创建新记录
+    const { error } = await supabase.from('user_settings').insert({
+      user_id: userId,
+      module_name: '政治理论', // 默认模块
+      target_accuracy: 80,
+      exam_type: examType,
+      exam_date: examDate,
+    });
+
+    if (error) {
+      console.error('创建考试配置失败:', error);
+      throw error;
+    }
+  }
+}
