@@ -1,17 +1,17 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { ConfigProvider } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
+import dayjs from 'dayjs';
+import 'dayjs/locale/zh-cn';
 import { Toaster } from '@/components/ui/toaster';
 import Header from '@/components/common/Header';
 import routes from './routes';
-import 'dayjs/locale/zh-cn';
-import dayjs from 'dayjs';
 
 // 设置 dayjs 为中文
 dayjs.locale('zh-cn');
 
-const App: React.FC = () => {
+function App() {
   // 初始化主题
   useEffect(() => {
     const theme = localStorage.getItem('app-theme') || 'default';
@@ -46,6 +46,6 @@ const App: React.FC = () => {
       </div>
     </ConfigProvider>
   );
-};
+}
 
 export default App;
