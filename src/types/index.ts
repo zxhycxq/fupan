@@ -39,37 +39,30 @@ export interface ExamRecordDetail extends ExamRecord {
   module_scores: ModuleScore[];
 }
 
-// 图像识别API请求类型
-export interface ImageRecognitionRequest {
-  image?: string; // base64编码的图片
-  url?: string; // 图片URL
-  question: string;
+// 通用文字识别API请求类型
+export interface OcrRequest {
+  image: string; // base64编码的图片
+  language_type?: string; // 识别语言类型,默认CHN_ENG
+  detect_direction?: boolean; // 是否检测图像朝向
+  probability?: boolean; // 是否返回置信度
 }
 
-// 图像识别API响应类型
-export interface ImageRecognitionResponse {
+// 通用文字识别API响应类型
+export interface OcrResponse {
   status: number;
   msg: string;
   data: {
-    log_id: string;
-    result: {
-      task_id: string;
-    };
-  };
-}
-
-// 图像识别结果响应类型
-export interface ImageRecognitionResultResponse {
-  status: number;
-  msg: string;
-  data: {
-    log_id: string;
-    result: {
-      task_id: string;
-      ret_code: number; // 0: 成功, 1: 处理中
-      ret_msg: string;
-      description: string;
-    };
+    log_id: number;
+    direction?: number;
+    words_result_num: number;
+    words_result: Array<{
+      words: string;
+      probability?: {
+        average: number;
+        variance: number;
+        min: number;
+      };
+    }>;
   };
 }
 

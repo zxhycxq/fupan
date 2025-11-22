@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { Upload as UploadIcon, Loader2, X } from 'lucide-react';
-import { fileToBase64, submitImageRecognition, pollImageRecognitionResult, compressImage } from '@/services/imageRecognition';
+import { fileToBase64, recognizeText, compressImage } from '@/services/imageRecognition';
 import { parseExamData } from '@/services/dataParser';
 import { createExamRecord, createModuleScores } from '@/db/api';
 
@@ -128,14 +128,12 @@ export default function Upload() {
         // 2. 将图片转换为base64
         const base64Image = await fileToBase64(processedFile);
 
-        // 3. 提交图像识别请求
-        const taskId = await submitImageRecognition({
+        // 3. 调用OCR识别
+        const ocrText = await recognizeText({
           image: base64Image,
-          question: '请详细提取这张考试成绩截图中的所有信息,包括总分、用时、各模块的名称、题数、答对数、答错数、未答数、正确率和用时。请保持原始格式,确保所有数字和文字都准确提取。',
+          language_type: 'CHN_ENG',
         });
-
-        // 4. 轮询获取识别结果(增加超时时间)
-        const ocrText = await pollImageRecognitionResult(taskId, 30, 3000);
+        
         allOcrTexts.push(ocrText);
         
         setUploadProgress(((i + 1) / totalSteps) * 100);
