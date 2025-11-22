@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { Upload as UploadIcon, Loader2, X } from 'lucide-react';
 import { fileToBase64, submitImageRecognition, pollImageRecognitionResult } from '@/services/imageRecognition';
@@ -19,6 +20,8 @@ export default function Upload() {
   const [examNumber, setExamNumber] = useState<number>(1);
   const [selectedFiles, setSelectedFiles] = useState<FileWithPreview[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [currentStep, setCurrentStep] = useState('');
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -90,19 +93,19 @@ export default function Upload() {
     }
 
     setIsUploading(true);
+    setUploadProgress(0);
 
     try {
       // 存储所有图片的识别结果
       const allOcrTexts: string[] = [];
+      const totalSteps = selectedFiles.length + 2; // 图片数量 + 解析 + 保存
 
       // 依次处理每张图片
       for (let i = 0; i < selectedFiles.length; i++) {
         const { file } = selectedFiles[i];
         
-        toast({
-          title: '处理中',
-          description: `正在处理第 ${i + 1}/${selectedFiles.length} 张图片...`,
-        });
+        setCurrentStep(`正在处理第 ${i + 1}/${selectedFiles.length} 张图片`);
+        setUploadProgress(((i + 1) / totalSteps) * 100);
 
         // 1. 将图片转换为base64
         const base64Image = await fileToBase64(file);
@@ -110,29 +113,25 @@ export default function Upload() {
         // 2. 提交图像识别请求
         const taskId = await submitImageRecognition({
           image: base64Image,
-          question: '请详细提取这张考试成绩截图中的所有信息,包括总分、用时、各模块的题数、答对数、答错数、未答数、正确率和用时。请按照原始格式输出所有数据。',
+          question: '请详细提取这张考试成绩截图中的所有信息,包括总分、用时、各模块的名称、题数、答对数、答错数、未答数、正确率和用时。请保持原始格式,确保所有数字和文字都准确提取。',
         });
 
-        // 3. 轮询获取识别结果
-        const ocrText = await pollImageRecognitionResult(taskId);
+        // 3. 轮询获取识别结果(增加超时时间)
+        const ocrText = await pollImageRecognitionResult(taskId, 30, 3000);
         allOcrTexts.push(ocrText);
       }
 
       // 4. 合并所有识别结果
-      toast({
-        title: '处理中',
-        description: '正在解析识别结果...',
-      });
+      setCurrentStep('正在解析识别结果...');
+      setUploadProgress(((selectedFiles.length + 1) / totalSteps) * 100);
       const combinedText = allOcrTexts.join('\n\n');
 
       // 5. 解析数据
       const { examRecord, moduleScores } = parseExamData(combinedText, examNumber);
 
       // 6. 保存到数据库
-      toast({
-        title: '处理中',
-        description: '正在保存数据...',
-      });
+      setCurrentStep('正在保存数据...');
+      setUploadProgress(((selectedFiles.length + 2) / totalSteps) * 100);
       const savedRecord = await createExamRecord(examRecord);
       
       if (moduleScores.length > 0) {
@@ -162,6 +161,8 @@ export default function Upload() {
       });
     } finally {
       setIsUploading(false);
+      setUploadProgress(0);
+      setCurrentStep('');
     }
   };
 
@@ -199,10 +200,11 @@ export default function Upload() {
                   multiple
                   onChange={handleFileChange}
                   className="flex-1"
+                  disabled={isUploading}
                 />
               </div>
               <p className="text-sm text-muted-foreground">
-                可以一次选择多张图片,每张图片最大10MB
+                可以一次选择多张图片,每张图片最大10MB。建议按顺序选择图片以便更好地识别。
               </p>
 
               {selectedFiles.length > 0 && (
@@ -219,6 +221,7 @@ export default function Upload() {
                         selectedFiles.forEach(f => URL.revokeObjectURL(f.previewUrl));
                         setSelectedFiles([]);
                       }}
+                      disabled={isUploading}
                     >
                       清空所有
                     </Button>
@@ -234,11 +237,15 @@ export default function Upload() {
                           type="button"
                           variant="destructive"
                           size="icon"
-                          className="absolute top-2 right-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="absolute top-2 right-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity z-10"
                           onClick={() => removeFile(index)}
+                          disabled={isUploading}
                         >
                           <X className="h-4 w-4" />
                         </Button>
+                        <div className="absolute top-2 left-2 bg-primary text-primary-foreground px-2 py-1 rounded text-xs font-medium">
+                          {index + 1}
+                        </div>
                         <img
                           src={fileWithPreview.previewUrl}
                           alt={`预览 ${index + 1}`}
@@ -253,6 +260,19 @@ export default function Upload() {
                 </div>
               )}
             </div>
+
+            {isUploading && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">{currentStep}</span>
+                  <span className="font-medium">{Math.round(uploadProgress)}%</span>
+                </div>
+                <Progress value={uploadProgress} className="h-2" />
+                <p className="text-xs text-muted-foreground">
+                  图片识别可能需要较长时间,请耐心等待...
+                </p>
+              </div>
+            )}
 
             <Button
               type="submit"

@@ -57,28 +57,39 @@ export async function getImageRecognitionResult(
   }
 }
 
-// 轮询获取识别结果(最多尝试10次,每次间隔2秒)
+// 轮询获取识别结果(最多尝试30次,每次间隔3秒,总计90秒)
 export async function pollImageRecognitionResult(
   taskId: string,
-  maxAttempts: number = 10,
-  interval: number = 2000
+  maxAttempts: number = 30,
+  interval: number = 3000
 ): Promise<string> {
   for (let i = 0; i < maxAttempts; i++) {
-    const result = await getImageRecognitionResult(taskId);
+    try {
+      const result = await getImageRecognitionResult(taskId);
 
-    if (result.data.result.ret_code === 0) {
-      // 处理成功
-      return result.data.result.description;
-    }
+      if (result.data.result.ret_code === 0) {
+        // 处理成功
+        return result.data.result.description;
+      }
 
-    if (result.data.result.ret_code === 1) {
-      // 处理中,等待后重试
+      if (result.data.result.ret_code === 1) {
+        // 处理中,等待后重试
+        if (i < maxAttempts - 1) {
+          await new Promise((resolve) => setTimeout(resolve, interval));
+          continue;
+        }
+      }
+
+      // 其他错误
+      throw new Error(result.data.result.ret_msg || '识别失败');
+    } catch (error) {
+      // 如果是最后一次尝试,抛出错误
+      if (i === maxAttempts - 1) {
+        throw error;
+      }
+      // 否则等待后继续
       await new Promise((resolve) => setTimeout(resolve, interval));
-      continue;
     }
-
-    // 其他错误
-    throw new Error(result.data.result.ret_msg || '识别失败');
   }
 
   throw new Error('识别超时,请稍后重试');
