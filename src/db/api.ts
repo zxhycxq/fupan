@@ -400,32 +400,36 @@ export async function saveExamConfig(
 // 获取所有模块和子模块的详细统计数据
 export async function getModuleDetailedStats(): Promise<{
   module_name: string;
-  sub_module_name: string | null;
+  parent_module: string | null;
   total_questions: number;
   correct_answers: number;
   accuracy: number;
 }[]> {
   const { data, error } = await supabase
     .from('module_scores')
-    .select('module_name, sub_module_name, total_questions, correct_answers, accuracy')
-    .order('module_name')
-    .order('sub_module_name');
+    .select('module_name, parent_module, total_questions, correct_answers, accuracy_rate')
+    .order('parent_module', { nullsFirst: true })
+    .order('module_name');
 
   if (error) {
     console.error('获取模块详细统计失败:', error);
     throw error;
   }
 
-  // 聚合数据：按模块和子模块分组，计算总和
+  // 聚合数据：按模块和父模块分组，计算总和
   const statsMap = new Map<string, {
     module_name: string;
-    sub_module_name: string | null;
+    parent_module: string | null;
     total_questions: number;
     correct_answers: number;
   }>();
 
   (data || []).forEach(record => {
-    const key = `${record.module_name}|${record.sub_module_name || ''}`;
+    // 如果有parent_module，说明这是子模块
+    const key = record.parent_module 
+      ? `${record.parent_module}|${record.module_name}`
+      : `${record.module_name}|`;
+    
     const existing = statsMap.get(key);
     
     if (existing) {
@@ -434,7 +438,7 @@ export async function getModuleDetailedStats(): Promise<{
     } else {
       statsMap.set(key, {
         module_name: record.module_name,
-        sub_module_name: record.sub_module_name,
+        parent_module: record.parent_module,
         total_questions: record.total_questions,
         correct_answers: record.correct_answers,
       });

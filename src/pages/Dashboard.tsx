@@ -17,7 +17,7 @@ export default function Dashboard() {
   }>({ exam_numbers: [], modules: [] });
   const [moduleDetailedStats, setModuleDetailedStats] = useState<{
     module_name: string;
-    sub_module_name: string | null;
+    parent_module: string | null;
     total_questions: number;
     correct_answers: number;
     accuracy: number;
@@ -360,7 +360,6 @@ export default function Dashboard() {
   interface TableDataType {
     key: string;
     module_name: string;
-    sub_module_name?: string;
     total_questions: number;
     correct_answers: number;
     accuracy: number;
@@ -378,8 +377,8 @@ export default function Dashboard() {
   const moduleMap = new Map<string, TableDataType>();
 
   moduleDetailedStats.forEach(stat => {
-    if (!stat.sub_module_name) {
-      // 主模块数据
+    if (!stat.parent_module) {
+      // 主模块数据（没有parent_module的记录）
       if (!moduleMap.has(stat.module_name)) {
         moduleMap.set(stat.module_name, {
           key: stat.module_name,
@@ -398,11 +397,13 @@ export default function Dashboard() {
           : 0;
       }
     } else {
-      // 子模块数据
-      if (!moduleMap.has(stat.module_name)) {
-        moduleMap.set(stat.module_name, {
-          key: stat.module_name,
-          module_name: stat.module_name,
+      // 子模块数据（有parent_module的记录）
+      const parentName = stat.parent_module;
+      
+      if (!moduleMap.has(parentName)) {
+        moduleMap.set(parentName, {
+          key: parentName,
+          module_name: parentName,
           total_questions: 0,
           correct_answers: 0,
           accuracy: 0,
@@ -410,10 +411,10 @@ export default function Dashboard() {
         });
       }
       
-      const parent = moduleMap.get(stat.module_name)!;
+      const parent = moduleMap.get(parentName)!;
       parent.children!.push({
-        key: `${stat.module_name}-${stat.sub_module_name}`,
-        module_name: stat.sub_module_name,
+        key: `${parentName}-${stat.module_name}`,
+        module_name: stat.module_name,
         total_questions: stat.total_questions,
         correct_answers: stat.correct_answers,
         accuracy: stat.accuracy,
