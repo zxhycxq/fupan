@@ -3,15 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { getAllExamRecords, deleteExamRecord, updateExamRecord } from '@/db/api';
 import type { ExamRecord } from '@/types';
 import { Eye, Trash2, Plus } from 'lucide-react';
-import { Table, InputNumber, Modal } from 'antd';
+import { Table, InputNumber, Modal, DatePicker } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { SortableContainer, SortableElement, SortableHandle } from 'react-sortable-hoc';
 import { MenuOutlined } from '@ant-design/icons';
 import { arrayMoveImmutable } from 'array-move';
+import dayjs from 'dayjs';
 
 // 拖拽手柄
 const DragHandle = SortableHandle(() => (
@@ -114,6 +116,9 @@ export default function ExamList() {
         // 保留1位小数
         updates.pass_rate = Math.round(editingRecord.pass_rate * 10) / 10;
       }
+      if (editingRecord.exam_date !== undefined) {
+        updates.exam_date = editingRecord.exam_date;
+      }
 
       await updateExamRecord(id, updates);
       
@@ -185,10 +190,14 @@ export default function ExamList() {
       render: (value: number, record: ExamRecord) => {
         const editable = isEditing(record);
         return editable ? (
-          <InputNumber
+          <Input
+            type="number"
             min={1}
             value={editingRecord.exam_number}
-            onChange={(val) => setEditingRecord({ ...editingRecord, exam_number: val || 1 })}
+            onChange={(e) => {
+              const val = parseInt(e.target.value);
+              setEditingRecord({ ...editingRecord, exam_number: isNaN(val) ? 1 : val });
+            }}
             style={{ width: '100%' }}
           />
         ) : (
@@ -204,15 +213,18 @@ export default function ExamList() {
       render: (value: number, record: ExamRecord) => {
         const editable = isEditing(record);
         return editable ? (
-          <InputNumber
+          <Input
+            type="number"
             min={0}
             max={100}
             step={0.1}
             value={editingRecord.total_score}
-            onChange={(val) => setEditingRecord({ ...editingRecord, total_score: val ?? 60 })}
+            onChange={(e) => {
+              const val = parseFloat(e.target.value);
+              setEditingRecord({ ...editingRecord, total_score: isNaN(val) ? 60 : val });
+            }}
             style={{ width: '100%' }}
             placeholder="60.0"
-            stringMode={false}
           />
         ) : (
           <span
@@ -233,11 +245,14 @@ export default function ExamList() {
       render: (value: number | null, record: ExamRecord) => {
         const editable = isEditing(record);
         return editable ? (
-          <InputNumber
+          <Input
+            type="number"
             min={0}
-            precision={0}
-            value={editingRecord.time_used || undefined}
-            onChange={(val) => setEditingRecord({ ...editingRecord, time_used: val || null })}
+            value={editingRecord.time_used || ''}
+            onChange={(e) => {
+              const val = parseInt(e.target.value);
+              setEditingRecord({ ...editingRecord, time_used: isNaN(val) ? null : val });
+            }}
             placeholder="分钟"
             style={{ width: '100%' }}
           />
@@ -256,15 +271,18 @@ export default function ExamList() {
       render: (value: number | null, record: ExamRecord) => {
         const editable = isEditing(record);
         return editable ? (
-          <InputNumber
+          <Input
+            type="number"
             min={0}
             max={100}
             step={0.1}
-            value={editingRecord.average_score ?? undefined}
-            onChange={(val) => setEditingRecord({ ...editingRecord, average_score: val ?? 60 })}
+            value={editingRecord.average_score ?? ''}
+            onChange={(e) => {
+              const val = parseFloat(e.target.value);
+              setEditingRecord({ ...editingRecord, average_score: isNaN(val) ? 60 : val });
+            }}
             style={{ width: '100%' }}
             placeholder="60.0"
-            stringMode={false}
           />
         ) : value ? (
           value.toFixed(1)
@@ -281,17 +299,22 @@ export default function ExamList() {
       render: (value: number | null, record: ExamRecord) => {
         const editable = isEditing(record);
         return editable ? (
-          <InputNumber
-            min={0}
-            max={100}
-            step={0.1}
-            value={editingRecord.pass_rate ?? undefined}
-            onChange={(val) => setEditingRecord({ ...editingRecord, pass_rate: val ?? null })}
-            addonAfter="%"
-            style={{ width: '100%' }}
-            placeholder="50.0"
-            stringMode={false}
-          />
+          <div className="flex items-center">
+            <Input
+              type="number"
+              min={0}
+              max={100}
+              step={0.1}
+              value={editingRecord.pass_rate ?? ''}
+              onChange={(e) => {
+                const val = parseFloat(e.target.value);
+                setEditingRecord({ ...editingRecord, pass_rate: isNaN(val) ? null : val });
+              }}
+              style={{ width: '100%' }}
+              placeholder="50.0"
+            />
+            <span className="ml-1">%</span>
+          </div>
         ) : value ? (
           `${value.toFixed(1)}%`
         ) : (
@@ -305,6 +328,38 @@ export default function ExamList() {
       key: 'created_at',
       width: 180,
       render: (value: string) => formatDate(value),
+    },
+    {
+      title: '考试日期',
+      dataIndex: 'exam_date',
+      key: 'exam_date',
+      width: 150,
+      render: (value: string | null, record: ExamRecord) => {
+        const editable = isEditing(record);
+        return editable ? (
+          <DatePicker
+            value={editingRecord.exam_date ? dayjs(editingRecord.exam_date) : null}
+            onChange={(date) => {
+              setEditingRecord({ 
+                ...editingRecord, 
+                exam_date: date ? date.format('YYYY-MM-DD') : null 
+              });
+            }}
+            disabledDate={(current) => {
+              // 不可早于上传时间
+              const uploadDate = dayjs(record.created_at).startOf('day');
+              return current && current.isBefore(uploadDate);
+            }}
+            format="YYYY-MM-DD"
+            placeholder="选择日期"
+            style={{ width: '100%' }}
+          />
+        ) : value ? (
+          value
+        ) : (
+          '-'
+        );
+      },
     },
     {
       title: '操作',
