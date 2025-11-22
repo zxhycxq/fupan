@@ -1,4 +1,7 @@
-import SamplePage from './pages/SamplePage';
+import Dashboard from './pages/Dashboard';
+import Upload from './pages/Upload';
+import ExamList from './pages/ExamList';
+import ExamDetail from './pages/ExamDetail';
 import type { ReactNode } from 'react';
 
 interface RouteConfig {
@@ -10,10 +13,29 @@ interface RouteConfig {
 
 const routes: RouteConfig[] = [
   {
-    name: 'Sample Page',
+    name: '数据分析',
     path: '/',
-    element: <SamplePage />
-  }
+    element: <Dashboard />,
+    visible: true,
+  },
+  {
+    name: '上传成绩',
+    path: '/upload',
+    element: <Upload />,
+    visible: true,
+  },
+  {
+    name: '考试记录',
+    path: '/exams',
+    element: <ExamList />,
+    visible: true,
+  },
+  {
+    name: '考试详情',
+    path: '/exam/:id',
+    element: <ExamDetail />,
+    visible: false,
+  },
 ];
 
 export default routes;

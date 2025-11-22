@@ -1,33 +1,26 @@
-import React, { useState } from "react";
+import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import routes from "../../routes";
+import { BarChart3 } from "lucide-react";
 
 const Header: React.FC = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
   const navigation = routes.filter((route) => route.visible !== false);
 
   return (
-    <header className="bg-white shadow-md sticky top-0 z-10">
+    <header className="bg-white shadow-md sticky top-0 z-10 border-b">
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link to="/" className="flex-shrink-0 flex items-center">
-              {/* Please replace with your website logo */}
-              <img
-                className="h-8 w-auto"
-                src={`https://miaoda-site-img.cdn.bcebos.com/placeholder/code_logo_default.png`}
-                alt="Website logo"
-              />
-              {/* Please replace with your website name */}
+              <BarChart3 className="h-8 w-8 text-blue-600" />
               <span className="ml-2 text-xl font-bold text-blue-600">
-                Website Name
+                考试成绩分析系统
               </span>
             </Link>
           </div>
 
-          {/* When there's only one page, you can remove the entire navigation section */}
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="flex items-center space-x-8">
             {navigation.map((item) => (
               <Link
                 key={item.path}
