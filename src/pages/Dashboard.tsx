@@ -386,7 +386,7 @@ export default function Dashboard() {
 
   moduleDetailedStats.forEach(stat => {
     if (!stat.parent_module) {
-      // 主模块数据
+      // 主模块数据 - 不累加，直接使用原始数据
       if (!moduleMap.has(stat.module_name)) {
         moduleMap.set(stat.module_name, {
           key: stat.module_name,
@@ -397,6 +397,7 @@ export default function Dashboard() {
       }
       
       const module = moduleMap.get(stat.module_name)!;
+      // 直接设置，不累加
       module.exams.set(stat.exam_number, {
         exam_number: stat.exam_number,
         total_questions: stat.total_questions,
@@ -436,29 +437,43 @@ export default function Dashboard() {
         correct_answers: stat.correct_answers,
         accuracy: stat.accuracy,
       });
-      
-      // 更新父模块的汇总数据
-      const parentExam = parent.exams.get(stat.exam_number);
-      if (parentExam) {
-        parentExam.total_questions += stat.total_questions;
-        parentExam.correct_answers += stat.correct_answers;
-        parentExam.accuracy = parentExam.total_questions > 0
-          ? Number(((parentExam.correct_answers / parentExam.total_questions) * 100).toFixed(2))
-          : 0;
-      } else {
-        parent.exams.set(stat.exam_number, {
-          exam_number: stat.exam_number,
-          total_questions: stat.total_questions,
-          correct_answers: stat.correct_answers,
-          accuracy: stat.accuracy,
-        });
-      }
     }
   });
 
   const tableData: TableDataType[] = Array.from(moduleMap.values());
 
-  // 定义表格列
+  // 计算总计行数据
+  const totalRow: TableDataType = {
+    key: 'total',
+    module_name: '总计',
+    exams: new Map(),
+  };
+
+  allExamNumbers.forEach(examNum => {
+    let totalQuestions = 0;
+    let totalCorrect = 0;
+    
+    // 只统计主模块的数据
+    tableData.forEach(module => {
+      const examData = module.exams.get(examNum);
+      if (examData) {
+        totalQuestions += examData.total_questions;
+        totalCorrect += examData.correct_answers;
+      }
+    });
+    
+    totalRow.exams.set(examNum, {
+      exam_number: examNum,
+      total_questions: totalQuestions,
+      correct_answers: totalCorrect,
+      accuracy: totalQuestions > 0 ? Number(((totalCorrect / totalQuestions) * 100).toFixed(2)) : 0,
+    });
+  });
+
+  // 将总计行添加到表格数据末尾
+  const tableDataWithTotal = [...tableData, totalRow];
+
+  // 定义表格列 - 使用分组表头
   const columns: ColumnsType<TableDataType> = [
     {
       title: '模块名称',
@@ -466,35 +481,78 @@ export default function Dashboard() {
       key: 'module_name',
       fixed: 'left',
       width: 150,
+      render: (text: string, record: TableDataType) => {
+        if (record.key === 'total') {
+          return <strong>{text}</strong>;
+        }
+        return text;
+      },
     },
     ...allExamNumbers.map(examNum => ({
       title: `第${examNum}期`,
       key: `exam_${examNum}`,
-      width: 180,
-      align: 'center' as const,
-      render: (_: any, record: TableDataType) => {
-        const examData = record.exams.get(examNum);
-        if (!examData) {
-          return <span className="text-muted-foreground">-</span>;
-        }
-        
-        const target = getTargetAccuracy(record.module_name);
-        const isLow = examData.accuracy < target;
-        
-        return (
-          <div className="text-sm">
-            <div>{examData.total_questions}题 / {examData.correct_answers}对</div>
-            <div 
-              style={{ 
-                color: isLow ? '#ef4444' : 'inherit', 
-                fontWeight: isLow ? 'bold' : 'normal' 
-              }}
-            >
-              {examData.accuracy.toFixed(2)}%
-            </div>
-          </div>
-        );
-      },
+      children: [
+        {
+          title: '题目数',
+          key: `exam_${examNum}_questions`,
+          width: 80,
+          align: 'center' as const,
+          render: (_: any, record: TableDataType) => {
+            const examData = record.exams.get(examNum);
+            if (!examData) {
+              return <span className="text-muted-foreground">-</span>;
+            }
+            const content = examData.total_questions;
+            return record.key === 'total' ? <strong>{content}</strong> : content;
+          },
+        },
+        {
+          title: '答对数',
+          key: `exam_${examNum}_correct`,
+          width: 80,
+          align: 'center' as const,
+          render: (_: any, record: TableDataType) => {
+            const examData = record.exams.get(examNum);
+            if (!examData) {
+              return <span className="text-muted-foreground">-</span>;
+            }
+            const content = examData.correct_answers;
+            return record.key === 'total' ? <strong>{content}</strong> : content;
+          },
+        },
+        {
+          title: '正确率',
+          key: `exam_${examNum}_accuracy`,
+          width: 90,
+          align: 'center' as const,
+          render: (_: any, record: TableDataType) => {
+            const examData = record.exams.get(examNum);
+            if (!examData) {
+              return <span className="text-muted-foreground">-</span>;
+            }
+            
+            const target = getTargetAccuracy(record.module_name);
+            const isLow = examData.accuracy < target && record.key !== 'total';
+            
+            const content = `${examData.accuracy.toFixed(2)}%`;
+            
+            if (record.key === 'total') {
+              return <strong>{content}</strong>;
+            }
+            
+            return (
+              <span 
+                style={{ 
+                  color: isLow ? '#ef4444' : 'inherit', 
+                  fontWeight: isLow ? 'bold' : 'normal' 
+                }}
+              >
+                {content}
+              </span>
+            );
+          },
+        },
+      ],
     })),
   ];
 
@@ -659,13 +717,14 @@ export default function Dashboard() {
           <CardContent>
             <Table
               columns={columns}
-              dataSource={tableData}
+              dataSource={tableDataWithTotal}
               pagination={false}
               size="middle"
               bordered
               scroll={{ x: 'max-content' }}
               expandable={{
                 defaultExpandAllRows: false,
+                rowExpandable: (record) => record.key !== 'total' && (record.children?.length || 0) > 0,
               }}
             />
           </CardContent>
