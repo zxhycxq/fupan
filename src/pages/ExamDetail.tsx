@@ -314,8 +314,35 @@ export default function ExamDetail() {
     return null;
   }
 
-  // 获取大模块数据
-  const mainModules = examDetail.module_scores.filter(m => !m.parent_module);
+  // 定义模块显示顺序
+  const moduleOrder = [
+    '政治理论',
+    '常识判断',
+    '言语理解与表达',
+    '数量关系',
+    '判断推理',
+    '资料分析'
+  ];
+
+  // 获取大模块数据并按指定顺序排序
+  const mainModules = examDetail.module_scores
+    .filter(m => !m.parent_module)
+    .sort((a, b) => {
+      const indexA = moduleOrder.indexOf(a.module_name);
+      const indexB = moduleOrder.indexOf(b.module_name);
+      // 如果模块名不在排序列表中，放到最后
+      if (indexA === -1) return 1;
+      if (indexB === -1) return -1;
+      return indexA - indexB;
+    });
+  
+  // 判断是否应该标红（低于目标值或默认50%）
+  const shouldHighlightRed = (moduleName: string, accuracyRate: number | undefined): boolean => {
+    if (!accuracyRate) return true; // 没有数据时标红
+    const setting = userSettings.find(s => s.module_name === moduleName);
+    const threshold = setting?.target_accuracy || 50; // 默认50%
+    return accuracyRate < threshold;
+  };
   
   // 获取弱势模块(正确率低于60%)
   const weakModules = mainModules.filter(m => (m.accuracy_rate || 0) < 60);
@@ -734,7 +761,13 @@ export default function ExamDetail() {
                     </div>
                     <div>
                       <span className="text-muted-foreground">答对:</span>
-                      <span className="ml-2 font-medium text-green-600">{mainModule.correct_answers}</span>
+                      <span className={`ml-2 font-medium ${
+                        shouldHighlightRed(mainModule.module_name, mainModule.accuracy_rate) 
+                          ? 'text-red-600' 
+                          : 'text-green-600'
+                      }`}>
+                        {mainModule.correct_answers}
+                      </span>
                     </div>
                     <div>
                       <span className="text-muted-foreground">答错:</span>
@@ -769,7 +802,13 @@ export default function ExamDetail() {
                           </div>
                           <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground ml-6">
                             <div>总题数: {subModule.total_questions}</div>
-                            <div>答对: {subModule.correct_answers}</div>
+                            <div className={
+                              shouldHighlightRed(subModule.module_name, subModule.accuracy_rate)
+                                ? 'text-red-600 font-medium'
+                                : ''
+                            }>
+                              答对: {subModule.correct_answers}
+                            </div>
                             <div>答错: {subModule.wrong_answers}</div>
                             <div>用时: {formatTime(subModule.time_used)}</div>
                           </div>
