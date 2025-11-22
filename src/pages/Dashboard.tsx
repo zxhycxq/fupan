@@ -2,13 +2,17 @@ import { useEffect, useState } from 'react';
 import ReactECharts from 'echarts-for-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getAllExamRecords, getModuleAverageScores } from '@/db/api';
+import { getAllExamRecords, getModuleAverageScores, getModuleTrendData } from '@/db/api';
 import type { ExamRecord } from '@/types';
 import { TrendingUp, Clock, Target, Award } from 'lucide-react';
 
 export default function Dashboard() {
   const [examRecords, setExamRecords] = useState<ExamRecord[]>([]);
   const [moduleAvgScores, setModuleAvgScores] = useState<{ module_name: string; avg_accuracy: number }[]>([]);
+  const [moduleTrendData, setModuleTrendData] = useState<{
+    exam_numbers: number[];
+    modules: { module_name: string; data: (number | null)[] }[];
+  }>({ exam_numbers: [], modules: [] });
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -18,12 +22,14 @@ export default function Dashboard() {
   const loadData = async () => {
     try {
       setIsLoading(true);
-      const [records, avgScores] = await Promise.all([
+      const [records, avgScores, trendData] = await Promise.all([
         getAllExamRecords(),
         getModuleAverageScores(),
+        getModuleTrendData(),
       ]);
       setExamRecords(records);
       setModuleAvgScores(avgScores);
+      setModuleTrendData(trendData);
     } catch (error) {
       console.error('加载数据失败:', error);
     } finally {
@@ -131,6 +137,76 @@ export default function Dashboard() {
         },
       },
     ],
+  };
+
+  // 模块趋势图配置
+  const moduleTrendOption = {
+    title: {
+      text: '各模块正确率趋势',
+      left: 'center',
+    },
+    tooltip: {
+      trigger: 'axis',
+      formatter: (params: any) => {
+        if (!params || params.length === 0) return '';
+        const examNumber = params[0].axisValue;
+        let result = `第${examNumber}次考试<br/>`;
+        params.forEach((param: any) => {
+          if (param.value !== null && param.value !== undefined) {
+            result += `${param.marker}${param.seriesName}: ${param.value.toFixed(2)}%<br/>`;
+          }
+        });
+        return result;
+      },
+    },
+    legend: {
+      data: moduleTrendData.modules.map(m => m.module_name),
+      top: 30,
+      type: 'scroll',
+    },
+    grid: {
+      left: '3%',
+      right: '4%',
+      bottom: '3%',
+      top: 80,
+      containLabel: true,
+    },
+    xAxis: {
+      type: 'category',
+      boundaryGap: false,
+      data: moduleTrendData.exam_numbers.map(n => `第${n}次`),
+      name: '考试期数',
+    },
+    yAxis: {
+      type: 'value',
+      name: '正确率(%)',
+      min: 0,
+      max: 100,
+    },
+    series: moduleTrendData.modules.map((module, index) => ({
+      name: module.module_name,
+      type: 'line',
+      data: module.data,
+      smooth: true,
+      connectNulls: true,
+      symbol: 'circle',
+      symbolSize: 6,
+      lineStyle: {
+        width: 2,
+      },
+      itemStyle: {
+        color: [
+          '#5470C6',
+          '#91CC75',
+          '#FAC858',
+          '#EE6666',
+          '#73C0DE',
+          '#3BA272',
+          '#FC8452',
+          '#9A60B4',
+        ][index % 8],
+      },
+    })),
   };
 
   // 得分分布图配置
@@ -284,6 +360,16 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <ReactECharts option={scoreTrendOption} style={{ height: '400px' }} />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>各模块正确率趋势</CardTitle>
+            <CardDescription>各大模块在不同考试中的正确率变化趋势</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ReactECharts option={moduleTrendOption} style={{ height: '450px' }} />
           </CardContent>
         </Card>
 

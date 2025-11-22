@@ -194,6 +194,66 @@ export async function getModuleAverageScores(): Promise<{ module_name: string; a
   return result;
 }
 
+// 获取模块趋势数据(按考试期数)
+export async function getModuleTrendData(): Promise<{
+  exam_numbers: number[];
+  modules: { module_name: string; data: (number | null)[] }[];
+}> {
+  // 获取所有考试记录和模块得分
+  const { data: examRecords, error: examError } = await supabase
+    .from('exam_records')
+    .select('id, exam_number')
+    .order('exam_number', { ascending: true });
+
+  if (examError) {
+    console.error('获取考试记录失败:', examError);
+    throw examError;
+  }
+
+  if (!Array.isArray(examRecords) || examRecords.length === 0) {
+    return { exam_numbers: [], modules: [] };
+  }
+
+  // 获取所有主模块得分
+  const { data: moduleScores, error: moduleError } = await supabase
+    .from('module_scores')
+    .select('exam_record_id, module_name, accuracy_rate')
+    .is('parent_module', null)
+    .order('module_name', { ascending: true });
+
+  if (moduleError) {
+    console.error('获取模块得分失败:', moduleError);
+    throw moduleError;
+  }
+
+  if (!Array.isArray(moduleScores)) {
+    return { exam_numbers: [], modules: [] };
+  }
+
+  // 构建数据结构
+  const exam_numbers = examRecords.map(r => r.exam_number);
+  const moduleMap = new Map<string, Map<string, number>>();
+
+  // 按模块名称和考试ID组织数据
+  for (const score of moduleScores) {
+    if (!moduleMap.has(score.module_name)) {
+      moduleMap.set(score.module_name, new Map());
+    }
+    moduleMap.get(score.module_name)?.set(score.exam_record_id, score.accuracy_rate || 0);
+  }
+
+  // 转换为图表数据格式
+  const modules = Array.from(moduleMap.entries()).map(([module_name, scoreMap]) => {
+    const data = examRecords.map(exam => {
+      const accuracy = scoreMap.get(exam.id);
+      return accuracy !== undefined ? accuracy : null;
+    });
+    return { module_name, data };
+  });
+
+  return { exam_numbers, modules };
+}
+
 // 更新模块得分
 export async function updateModuleScore(
   id: string,
