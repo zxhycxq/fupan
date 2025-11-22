@@ -56,19 +56,38 @@ export default function Dashboard() {
     title: {
       text: '总分趋势',
       left: 'center',
+      textStyle: {
+        fontSize: window.innerWidth < 640 ? 14 : 16,
+      },
     },
     tooltip: {
       trigger: 'axis',
     },
+    grid: {
+      left: window.innerWidth < 640 ? '5%' : '3%',
+      right: window.innerWidth < 640 ? '5%' : '4%',
+      bottom: window.innerWidth < 640 ? '8%' : '3%',
+      top: window.innerWidth < 640 ? 50 : 60,
+      containLabel: true,
+    },
     xAxis: {
       type: 'category',
       data: examRecords.map(r => `第${r.exam_number}期`),
+      axisLabel: {
+        fontSize: window.innerWidth < 640 ? 10 : 12,
+      },
     },
     yAxis: {
       type: 'value',
       name: '分数',
       min: 0,
       max: 100,
+      nameTextStyle: {
+        fontSize: window.innerWidth < 640 ? 10 : 12,
+      },
+      axisLabel: {
+        fontSize: window.innerWidth < 640 ? 10 : 12,
+      },
     },
     series: [
       {
@@ -101,6 +120,9 @@ export default function Dashboard() {
     title: {
       text: '各模块平均正确率',
       left: 'center',
+      textStyle: {
+        fontSize: window.innerWidth < 640 ? 14 : 16,
+      },
     },
     tooltip: {
       trigger: 'axis',
@@ -108,12 +130,20 @@ export default function Dashboard() {
         type: 'shadow',
       },
     },
+    grid: {
+      left: window.innerWidth < 640 ? '5%' : '3%',
+      right: window.innerWidth < 640 ? '5%' : '4%',
+      bottom: window.innerWidth < 640 ? '15%' : '10%',
+      top: window.innerWidth < 640 ? 50 : 60,
+      containLabel: true,
+    },
     xAxis: {
       type: 'category',
       data: moduleAvgScores.map(m => m.module_name),
       axisLabel: {
         interval: 0,
-        rotate: 45,
+        rotate: window.innerWidth < 640 ? 45 : 30,
+        fontSize: window.innerWidth < 640 ? 10 : 12,
       },
     },
     yAxis: {
@@ -121,6 +151,12 @@ export default function Dashboard() {
       name: '正确率(%)',
       min: 0,
       max: 100,
+      nameTextStyle: {
+        fontSize: window.innerWidth < 640 ? 10 : 12,
+      },
+      axisLabel: {
+        fontSize: window.innerWidth < 640 ? 10 : 12,
+      },
     },
     series: [
       {
@@ -144,6 +180,9 @@ export default function Dashboard() {
     title: {
       text: '各模块正确率趋势',
       left: 'center',
+      textStyle: {
+        fontSize: window.innerWidth < 640 ? 14 : 16,
+      },
     },
     tooltip: {
       trigger: 'axis',
@@ -163,12 +202,15 @@ export default function Dashboard() {
       data: moduleTrendData.modules.map(m => m.module_name),
       top: 30,
       type: 'scroll',
+      textStyle: {
+        fontSize: window.innerWidth < 640 ? 10 : 12,
+      },
     },
     grid: {
-      left: '5%',
-      right: '5%',
-      bottom: '3%',
-      top: 80,
+      left: window.innerWidth < 640 ? '8%' : '5%',
+      right: window.innerWidth < 640 ? '8%' : '5%',
+      bottom: window.innerWidth < 640 ? '8%' : '3%',
+      top: window.innerWidth < 640 ? 70 : 80,
       containLabel: true,
     },
     xAxis: {
@@ -176,12 +218,24 @@ export default function Dashboard() {
       boundaryGap: ['5%', '5%'], // 左右留间隙
       data: moduleTrendData.exam_numbers.map(n => `第${n}次`),
       name: '考试期数',
+      nameTextStyle: {
+        fontSize: window.innerWidth < 640 ? 10 : 12,
+      },
+      axisLabel: {
+        fontSize: window.innerWidth < 640 ? 10 : 12,
+      },
     },
     yAxis: {
       type: 'value',
       name: '正确率(%)',
       min: 0,
       max: 100,
+      nameTextStyle: {
+        fontSize: window.innerWidth < 640 ? 10 : 12,
+      },
+      axisLabel: {
+        fontSize: window.innerWidth < 640 ? 10 : 12,
+      },
     },
     series: moduleTrendData.modules.map((module, index) => ({
       name: module.module_name,
@@ -214,15 +268,27 @@ export default function Dashboard() {
     title: {
       text: '得分分布',
       left: 'center',
+      textStyle: {
+        fontSize: window.innerWidth < 640 ? 14 : 16,
+      },
     },
     tooltip: {
       trigger: 'item',
+    },
+    legend: {
+      orient: window.innerWidth < 640 ? 'horizontal' : 'vertical',
+      left: window.innerWidth < 640 ? 'center' : 'left',
+      top: window.innerWidth < 640 ? 'bottom' : 'middle',
+      textStyle: {
+        fontSize: window.innerWidth < 640 ? 10 : 12,
+      },
     },
     series: [
       {
         name: '得分区间',
         type: 'pie',
-        radius: '50%',
+        radius: window.innerWidth < 640 ? '45%' : '50%',
+        center: window.innerWidth < 640 ? ['50%', '45%'] : ['50%', '50%'],
         data: [
           {
             value: examRecords.filter(r => r.total_score >= 90).length,
@@ -245,6 +311,9 @@ export default function Dashboard() {
             name: '60分以下',
           },
         ],
+        label: {
+          fontSize: window.innerWidth < 640 ? 10 : 12,
+        },
         emphasis: {
           itemStyle: {
             shadowBlur: 10,
@@ -355,42 +424,54 @@ export default function Dashboard() {
       <div className="grid gap-6 md:grid-cols-2">
         <Card className="md:col-span-2">
           <CardHeader>
-            <CardTitle>总分趋势</CardTitle>
-            <CardDescription>查看历次考试的总分变化趋势</CardDescription>
+            <CardTitle className="text-lg sm:text-xl">总分趋势</CardTitle>
+            <CardDescription className="text-sm">查看历次考试的总分变化趋势</CardDescription>
           </CardHeader>
           <CardContent>
-            <ReactECharts option={scoreTrendOption} style={{ height: '400px' }} />
+            <ReactECharts 
+              option={scoreTrendOption} 
+              style={{ height: window.innerWidth < 640 ? '300px' : '400px' }} 
+            />
           </CardContent>
         </Card>
 
         {/* 模块趋势图独占一行 */}
         <Card className="md:col-span-2">
           <CardHeader>
-            <CardTitle>各模块正确率趋势</CardTitle>
-            <CardDescription>各大模块在不同考试中的正确率变化趋势</CardDescription>
+            <CardTitle className="text-lg sm:text-xl">各模块正确率趋势</CardTitle>
+            <CardDescription className="text-sm">各大模块在不同考试中的正确率变化趋势</CardDescription>
           </CardHeader>
           <CardContent>
-            <ReactECharts option={moduleTrendOption} style={{ height: '450px' }} />
+            <ReactECharts 
+              option={moduleTrendOption} 
+              style={{ height: window.innerWidth < 640 ? '350px' : '450px' }} 
+            />
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>各模块平均正确率</CardTitle>
-            <CardDescription>各大模块的平均正确率对比</CardDescription>
+            <CardTitle className="text-lg sm:text-xl">各模块平均正确率</CardTitle>
+            <CardDescription className="text-sm">各大模块的平均正确率对比</CardDescription>
           </CardHeader>
           <CardContent>
-            <ReactECharts option={moduleAvgOption} style={{ height: '400px' }} />
+            <ReactECharts 
+              option={moduleAvgOption} 
+              style={{ height: window.innerWidth < 640 ? '300px' : '400px' }} 
+            />
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>得分分布</CardTitle>
-            <CardDescription>不同分数段的考试次数分布</CardDescription>
+            <CardTitle className="text-lg sm:text-xl">得分分布</CardTitle>
+            <CardDescription className="text-sm">不同分数段的考试次数分布</CardDescription>
           </CardHeader>
           <CardContent>
-            <ReactECharts option={scoreDistributionOption} style={{ height: '400px' }} />
+            <ReactECharts 
+              option={scoreDistributionOption} 
+              style={{ height: window.innerWidth < 640 ? '300px' : '400px' }} 
+            />
           </CardContent>
         </Card>
       </div>
