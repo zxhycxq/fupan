@@ -5,15 +5,28 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { getExamRecordById } from '@/db/api';
+import { getExamRecordById, updateModuleScore } from '@/db/api';
 import type { ExamRecordDetail, ModuleScore } from '@/types';
-import { ArrowLeft, Clock, Target, TrendingUp, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Clock, Target, TrendingUp, AlertCircle, Edit } from 'lucide-react';
 
 export default function ExamDetail() {
   const { id } = useParams<{ id: string }>();
   const [examDetail, setExamDetail] = useState<ExamRecordDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [editingModule, setEditingModule] = useState<ModuleScore | null>(null);
+  const [editTime, setEditTime] = useState<string>('');
+  const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -46,6 +59,56 @@ export default function ExamDetail() {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // 打开编辑对话框
+  const handleEditTime = (module: ModuleScore) => {
+    setEditingModule(module);
+    setEditTime(module.time_used?.toString() || '0');
+  };
+
+  // 保存时间修改
+  const handleSaveTime = async () => {
+    if (!editingModule || !examDetail) return;
+
+    const newTime = parseInt(editTime);
+    if (isNaN(newTime) || newTime < 0) {
+      toast({
+        title: '错误',
+        description: '请输入有效的时间(秒)',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      await updateModuleScore(editingModule.id, { time_used: newTime });
+      
+      // 更新本地状态
+      setExamDetail({
+        ...examDetail,
+        module_scores: examDetail.module_scores.map(m =>
+          m.id === editingModule.id ? { ...m, time_used: newTime } : m
+        ),
+      });
+
+      toast({
+        title: '成功',
+        description: '时间已更新',
+      });
+      
+      setEditingModule(null);
+    } catch (error) {
+      console.error('更新时间失败:', error);
+      toast({
+        title: '错误',
+        description: '更新时间失败',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -331,6 +394,14 @@ export default function ExamDetail() {
                     <div>
                       <span className="text-muted-foreground">用时:</span>
                       <span className="ml-2 font-medium">{mainModule.time_used}秒</span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="ml-2 h-6 w-6 p-0"
+                        onClick={() => handleEditTime(mainModule)}
+                      >
+                        <Edit className="h-3 w-3" />
+                      </Button>
                     </div>
                   </div>
 
@@ -361,6 +432,41 @@ export default function ExamDetail() {
           </div>
         </CardContent>
       </Card>
+
+      {/* 时间编辑对话框 */}
+      <Dialog open={!!editingModule} onOpenChange={() => setEditingModule(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>编辑用时</DialogTitle>
+            <DialogDescription>
+              修改 {editingModule?.module_name} 的用时(秒)
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="time" className="text-right">
+                用时(秒)
+              </Label>
+              <Input
+                id="time"
+                type="number"
+                min="0"
+                value={editTime}
+                onChange={(e) => setEditTime(e.target.value)}
+                className="col-span-3"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingModule(null)}>
+              取消
+            </Button>
+            <Button onClick={handleSaveTime} disabled={isSaving}>
+              {isSaving ? '保存中...' : '保存'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

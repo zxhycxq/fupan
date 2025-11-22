@@ -56,6 +56,10 @@ export function parseExamData(
   // 解析模块得分
   const moduleScores: Omit<ModuleScore, 'id' | 'exam_record_id' | 'created_at'>[] = [];
   console.log('=== 开始解析模块数据 ===');
+  
+  // 判断是否记录细分模块时间(总用时小于10分钟=600秒)
+  const shouldRecordSubModuleTime = timeUsed >= 600;
+  console.log('总用时:', timeUsed, '秒,', shouldRecordSubModuleTime ? '记录所有模块时间' : '只记录一级和二级模块时间');
 
   // 定义模块结构
   const moduleStructure = [
@@ -157,6 +161,12 @@ export function parseExamData(
         // 检查用时单位
         if (childMatch[0].includes('分')) {
           timeUsedSec = timeUsedSec * 60;
+        }
+        
+        // 如果总用时小于10分钟,子模块时间设为0
+        if (!shouldRecordSubModuleTime) {
+          console.log(`  总用时小于10分钟,子模块时间设为0`);
+          timeUsedSec = 0;
         }
         
         const wrongAnswers = totalQuestions - correctAnswers;

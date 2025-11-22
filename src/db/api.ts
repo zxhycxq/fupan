@@ -193,3 +193,19 @@ export async function getModuleAverageScores(): Promise<{ module_name: string; a
 
   return result;
 }
+
+// 更新模块得分
+export async function updateModuleScore(
+  id: string,
+  updates: Partial<Omit<ModuleScore, 'id' | 'exam_record_id' | 'created_at'>>
+): Promise<void> {
+  const { error } = await supabase
+    .from('module_scores')
+    .update(updates)
+    .eq('id', id);
+
+  if (error) {
+    console.error('更新模块得分失败:', error);
+    throw error;
+  }
+}
