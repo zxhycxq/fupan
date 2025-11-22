@@ -1,6 +1,12 @@
 # 更新日志
 
-## 2025-11-22 - 多图片上传支持和超时优化
+## 2025-11-22 - Bug修复和优化
+
+### Bug修复
+- 🐛 **修复React Router错误**: 修复"Cannot read properties of null (reading 'useRef')"错误
+  - 将BrowserRouter从App.tsx移到main.tsx
+  - 确保Router在正确的React上下文中初始化
+  - 遵循React Router最佳实践
 
 ### 新增功能
 - ✅ **多图片上传**: 支持一次性上传多张考试成绩截图
@@ -32,10 +38,12 @@
 - 📝 优化错误处理逻辑
 - 📝 改进进度计算算法
 - 📝 添加内存清理机制(URL.revokeObjectURL)
+- 📝 修复React Router初始化问题
 
 ### 文档更新
 - 📚 更新用户指南,说明多图片上传功能
 - 📚 添加使用建议和注意事项
+- 📚 添加更新日志
 
 ## 初始版本
 
