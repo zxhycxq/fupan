@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import ReactECharts from 'echarts-for-react';
+import { Table } from 'antd';
+import type { ColumnsType } from 'antd/es/table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getAllExamRecords, getModuleAverageScores, getModuleTrendData } from '@/db/api';
-import type { ExamRecord } from '@/types';
+import { getAllExamRecords, getModuleAverageScores, getModuleTrendData, getModuleDetailedStats, getUserSettings } from '@/db/api';
+import type { ExamRecord, UserSetting } from '@/types';
 import { TrendingUp, Clock, Target, Award } from 'lucide-react';
 
 export default function Dashboard() {
@@ -13,6 +15,14 @@ export default function Dashboard() {
     exam_numbers: number[];
     modules: { module_name: string; data: (number | null)[] }[];
   }>({ exam_numbers: [], modules: [] });
+  const [moduleDetailedStats, setModuleDetailedStats] = useState<{
+    module_name: string;
+    sub_module_name: string | null;
+    total_questions: number;
+    correct_answers: number;
+    accuracy: number;
+  }[]>([]);
+  const [userSettings, setUserSettings] = useState<UserSetting[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -22,14 +32,18 @@ export default function Dashboard() {
   const loadData = async () => {
     try {
       setIsLoading(true);
-      const [records, avgScores, trendData] = await Promise.all([
+      const [records, avgScores, trendData, detailedStats, settings] = await Promise.all([
         getAllExamRecords(),
         getModuleAverageScores(),
         getModuleTrendData(),
+        getModuleDetailedStats(),
+        getUserSettings('default'),
       ]);
       setExamRecords(records);
       setModuleAvgScores(avgScores);
       setModuleTrendData(trendData);
+      setModuleDetailedStats(detailedStats);
+      setUserSettings(settings);
     } catch (error) {
       console.error('加载数据失败:', error);
     } finally {
@@ -342,6 +356,120 @@ export default function Dashboard() {
     ],
   };
 
+  // 准备表格数据
+  interface TableDataType {
+    key: string;
+    module_name: string;
+    sub_module_name?: string;
+    total_questions: number;
+    correct_answers: number;
+    accuracy: number;
+    children?: TableDataType[];
+  }
+
+  // 获取目标正确率
+  const getTargetAccuracy = (moduleName: string): number => {
+    const setting = userSettings.find(s => s.module_name === moduleName);
+    return setting?.target_accuracy || 80; // 默认80%
+  };
+
+  // 组织表格数据：按主模块分组，子模块作为children
+  const tableData: TableDataType[] = [];
+  const moduleMap = new Map<string, TableDataType>();
+
+  moduleDetailedStats.forEach(stat => {
+    if (!stat.sub_module_name) {
+      // 主模块数据
+      if (!moduleMap.has(stat.module_name)) {
+        moduleMap.set(stat.module_name, {
+          key: stat.module_name,
+          module_name: stat.module_name,
+          total_questions: stat.total_questions,
+          correct_answers: stat.correct_answers,
+          accuracy: stat.accuracy,
+          children: [],
+        });
+      } else {
+        const existing = moduleMap.get(stat.module_name)!;
+        existing.total_questions += stat.total_questions;
+        existing.correct_answers += stat.correct_answers;
+        existing.accuracy = existing.total_questions > 0
+          ? Number(((existing.correct_answers / existing.total_questions) * 100).toFixed(2))
+          : 0;
+      }
+    } else {
+      // 子模块数据
+      if (!moduleMap.has(stat.module_name)) {
+        moduleMap.set(stat.module_name, {
+          key: stat.module_name,
+          module_name: stat.module_name,
+          total_questions: 0,
+          correct_answers: 0,
+          accuracy: 0,
+          children: [],
+        });
+      }
+      
+      const parent = moduleMap.get(stat.module_name)!;
+      parent.children!.push({
+        key: `${stat.module_name}-${stat.sub_module_name}`,
+        module_name: stat.sub_module_name,
+        total_questions: stat.total_questions,
+        correct_answers: stat.correct_answers,
+        accuracy: stat.accuracy,
+      });
+      
+      // 更新父模块的统计
+      parent.total_questions += stat.total_questions;
+      parent.correct_answers += stat.correct_answers;
+      parent.accuracy = parent.total_questions > 0
+        ? Number(((parent.correct_answers / parent.total_questions) * 100).toFixed(2))
+        : 0;
+    }
+  });
+
+  tableData.push(...Array.from(moduleMap.values()));
+
+  // 定义表格列
+  const columns: ColumnsType<TableDataType> = [
+    {
+      title: '模块名称',
+      dataIndex: 'module_name',
+      key: 'module_name',
+      width: '40%',
+    },
+    {
+      title: '题目数',
+      dataIndex: 'total_questions',
+      key: 'total_questions',
+      width: '20%',
+      align: 'center',
+    },
+    {
+      title: '答对数',
+      dataIndex: 'correct_answers',
+      key: 'correct_answers',
+      width: '20%',
+      align: 'center',
+    },
+    {
+      title: '正确率',
+      dataIndex: 'accuracy',
+      key: 'accuracy',
+      width: '20%',
+      align: 'center',
+      render: (accuracy: number, record: TableDataType) => {
+        const target = getTargetAccuracy(record.module_name);
+        const isLow = accuracy < target;
+        return (
+          <span style={{ color: isLow ? '#ef4444' : 'inherit', fontWeight: isLow ? 'bold' : 'normal' }}>
+            {accuracy.toFixed(2)}%
+          </span>
+        );
+      },
+    },
+  ];
+
   if (isLoading) {
     return (
       <div className="container mx-auto py-8 px-4">
@@ -488,6 +616,28 @@ export default function Dashboard() {
             <ReactECharts 
               option={scoreDistributionOption} 
               style={{ height: window.innerWidth < 640 ? '300px' : '400px' }} 
+            />
+          </CardContent>
+        </Card>
+
+        {/* 模块详细统计表格 */}
+        <Card className="md:col-span-2">
+          <CardHeader>
+            <CardTitle className="text-lg sm:text-xl">模块详细统计</CardTitle>
+            <CardDescription className="text-sm">
+              各模块和子模块的详细答题统计，红色标注表示低于目标正确率
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table
+              columns={columns}
+              dataSource={tableData}
+              pagination={false}
+              size="middle"
+              bordered
+              expandable={{
+                defaultExpandAllRows: false,
+              }}
             />
           </CardContent>
         </Card>

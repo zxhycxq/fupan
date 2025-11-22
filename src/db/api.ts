@@ -396,3 +396,56 @@ export async function saveExamConfig(
     }
   }
 }
+
+// 获取所有模块和子模块的详细统计数据
+export async function getModuleDetailedStats(): Promise<{
+  module_name: string;
+  sub_module_name: string | null;
+  total_questions: number;
+  correct_answers: number;
+  accuracy: number;
+}[]> {
+  const { data, error } = await supabase
+    .from('module_scores')
+    .select('module_name, sub_module_name, total_questions, correct_answers, accuracy')
+    .order('module_name')
+    .order('sub_module_name');
+
+  if (error) {
+    console.error('获取模块详细统计失败:', error);
+    throw error;
+  }
+
+  // 聚合数据：按模块和子模块分组，计算总和
+  const statsMap = new Map<string, {
+    module_name: string;
+    sub_module_name: string | null;
+    total_questions: number;
+    correct_answers: number;
+  }>();
+
+  (data || []).forEach(record => {
+    const key = `${record.module_name}|${record.sub_module_name || ''}`;
+    const existing = statsMap.get(key);
+    
+    if (existing) {
+      existing.total_questions += record.total_questions;
+      existing.correct_answers += record.correct_answers;
+    } else {
+      statsMap.set(key, {
+        module_name: record.module_name,
+        sub_module_name: record.sub_module_name,
+        total_questions: record.total_questions,
+        correct_answers: record.correct_answers,
+      });
+    }
+  });
+
+  // 转换为数组并计算正确率
+  return Array.from(statsMap.values()).map(stat => ({
+    ...stat,
+    accuracy: stat.total_questions > 0 
+      ? Number(((stat.correct_answers / stat.total_questions) * 100).toFixed(2))
+      : 0,
+  }));
+}
