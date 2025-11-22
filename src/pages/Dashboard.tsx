@@ -1,12 +1,10 @@
 import { useEffect, useState } from 'react';
 import ReactECharts from 'echarts-for-react';
-import { Table } from 'antd';
+import { Table, Card, Skeleton, Statistic, Row, Col } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
+import { RiseOutlined, ClockCircleOutlined, AimOutlined, TrophyOutlined } from '@ant-design/icons';
 import { getAllExamRecords, getModuleAverageScores, getModuleTrendData, getModuleDetailedStats, getUserSettings } from '@/db/api';
 import type { ExamRecord, UserSetting } from '@/types';
-import { TrendingUp, Clock, Target, Award } from 'lucide-react';
 
 export default function Dashboard() {
   const [examRecords, setExamRecords] = useState<ExamRecord[]>([]);
@@ -560,30 +558,24 @@ export default function Dashboard() {
   if (isLoading) {
     return (
       <div className="container mx-auto py-8 px-4">
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
+        <Row gutter={[16, 16]} className="mb-8">
           {[...Array(4)].map((_, i) => (
-            <Card key={i}>
-              <CardHeader>
-                <Skeleton className="h-4 w-24" />
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-8 w-16" />
-              </CardContent>
-            </Card>
+            <Col key={i} xs={24} sm={12} lg={6}>
+              <Card loading>
+                <Skeleton active />
+              </Card>
+            </Col>
           ))}
-        </div>
-        <div className="grid gap-6 md:grid-cols-2">
+        </Row>
+        <Row gutter={[16, 16]}>
           {[...Array(3)].map((_, i) => (
-            <Card key={i}>
-              <CardHeader>
-                <Skeleton className="h-6 w-32" />
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-64 w-full" />
-              </CardContent>
-            </Card>
+            <Col key={i} xs={24} md={12}>
+              <Card loading>
+                <Skeleton active paragraph={{ rows: 8 }} />
+              </Card>
+            </Col>
           ))}
-        </div>
+        </Row>
       </div>
     );
   }
@@ -592,13 +584,12 @@ export default function Dashboard() {
     return (
       <div className="container mx-auto py-8 px-4">
         <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
+          
             <p className="text-muted-foreground mb-4">暂无考试记录</p>
             <a href="/upload" className="text-primary hover:underline">
               立即上传第一份成绩
             </a>
-          </CardContent>
-        </Card>
+          </Card>
       </div>
     );
   }
@@ -606,116 +597,110 @@ export default function Dashboard() {
   return (
     <div className="container mx-auto py-8 px-4">
       {/* 统计卡片 */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">考试次数</CardTitle>
-            <Award className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalExams}次</div>
-            <p className="text-xs text-muted-foreground">累计考试次数</p>
-          </CardContent>
-        </Card>
+      <Row gutter={[16, 16]} className="mb-8">
+        <Col xs={24} sm={12} lg={6}>
+          <Card>
+            <Statistic
+              title="考试次数"
+              value={stats.totalExams}
+              suffix="次"
+              prefix={<TrophyOutlined />}
+            />
+            <div className="text-xs text-gray-500 mt-2">累计考试次数</div>
+          </Card>
+        </Col>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">平均分</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.averageScore}分</div>
-            <p className="text-xs text-muted-foreground">所有考试平均分</p>
-          </CardContent>
-        </Card>
+        <Col xs={24} sm={12} lg={6}>
+          <Card>
+            <Statistic
+              title="平均分"
+              value={stats.averageScore}
+              suffix="分"
+              prefix={<RiseOutlined />}
+            />
+            <div className="text-xs text-gray-500 mt-2">所有考试平均分</div>
+          </Card>
+        </Col>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">最高分</CardTitle>
-            <Target className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.highestScore}分</div>
-            <p className="text-xs text-muted-foreground">历史最高分数</p>
-          </CardContent>
-        </Card>
+        <Col xs={24} sm={12} lg={6}>
+          <Card>
+            <Statistic
+              title="最高分"
+              value={stats.highestScore}
+              suffix="分"
+              prefix={<AimOutlined />}
+            />
+            <div className="text-xs text-gray-500 mt-2">历史最高分数</div>
+          </Card>
+        </Col>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">平均用时</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.averageTime}分钟</div>
-            <p className="text-xs text-muted-foreground">平均答题时长</p>
-          </CardContent>
-        </Card>
-      </div>
+        <Col xs={24} sm={12} lg={6}>
+          <Card>
+            <Statistic
+              title="平均用时"
+              value={stats.averageTime}
+              suffix="分钟"
+              prefix={<ClockCircleOutlined />}
+            />
+            <div className="text-xs text-gray-500 mt-2">平均答题时长</div>
+          </Card>
+        </Col>
+      </Row>
 
       {/* 图表 */}
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle className="text-lg sm:text-xl">总分趋势</CardTitle>
-            <CardDescription className="text-sm">查看历次考试的总分变化趋势</CardDescription>
-          </CardHeader>
-          <CardContent>
+      <Row gutter={[16, 16]}>
+        <Col xs={24}>
+          <Card 
+            title="总分趋势"
+            extra={<span className="text-sm text-gray-500">查看历次考试总分变化</span>}
+          >
             <ReactECharts 
               option={scoreTrendOption} 
               style={{ height: window.innerWidth < 640 ? '300px' : '400px' }} 
             />
-          </CardContent>
-        </Card>
+          </Card>
+        </Col>
 
         {/* 模块趋势图独占一行 */}
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle className="text-lg sm:text-xl">各模块正确率趋势</CardTitle>
-            <CardDescription className="text-sm">各大模块在不同考试中的正确率变化趋势</CardDescription>
-          </CardHeader>
-          <CardContent>
+        <Col xs={24}>
+          <Card
+            title="模块趋势"
+            extra={<span className="text-sm text-gray-500">查看各模块正确率变化</span>}
+          >
             <ReactECharts 
               option={moduleTrendOption} 
               style={{ height: window.innerWidth < 640 ? '350px' : '450px' }} 
             />
-          </CardContent>
-        </Card>
+          </Card>
+        </Col>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg sm:text-xl">各模块平均正确率</CardTitle>
-            <CardDescription className="text-sm">各大模块的平均正确率对比</CardDescription>
-          </CardHeader>
-          <CardContent>
+        <Col xs={24} md={12}>
+          <Card
+            title="模块平均正确率"
+            extra={<span className="text-sm text-gray-500">各模块平均表现</span>}
+          >
             <ReactECharts 
               option={moduleAvgOption} 
               style={{ height: window.innerWidth < 640 ? '300px' : '400px' }} 
             />
-          </CardContent>
-        </Card>
+          </Card>
+        </Col>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg sm:text-xl">得分分布</CardTitle>
-            <CardDescription className="text-sm">不同分数段的考试次数分布</CardDescription>
-          </CardHeader>
-          <CardContent>
+        <Col xs={24} md={12}>
+          <Card
+            title="模块详细统计"
+            extra={<span className="text-sm text-gray-500">最近考试各模块表现</span>}
+          >
+          
             <ReactECharts 
               option={scoreDistributionOption} 
               style={{ height: window.innerWidth < 640 ? '300px' : '400px' }} 
             />
-          </CardContent>
-        </Card>
+          </Card>
 
         {/* 模块详细统计表格 */}
         <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle className="text-lg sm:text-xl">模块详细统计</CardTitle>
-            <CardDescription className="text-sm">
-              各模块和子模块在每期考试中的详细答题统计，红色标注表示低于目标正确率
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+          
             <Table
               columns={columns}
               dataSource={tableDataWithTotal}
@@ -736,9 +721,9 @@ export default function Dashboard() {
                 rowExpandable: (record) => record.key !== 'total' && (record.children?.length || 0) > 0,
               }}
             />
-          </CardContent>
-        </Card>
-      </div>
+          </Card>
+        </Col>
+      </Row>
     </div>
   );
 }
