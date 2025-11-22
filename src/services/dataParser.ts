@@ -8,27 +8,37 @@ export function parseExamData(
   examRecord: Omit<ExamRecord, 'id' | 'created_at' | 'updated_at'>;
   moduleScores: Omit<ModuleScore, 'id' | 'exam_record_id' | 'created_at'>[];
 } {
-  // 提取总分
-  const totalScoreMatch = ocrText.match(/我的得分[：:]\s*(\d+\.?\d*)/i) || 
-                          ocrText.match(/得分[：:]\s*(\d+\.?\d*)/i) ||
-                          ocrText.match(/(\d+\.?\d*)\s*\/\s*100/);
-  const totalScore = totalScoreMatch ? parseFloat(totalScoreMatch[1]) : 0;
+  console.log('=== 开始解析OCR文本 ===');
+  console.log('OCR文本长度:', ocrText.length);
+  console.log('OCR文本前500字符:', ocrText.substring(0, 500));
 
-  // 提取用时
-  const timeMatch = ocrText.match(/(\d+)\s*分\s*(\d+)\s*秒/);
-  const timeUsed = timeMatch ? parseInt(timeMatch[1]) : 0;
+  // 提取总分 - 支持多种格式
+  const totalScoreMatch = ocrText.match(/我的得分[：:\s]*(\d+\.?\d*)/i) || 
+                          ocrText.match(/得分[：:\s]*(\d+\.?\d*)/i) ||
+                          ocrText.match(/(\d+\.?\d*)\s*[/／]\s*100/);
+  const totalScore = totalScoreMatch ? parseFloat(totalScoreMatch[1]) : 0;
+  console.log('提取总分:', totalScore, '匹配结果:', totalScoreMatch?.[0]);
+
+  // 提取用时 - 支持多种格式
+  const timeMatch = ocrText.match(/总?用时[：:\s]*(\d+)\s*分\s*(\d+)\s*秒/i) ||
+                    ocrText.match(/(\d+)\s*分\s*(\d+)\s*秒/);
+  const timeUsed = timeMatch ? parseInt(timeMatch[1]) * 60 + parseInt(timeMatch[2]) : 0;
+  console.log('提取用时:', timeUsed, '秒, 匹配结果:', timeMatch?.[0]);
 
   // 提取最高分
-  const maxScoreMatch = ocrText.match(/最高分[：:]\s*(\d+\.?\d*)/i);
+  const maxScoreMatch = ocrText.match(/最高分[：:\s]*(\d+\.?\d*)/i);
   const maxScore = maxScoreMatch ? parseFloat(maxScoreMatch[1]) : undefined;
+  console.log('提取最高分:', maxScore);
 
   // 提取平均分
-  const avgScoreMatch = ocrText.match(/平均分[：:]\s*(\d+\.?\d*)/i);
+  const avgScoreMatch = ocrText.match(/平均分[：:\s]*(\d+\.?\d*)/i);
   const averageScore = avgScoreMatch ? parseFloat(avgScoreMatch[1]) : undefined;
+  console.log('提取平均分:', averageScore);
 
   // 提取已击败考生百分比
-  const passRateMatch = ocrText.match(/已击败\s*(\d+\.?\d*)%/i);
+  const passRateMatch = ocrText.match(/已击败[考生\s]*(\d+\.?\d*)%/i);
   const passRate = passRateMatch ? parseFloat(passRateMatch[1]) : undefined;
+  console.log('提取击败率:', passRate);
 
   const examRecord: Omit<ExamRecord, 'id' | 'created_at' | 'updated_at'> = {
     exam_number: examNumber,
@@ -39,8 +49,11 @@ export function parseExamData(
     time_used: timeUsed,
   };
 
+  console.log('考试记录:', examRecord);
+
   // 解析模块得分
   const moduleScores: Omit<ModuleScore, 'id' | 'exam_record_id' | 'created_at'>[] = [];
+  console.log('=== 开始解析模块数据 ===');
 
   // 定义模块结构
   const moduleStructure = [
@@ -72,20 +85,37 @@ export function parseExamData(
 
   // 尝试从文本中提取每个模块的数据
   for (const module of moduleStructure) {
-    // 查找大模块数据
-    const moduleRegex = new RegExp(
-      `${module.name}[\\s\\S]*?总题数[：:]\\s*(\\d+).*?答对[：:]\\s*(\\d+).*?答错[：:]\\s*(\\d+).*?未答[：:]\\s*(\\d+).*?正确率[：:]\\s*(\\d+)%.*?用时[：:]\\s*(\\d+)`,
-      'i'
-    );
+    console.log(`\n--- 解析模块: ${module.name} ---`);
+    
+    // 查找大模块数据 - 使用更灵活的正则表达式
+    // 支持多种格式: "总题数20题" 或 "总题数:20" 或 "总题数 20"
+    const modulePattern = `${module.name}[\\s\\S]{0,200}?` + // 模块名称后最多200个字符
+      `(?:总题数|共计)[：:\\s]*?(\\d+)(?:题|道)?[\\s\\S]{0,50}?` + // 总题数
+      `(?:答对|正确)[：:\\s]*?(\\d+)(?:题|道)?[\\s\\S]{0,50}?` + // 答对数
+      `(?:正确率|准确率)[：:\\s]*?(\\d+)%[\\s\\S]{0,50}?` + // 正确率
+      `(?:用时|时间)[：:\\s]*?(\\d+)(?:秒|分)?`; // 用时
+    
+    const moduleRegex = new RegExp(modulePattern, 'i');
     const moduleMatch = ocrText.match(moduleRegex);
 
     if (moduleMatch) {
+      console.log(`找到模块数据:`, moduleMatch[0].substring(0, 100));
+      
       const totalQuestions = parseInt(moduleMatch[1]);
       const correctAnswers = parseInt(moduleMatch[2]);
-      const wrongAnswers = parseInt(moduleMatch[3]);
-      const unanswered = parseInt(moduleMatch[4]);
-      const accuracyRate = parseInt(moduleMatch[5]);
-      const timeUsedSec = parseInt(moduleMatch[6]);
+      const accuracyRate = parseInt(moduleMatch[3]);
+      let timeUsedSec = parseInt(moduleMatch[4]);
+      
+      // 检查用时单位
+      if (moduleMatch[0].includes('分')) {
+        timeUsedSec = timeUsedSec * 60;
+      }
+      
+      // 计算答错数和未答数
+      const wrongAnswers = totalQuestions - correctAnswers;
+      const unanswered = 0; // 默认为0
+
+      console.log(`解析结果: 总题数=${totalQuestions}, 答对=${correctAnswers}, 正确率=${accuracyRate}%, 用时=${timeUsedSec}秒`);
 
       moduleScores.push({
         module_name: module.name,
@@ -97,23 +127,40 @@ export function parseExamData(
         accuracy_rate: accuracyRate,
         time_used: timeUsedSec,
       });
+    } else {
+      console.log(`未找到模块数据`);
     }
 
     // 查找子模块数据
     for (const childName of module.children) {
-      const childRegex = new RegExp(
-        `${childName}[\\s\\S]*?总题数[：:]\\s*(\\d+).*?答对[：:]\\s*(\\d+).*?答错[：:]\\s*(\\d+).*?未答[：:]\\s*(\\d+).*?正确率[：:]\\s*(\\d+)%.*?用时[：:]\\s*(\\d+)`,
-        'i'
-      );
+      console.log(`  - 解析子模块: ${childName}`);
+      
+      const childPattern = `${childName}[\\s\\S]{0,200}?` +
+        `(?:总题数|共计)[：:\\s]*?(\\d+)(?:题|道)?[\\s\\S]{0,50}?` +
+        `(?:答对|正确)[：:\\s]*?(\\d+)(?:题|道)?[\\s\\S]{0,50}?` +
+        `(?:正确率|准确率)[：:\\s]*?(\\d+)%[\\s\\S]{0,50}?` +
+        `(?:用时|时间)[：:\\s]*?(\\d+)(?:秒|分)?`;
+      
+      const childRegex = new RegExp(childPattern, 'i');
       const childMatch = ocrText.match(childRegex);
 
       if (childMatch) {
+        console.log(`  找到子模块数据:`, childMatch[0].substring(0, 80));
+        
         const totalQuestions = parseInt(childMatch[1]);
         const correctAnswers = parseInt(childMatch[2]);
-        const wrongAnswers = parseInt(childMatch[3]);
-        const unanswered = parseInt(childMatch[4]);
-        const accuracyRate = parseInt(childMatch[5]);
-        const timeUsedSec = parseInt(childMatch[6]);
+        const accuracyRate = parseInt(childMatch[3]);
+        let timeUsedSec = parseInt(childMatch[4]);
+        
+        // 检查用时单位
+        if (childMatch[0].includes('分')) {
+          timeUsedSec = timeUsedSec * 60;
+        }
+        
+        const wrongAnswers = totalQuestions - correctAnswers;
+        const unanswered = 0;
+
+        console.log(`  解析结果: 总题数=${totalQuestions}, 答对=${correctAnswers}, 正确率=${accuracyRate}%, 用时=${timeUsedSec}秒`);
 
         moduleScores.push({
           module_name: childName,
@@ -125,9 +172,15 @@ export function parseExamData(
           accuracy_rate: accuracyRate,
           time_used: timeUsedSec,
         });
+      } else {
+        console.log(`  未找到子模块数据`);
       }
     }
   }
+
+  console.log('\n=== 解析完成 ===');
+  console.log('总共解析到', moduleScores.length, '个模块');
+  console.log('模块列表:', moduleScores.map(m => m.module_name).join(', '));
 
   return { examRecord, moduleScores };
 }
