@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Dialog,
   DialogContent,
@@ -18,7 +19,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { getExamRecordById, updateModuleScore, updateExamRecord, getUserSettings } from '@/db/api';
 import type { ExamRecordDetail, ModuleScore, UserSetting } from '@/types';
-import { ArrowLeft, Clock, Target, TrendingUp, AlertCircle, Edit } from 'lucide-react';
+import { ArrowLeft, Clock, Target, TrendingUp, AlertCircle, Edit, Calendar, FileText } from 'lucide-react';
 
 export default function ExamDetail() {
   const { id } = useParams<{ id: string }>();
@@ -29,6 +30,10 @@ export default function ExamDetail() {
   const [editTime, setEditTime] = useState<string>('');
   const [isEditingExamTime, setIsEditingExamTime] = useState(false);
   const [examTimeMinutes, setExamTimeMinutes] = useState<string>('');
+  const [isEditingNotes, setIsEditingNotes] = useState(false);
+  const [notes, setNotes] = useState<string>('');
+  const [isEditingExamDate, setIsEditingExamDate] = useState(false);
+  const [examDate, setExamDate] = useState<string>('');
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -167,6 +172,131 @@ export default function ExamDetail() {
       toast({
         title: '错误',
         description: '更新考试用时失败',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // 打开备注编辑对话框
+  const handleEditNotes = () => {
+    if (!examDetail) return;
+    setNotes(examDetail.notes || '');
+    setIsEditingNotes(true);
+  };
+
+  // 保存备注
+  const handleSaveNotes = async () => {
+    if (!examDetail || !id) return;
+
+    // 验证备注长度
+    if (notes.length > 500) {
+      toast({
+        title: '错误',
+        description: '备注不能超过500字',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      await updateExamRecord(id, { notes });
+      
+      // 更新本地状态
+      setExamDetail({
+        ...examDetail,
+        notes,
+      });
+
+      toast({
+        title: '成功',
+        description: '备注已保存',
+      });
+      
+      setIsEditingNotes(false);
+    } catch (error) {
+      console.error('保存备注失败:', error);
+      toast({
+        title: '错误',
+        description: '保存备注失败',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // 打开日期编辑对话框
+  const handleEditExamDate = () => {
+    if (!examDetail) return;
+    // 如果有exam_date就用exam_date,否则用created_at的日期部分
+    const dateStr = examDetail.exam_date || examDetail.created_at.split('T')[0];
+    setExamDate(dateStr);
+    setIsEditingExamDate(true);
+  };
+
+  // 保存考试日期
+  const handleSaveExamDate = async () => {
+    if (!examDetail || !id) return;
+
+    // 验证日期格式
+    const selectedDate = new Date(examDate);
+    const today = new Date();
+    today.setHours(23, 59, 59, 999); // 设置为今天的最后一刻
+
+    if (isNaN(selectedDate.getTime())) {
+      toast({
+        title: '错误',
+        description: '请输入有效的日期',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // 验证日期不能晚于今天
+    if (selectedDate > today) {
+      toast({
+        title: '错误',
+        description: '考试日期不能晚于今天',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // 验证日期不能早于上传时间
+    const createdDate = new Date(examDetail.created_at);
+    if (selectedDate < createdDate) {
+      toast({
+        title: '错误',
+        description: '考试日期不能早于上传时间',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      await updateExamRecord(id, { exam_date: examDate });
+      
+      // 更新本地状态
+      setExamDetail({
+        ...examDetail,
+        exam_date: examDate,
+      });
+
+      toast({
+        title: '成功',
+        description: '考试日期已更新',
+      });
+      
+      setIsEditingExamDate(false);
+    } catch (error) {
+      console.error('更新考试日期失败:', error);
+      toast({
+        title: '错误',
+        description: '更新考试日期失败',
         variant: 'destructive',
       });
     } finally {
@@ -367,7 +497,51 @@ export default function ExamDetail() {
 
       <div className="mb-6">
         <h1 className="text-3xl font-bold mb-2">第{examDetail.exam_number}期考试详情</h1>
-        <p className="text-muted-foreground">上传时间: {formatDate(examDetail.created_at)}</p>
+        <div className="flex flex-wrap items-center gap-4 text-muted-foreground">
+          <div className="flex items-center gap-2">
+            <Calendar className="h-4 w-4" />
+            <span>考试日期: {examDetail.exam_date || examDetail.created_at.split('T')[0]}</span>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6"
+              onClick={handleEditExamDate}
+            >
+              <Edit className="h-3 w-3" />
+            </Button>
+          </div>
+          <span className="text-muted-foreground/50">|</span>
+          <span>上传时间: {formatDate(examDetail.created_at)}</span>
+        </div>
+        {examDetail.notes && (
+          <div className="mt-3 p-3 bg-muted rounded-md">
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex items-start gap-2 flex-1">
+                <FileText className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
+                <p className="text-sm whitespace-pre-wrap break-words">{examDetail.notes}</p>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 flex-shrink-0"
+                onClick={handleEditNotes}
+              >
+                <Edit className="h-3 w-3" />
+              </Button>
+            </div>
+          </div>
+        )}
+        {!examDetail.notes && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="mt-3"
+            onClick={handleEditNotes}
+          >
+            <FileText className="mr-2 h-4 w-4" />
+            添加备注
+          </Button>
+        )}
       </div>
 
       {/* 统计卡片 */}
@@ -669,6 +843,77 @@ export default function ExamDetail() {
               取消
             </Button>
             <Button onClick={handleSaveExamTime} disabled={isSaving}>
+              {isSaving ? '保存中...' : '保存'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 编辑备注对话框 */}
+      <Dialog open={isEditingNotes} onOpenChange={setIsEditingNotes}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>编辑考试备注</DialogTitle>
+            <DialogDescription>
+              记录错误原因、注意事项等(最多500字)
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="notes">备注内容</Label>
+              <Textarea
+                id="notes"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="请输入备注内容..."
+                className="min-h-[200px] resize-none"
+                maxLength={500}
+              />
+              <p className="text-xs text-muted-foreground text-right">
+                {notes.length}/500字
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditingNotes(false)}>
+              取消
+            </Button>
+            <Button onClick={handleSaveNotes} disabled={isSaving}>
+              {isSaving ? '保存中...' : '保存'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 编辑考试日期对话框 */}
+      <Dialog open={isEditingExamDate} onOpenChange={setIsEditingExamDate}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>编辑考试日期</DialogTitle>
+            <DialogDescription>
+              设置实际的考试日期(不能晚于今天)
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="exam-date">考试日期</Label>
+              <Input
+                id="exam-date"
+                type="date"
+                value={examDate}
+                onChange={(e) => setExamDate(e.target.value)}
+                max={new Date().toISOString().split('T')[0]}
+              />
+              <p className="text-xs text-muted-foreground">
+                日期不能晚于今天,也不能早于上传时间
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditingExamDate(false)}>
+              取消
+            </Button>
+            <Button onClick={handleSaveExamDate} disabled={isSaving}>
               {isSaving ? '保存中...' : '保存'}
             </Button>
           </DialogFooter>

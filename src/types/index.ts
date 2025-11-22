@@ -17,6 +17,8 @@ export interface ExamRecord {
   beat_percentage?: number;
   time_used?: number;
   image_url?: string;
+  notes?: string; // 考试备注(最多500字)
+  exam_date?: string; // 考试日期(YYYY-MM-DD格式)
   created_at: string;
   updated_at: string;
 }
