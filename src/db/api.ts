@@ -6,7 +6,8 @@ export async function getAllExamRecords(): Promise<ExamRecord[]> {
   const { data, error } = await supabase
     .from('exam_records')
     .select('*')
-    .order('exam_number', { ascending: true });
+    .order('sort_order', { ascending: true, nullsFirst: false })
+    .order('created_at', { ascending: true });
 
   if (error) {
     console.error('获取考试记录失败:', error);
