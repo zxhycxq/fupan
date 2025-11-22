@@ -20,6 +20,7 @@ export interface ExamRecord {
   notes?: string; // 考试备注(最多500字)
   exam_date?: string; // 考试日期(YYYY-MM-DD格式)
   report_url?: string; // 考试报告链接地址
+  sort_order?: number; // 排序顺序
   created_at: string;
   updated_at: string;
 }

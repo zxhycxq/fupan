@@ -4,10 +4,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { getAllExamRecords, deleteExamRecord, updateExamRecord } from '@/db/api';
 import type { ExamRecord } from '@/types';
-import { Eye, Trash2, Plus } from 'lucide-react';
+import { Eye, Trash2, Plus, Edit, Save, X, Info } from 'lucide-react';
 import { Table, InputNumber, Modal, DatePicker } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { SortableContainer, SortableElement, SortableHandle } from 'react-sortable-hoc';
@@ -31,6 +32,7 @@ export default function ExamList() {
   const [isLoading, setIsLoading] = useState(true);
   const [editingKey, setEditingKey] = useState<string>('');
   const [editingRecord, setEditingRecord] = useState<Partial<ExamRecord>>({});
+  const [hasUnsavedSort, setHasUnsavedSort] = useState(false); // 是否有未保存的排序
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -156,6 +158,31 @@ export default function ExamList() {
     if (oldIndex !== newIndex) {
       const newData = arrayMoveImmutable(examRecords, oldIndex, newIndex);
       setExamRecords(newData);
+      setHasUnsavedSort(true); // 标记有未保存的排序
+    }
+  };
+
+  // 保存排序
+  const saveSortOrder = async () => {
+    try {
+      // 更新每条记录的sort_order
+      const updates = examRecords.map((record, index) => 
+        updateExamRecord(record.id, { sort_order: index + 1 })
+      );
+      await Promise.all(updates);
+      
+      setHasUnsavedSort(false);
+      toast({
+        title: '成功',
+        description: '排序已保存',
+      });
+    } catch (error) {
+      console.error('保存排序失败:', error);
+      toast({
+        title: '错误',
+        description: '保存排序失败',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -186,13 +213,13 @@ export default function ExamList() {
       title: '期数',
       dataIndex: 'exam_number',
       key: 'exam_number',
-      width: 100,
+      width: 140,
       render: (value: number, record: ExamRecord) => {
         const editable = isEditing(record);
         return editable ? (
           <Input
             type="number"
-            min={1}
+            min={0}
             value={editingRecord.exam_number}
             onChange={(e) => {
               const val = parseInt(e.target.value);
@@ -209,7 +236,7 @@ export default function ExamList() {
       title: '总分',
       dataIndex: 'total_score',
       key: 'total_score',
-      width: 120,
+      width: 140,
       render: (value: number, record: ExamRecord) => {
         const editable = isEditing(record);
         return editable ? (
@@ -221,10 +248,10 @@ export default function ExamList() {
             value={editingRecord.total_score}
             onChange={(e) => {
               const val = parseFloat(e.target.value);
-              setEditingRecord({ ...editingRecord, total_score: isNaN(val) ? 60 : val });
+              setEditingRecord({ ...editingRecord, total_score: isNaN(val) ? 0 : val });
             }}
             style={{ width: '100%' }}
-            placeholder="60.0"
+            placeholder="0.0"
           />
         ) : (
           <span
@@ -241,7 +268,7 @@ export default function ExamList() {
       title: '用时',
       dataIndex: 'time_used',
       key: 'time_used',
-      width: 120,
+      width: 140,
       render: (value: number | null, record: ExamRecord) => {
         const editable = isEditing(record);
         return editable ? (
@@ -267,7 +294,7 @@ export default function ExamList() {
       title: '平均分',
       dataIndex: 'average_score',
       key: 'average_score',
-      width: 120,
+      width: 140,
       render: (value: number | null, record: ExamRecord) => {
         const editable = isEditing(record);
         return editable ? (
@@ -279,10 +306,10 @@ export default function ExamList() {
             value={editingRecord.average_score ?? ''}
             onChange={(e) => {
               const val = parseFloat(e.target.value);
-              setEditingRecord({ ...editingRecord, average_score: isNaN(val) ? 60 : val });
+              setEditingRecord({ ...editingRecord, average_score: isNaN(val) ? 0 : val });
             }}
             style={{ width: '100%' }}
-            placeholder="60.0"
+            placeholder="0.0"
           />
         ) : value ? (
           value.toFixed(1)
@@ -295,7 +322,7 @@ export default function ExamList() {
       title: '击败率',
       dataIndex: 'pass_rate',
       key: 'pass_rate',
-      width: 120,
+      width: 140,
       render: (value: number | null, record: ExamRecord) => {
         const editable = isEditing(record);
         return editable ? (
@@ -308,10 +335,10 @@ export default function ExamList() {
               value={editingRecord.pass_rate ?? ''}
               onChange={(e) => {
                 const val = parseFloat(e.target.value);
-                setEditingRecord({ ...editingRecord, pass_rate: isNaN(val) ? null : val });
+                setEditingRecord({ ...editingRecord, pass_rate: isNaN(val) ? 0 : val });
               }}
               style={{ width: '100%' }}
-              placeholder="50.0"
+              placeholder="0.0"
             />
             <span className="ml-1">%</span>
           </div>
@@ -333,7 +360,7 @@ export default function ExamList() {
       title: '考试日期',
       dataIndex: 'exam_date',
       key: 'exam_date',
-      width: 150,
+      width: 140,
       render: (value: string | null, record: ExamRecord) => {
         const editable = isEditing(record);
         return editable ? (
@@ -346,9 +373,9 @@ export default function ExamList() {
               });
             }}
             disabledDate={(current) => {
-              // 不可早于上传时间
+              // 不可晚于上传时间
               const uploadDate = dayjs(record.created_at).startOf('day');
-              return current && current.isBefore(uploadDate);
+              return current && current.isAfter(uploadDate);
             }}
             format="YYYY-MM-DD"
             placeholder="选择日期"
@@ -364,41 +391,44 @@ export default function ExamList() {
     {
       title: '操作',
       key: 'action',
-      width: 200,
+      width: 140,
       render: (_: any, record: ExamRecord) => {
         const editable = isEditing(record);
         return editable ? (
           <div className="flex gap-2">
-            <Button size="sm" onClick={() => save(record.id)}>
-              保存
+            <Button size="sm" variant="ghost" onClick={() => save(record.id)} title="保存">
+              <Save className="h-4 w-4 text-green-600" />
             </Button>
-            <Button size="sm" variant="outline" onClick={cancel}>
-              取消
+            <Button size="sm" variant="ghost" onClick={cancel} title="取消">
+              <X className="h-4 w-4 text-gray-600" />
             </Button>
           </div>
         ) : (
           <div className="flex gap-2">
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
               onClick={() => navigate(`/exam/${record.id}`)}
               disabled={editingKey !== ''}
+              title="查看详情"
             >
               <Eye className="h-4 w-4" />
             </Button>
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
               onClick={() => edit(record)}
               disabled={editingKey !== ''}
+              title="编辑"
             >
-              编辑
+              <Edit className="h-4 w-4" />
             </Button>
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
               onClick={() => handleDelete(record.id, record.exam_number)}
               disabled={editingKey !== ''}
+              title="删除"
             >
               <Trash2 className="h-4 w-4 text-destructive" />
             </Button>
@@ -453,19 +483,38 @@ export default function ExamList() {
               </Button>
             </div>
           ) : (
-            <Table
-              columns={columns}
-              dataSource={examRecords}
-              rowKey="id"
-              pagination={false}
-              components={{
-                body: {
-                  wrapper: DraggableContainer,
-                  row: DraggableBodyRow,
-                },
-              }}
-              bordered
-            />
+            <div className="space-y-4">
+              {/* 排序提示 */}
+              <Alert>
+                <Info className="h-4 w-4" />
+                <AlertDescription className="flex items-center justify-between">
+                  <span>
+                    提示：可以拖动左侧图标调整考试记录顺序，建议按照考试时间顺序排列。
+                    {hasUnsavedSort && <span className="text-orange-600 ml-2">（有未保存的排序）</span>}
+                  </span>
+                  {hasUnsavedSort && (
+                    <Button size="sm" onClick={saveSortOrder}>
+                      <Save className="mr-2 h-4 w-4" />
+                      保存排序
+                    </Button>
+                  )}
+                </AlertDescription>
+              </Alert>
+              
+              <Table
+                columns={columns}
+                dataSource={examRecords}
+                rowKey="id"
+                pagination={false}
+                components={{
+                  body: {
+                    wrapper: DraggableContainer,
+                    row: DraggableBodyRow,
+                  },
+                }}
+                bordered
+              />
+            </div>
           )}
         </CardContent>
       </Card>
