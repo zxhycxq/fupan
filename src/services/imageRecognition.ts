@@ -47,6 +47,7 @@ export async function getImageRecognitionResult(
     const result: ImageRecognitionResultResponse = await response.json();
 
     if (result.status !== 0) {
+      console.error('API返回错误:', result);
       throw new Error(result.msg || '获取识别结果失败');
     }
 
@@ -67,26 +68,52 @@ export async function pollImageRecognitionResult(
     try {
       const result = await getImageRecognitionResult(taskId);
 
+      console.log(`第${i + 1}次轮询, ret_code:`, result.data.result.ret_code);
+
       if (result.data.result.ret_code === 0) {
         // 处理成功
+        console.log('识别成功');
         return result.data.result.description;
       }
 
       if (result.data.result.ret_code === 1) {
         // 处理中,等待后重试
+        console.log('处理中,等待重试...');
         if (i < maxAttempts - 1) {
           await new Promise((resolve) => setTimeout(resolve, interval));
           continue;
         }
       }
 
-      // 其他错误
-      throw new Error(result.data.result.ret_msg || '识别失败');
+      // 其他错误码
+      const errorMsg = result.data.result.ret_msg || '识别失败';
+      console.error('识别错误:', {
+        ret_code: result.data.result.ret_code,
+        ret_msg: errorMsg,
+      });
+      
+      // 如果是识别错误,提供更友好的错误信息
+      if (errorMsg.includes('recognize error') || errorMsg.includes('识别错误')) {
+        throw new Error('图片识别失败,可能原因:\n1. 图片不清晰或格式不支持\n2. 图片内容无法识别\n3. 请尝试上传更清晰的截图');
+      }
+      
+      throw new Error(errorMsg);
     } catch (error) {
+      console.error(`第${i + 1}次尝试失败:`, error);
+      
       // 如果是最后一次尝试,抛出错误
       if (i === maxAttempts - 1) {
+        if (error instanceof Error) {
+          throw error;
+        }
+        throw new Error('识别失败,请重试');
+      }
+      
+      // 如果不是"处理中"的错误,也不继续重试
+      if (error instanceof Error && !error.message.includes('处理中')) {
         throw error;
       }
+      
       // 否则等待后继续
       await new Promise((resolve) => setTimeout(resolve, interval));
     }
