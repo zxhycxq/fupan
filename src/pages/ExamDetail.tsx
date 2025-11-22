@@ -16,7 +16,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { getExamRecordById, updateModuleScore, getUserSettings } from '@/db/api';
+import { getExamRecordById, updateModuleScore, updateExamRecord, getUserSettings } from '@/db/api';
 import type { ExamRecordDetail, ModuleScore, UserSetting } from '@/types';
 import { ArrowLeft, Clock, Target, TrendingUp, AlertCircle, Edit } from 'lucide-react';
 
@@ -27,6 +27,8 @@ export default function ExamDetail() {
   const [isLoading, setIsLoading] = useState(true);
   const [editingModule, setEditingModule] = useState<ModuleScore | null>(null);
   const [editTime, setEditTime] = useState<string>('');
+  const [isEditingExamTime, setIsEditingExamTime] = useState(false);
+  const [examTimeMinutes, setExamTimeMinutes] = useState<string>('');
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -123,6 +125,55 @@ export default function ExamDetail() {
     }
   };
 
+  const handleEditExamTime = () => {
+    if (!examDetail) return;
+    const minutes = Math.floor(examDetail.time_used / 60);
+    setExamTimeMinutes(minutes.toString());
+    setIsEditingExamTime(true);
+  };
+
+  const handleSaveExamTime = async () => {
+    if (!examDetail || !id) return;
+
+    const minutes = parseInt(examTimeMinutes);
+    if (isNaN(minutes) || minutes < 0) {
+      toast({
+        title: '错误',
+        description: '请输入有效的时间(分钟)',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      const newTimeSeconds = minutes * 60;
+      await updateExamRecord(id, { time_used: newTimeSeconds });
+      
+      // 更新本地状态
+      setExamDetail({
+        ...examDetail,
+        time_used: newTimeSeconds,
+      });
+
+      toast({
+        title: '成功',
+        description: '考试用时已更新',
+      });
+      
+      setIsEditingExamTime(false);
+    } catch (error) {
+      console.error('更新考试用时失败:', error);
+      toast({
+        title: '错误',
+        description: '更新考试用时失败',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="container mx-auto py-8 px-4">
@@ -175,6 +226,26 @@ export default function ExamDetail() {
     },
     tooltip: {
       trigger: 'item',
+      formatter: (params: any) => {
+        const dataIndex = params.dataIndex;
+        const moduleName = mainModules[dataIndex].module_name;
+        const actualValue = mainModules[dataIndex].accuracy_rate || 0;
+        const targetValue = targetValues[dataIndex];
+        
+        return `
+          <div style="padding: 8px;">
+            <div style="font-weight: bold; margin-bottom: 4px;">${moduleName}</div>
+            <div style="display: flex; align-items: center; margin-bottom: 2px;">
+              <span style="display: inline-block; width: 10px; height: 10px; background-color: #FF9800; border-radius: 50%; margin-right: 6px;"></span>
+              <span>我的: ${actualValue.toFixed(1)}%</span>
+            </div>
+            <div style="display: flex; align-items: center;">
+              <span style="display: inline-block; width: 10px; height: 10px; background-color: #F44336; border-radius: 50%; margin-right: 6px;"></span>
+              <span>目标: ${targetValue}%</span>
+            </div>
+          </div>
+        `;
+      },
     },
     legend: {
       data: ['我的', '目标'],
@@ -310,7 +381,17 @@ export default function ExamDetail() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">用时</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6"
+                onClick={handleEditExamTime}
+              >
+                <Edit className="h-3 w-3" />
+              </Button>
+              <Clock className="h-4 w-4 text-muted-foreground" />
+            </div>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -540,6 +621,43 @@ export default function ExamDetail() {
               取消
             </Button>
             <Button onClick={handleSaveTime} disabled={isSaving}>
+              {isSaving ? '保存中...' : '保存'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 编辑考试用时对话框 */}
+      <Dialog open={isEditingExamTime} onOpenChange={setIsEditingExamTime}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>编辑考试用时</DialogTitle>
+            <DialogDescription>
+              修改整场考试的用时(分钟)
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="examTime">用时(分钟)</Label>
+              <Input
+                id="examTime"
+                type="number"
+                min="0"
+                step="1"
+                value={examTimeMinutes}
+                onChange={(e) => setExamTimeMinutes(e.target.value)}
+                placeholder="请输入考试用时"
+              />
+              <p className="text-sm text-muted-foreground">
+                当前用时: {Math.floor((examDetail?.time_used || 0) / 60)} 分钟
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditingExamTime(false)}>
+              取消
+            </Button>
+            <Button onClick={handleSaveExamTime} disabled={isSaving}>
               {isSaving ? '保存中...' : '保存'}
             </Button>
           </DialogFooter>
