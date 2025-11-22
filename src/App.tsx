@@ -4,7 +4,6 @@ import { ConfigProvider } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
 import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
-import { Toaster } from '@/components/ui/toaster';
 import Header from '@/components/common/Header';
 import routes from './routes';
 
@@ -42,7 +41,6 @@ function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
-        <Toaster />
       </div>
     </ConfigProvider>
   );
