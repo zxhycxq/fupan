@@ -13,6 +13,8 @@ export interface ExamRecord {
   max_score?: number;
   average_score?: number;
   pass_rate?: number;
+  difficulty?: number;
+  beat_percentage?: number;
   time_used?: number;
   image_url?: string;
   created_at: string;

@@ -247,7 +247,7 @@ export default function ExamDetail() {
       </div>
 
       {/* 统计卡片 */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 mb-8">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">总分</CardTitle>
@@ -271,8 +271,23 @@ export default function ExamDetail() {
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{examDetail.time_used || 0}</div>
-            <p className="text-xs text-muted-foreground">分钟</p>
+            <div className="text-2xl font-bold">
+              {Math.floor((examDetail.time_used || 0) / 60)}:{String((examDetail.time_used || 0) % 60).padStart(2, '0')}
+            </div>
+            <p className="text-xs text-muted-foreground">分:秒</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">最高分</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">
+              {examDetail.max_score?.toFixed(2) || '-'}
+            </div>
+            <p className="text-xs text-muted-foreground">本期最高分</p>
           </CardContent>
         </Card>
 
@@ -291,12 +306,33 @@ export default function ExamDetail() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">难度</CardTitle>
+            <AlertCircle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className={`text-2xl font-bold ${
+              (examDetail.difficulty || 0) >= 4 ? 'text-red-600' :
+              (examDetail.difficulty || 0) >= 3 ? 'text-orange-600' :
+              'text-green-600'
+            }`}>
+              {examDetail.difficulty?.toFixed(1) || '-'}
+            </div>
+            <p className="text-xs text-muted-foreground">难度系数(0-5)</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">击败率</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {examDetail.pass_rate?.toFixed(1) || '-'}%
+            <div className={`text-2xl font-bold ${
+              (examDetail.beat_percentage || 0) >= 80 ? 'text-green-600' :
+              (examDetail.beat_percentage || 0) >= 60 ? 'text-blue-600' :
+              'text-orange-600'
+            }`}>
+              {examDetail.beat_percentage?.toFixed(1) || '-'}%
             </div>
             <p className="text-xs text-muted-foreground">已击败考生</p>
           </CardContent>

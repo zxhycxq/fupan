@@ -37,16 +37,26 @@ export function parseExamData(
   const averageScore = avgScoreMatch ? parseFloat(avgScoreMatch[1]) : undefined;
   console.log('提取平均分:', averageScore);
 
+  // 提取难度系数
+  const difficultyMatch = ocrText.match(/难度[：:\s]*(\d+\.?\d*)/i);
+  const difficulty = difficultyMatch ? parseFloat(difficultyMatch[1]) : undefined;
+  console.log('提取难度:', difficulty);
+
   // 提取已击败考生百分比
-  const passRateMatch = ocrText.match(/已击败[考生\s]*(\d+\.?\d*)%/i);
-  const passRate = passRateMatch ? parseFloat(passRateMatch[1]) : undefined;
-  console.log('提取击败率:', passRate);
+  const beatPercentageMatch = ocrText.match(/已击败[考生\s]*(\d+\.?\d*)%/i);
+  const beatPercentage = beatPercentageMatch ? parseFloat(beatPercentageMatch[1]) : undefined;
+  console.log('提取击败百分比:', beatPercentage);
+
+  // 保持向后兼容 - pass_rate 也保存击败百分比
+  const passRate = beatPercentage;
 
   const examRecord: Omit<ExamRecord, 'id' | 'created_at' | 'updated_at'> = {
     exam_number: examNumber,
     total_score: totalScore,
     max_score: maxScore,
     average_score: averageScore,
+    difficulty: difficulty,
+    beat_percentage: beatPercentage,
     pass_rate: passRate,
     time_used: timeUsed,
   };
