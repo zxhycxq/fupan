@@ -35,7 +35,9 @@ function TitleWithTooltip({ title, tooltip }: { title: string; tooltip: string }
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+            <button type="button" className="inline-flex items-center">
+              <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+            </button>
           </TooltipTrigger>
           <TooltipContent className="max-w-xs">
             <p>{tooltip}</p>
