@@ -16,10 +16,35 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
 import { getExamRecordById, updateModuleScore, updateExamRecord, getUserSettings } from '@/db/api';
 import type { ExamRecordDetail, ModuleScore, UserSetting } from '@/types';
-import { ArrowLeft, Clock, Target, TrendingUp, AlertCircle, Edit, Calendar, FileText, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Clock, Target, TrendingUp, AlertCircle, Edit, Calendar, FileText, ExternalLink, Info } from 'lucide-react';
+
+// 带说明的标题组件
+function TitleWithTooltip({ title, tooltip }: { title: string; tooltip: string }) {
+  return (
+    <div className="flex items-center gap-2">
+      <span>{title}</span>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+          </TooltipTrigger>
+          <TooltipContent className="max-w-xs">
+            <p>{tooltip}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    </div>
+  );
+}
 
 export default function ExamDetail() {
   const { id } = useParams<{ id: string }>();
@@ -220,9 +245,10 @@ export default function ExamDetail() {
       setIsEditingNotes(false);
     } catch (error) {
       console.error('保存备注失败:', error);
+      const errorMessage = error instanceof Error ? error.message : '保存备注失败';
       toast({
         title: '错误',
-        description: '保存备注失败',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
@@ -296,9 +322,10 @@ export default function ExamDetail() {
       setIsEditingExamDate(false);
     } catch (error) {
       console.error('更新考试日期失败:', error);
+      const errorMessage = error instanceof Error ? error.message : '更新考试日期失败';
       toast({
         title: '错误',
-        description: '更新考试日期失败',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
@@ -350,9 +377,10 @@ export default function ExamDetail() {
       setIsEditingReportUrl(false);
     } catch (error) {
       console.error('更新考试报告链接失败:', error);
+      const errorMessage = error instanceof Error ? error.message : '更新考试报告链接失败';
       toast({
         title: '错误',
-        description: '更新考试报告链接失败',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
@@ -763,7 +791,12 @@ export default function ExamDetail() {
       <div className="grid gap-6 md:grid-cols-2 mb-8">
         <Card>
           <CardHeader>
-            <CardTitle>各模块正确率</CardTitle>
+            <CardTitle>
+              <TitleWithTooltip 
+                title="各模块正确率" 
+                tooltip="雷达图展示各个考试模块的正确率分布情况，可以直观地看出各模块的强弱项。正确率越高，该模块掌握越好。"
+              />
+            </CardTitle>
             <CardDescription>雷达图展示各模块的正确率分布</CardDescription>
           </CardHeader>
           <CardContent>
@@ -773,7 +806,12 @@ export default function ExamDetail() {
 
         <Card>
           <CardHeader>
-            <CardTitle>各模块用时对比</CardTitle>
+            <CardTitle>
+              <TitleWithTooltip 
+                title="各模块用时对比" 
+                tooltip="柱状图展示各模块的答题用时统计，帮助分析时间分配是否合理。用时过长可能表示该模块需要提高答题速度，用时过短则需要注意准确率。"
+              />
+            </CardTitle>
             <CardDescription>各模块答题用时统计</CardDescription>
           </CardHeader>
           <CardContent>
@@ -785,7 +823,12 @@ export default function ExamDetail() {
       {/* 模块详情表格 */}
       <Card>
         <CardHeader>
-          <CardTitle>模块详细数据</CardTitle>
+          <CardTitle>
+            <TitleWithTooltip 
+              title="模块详细数据" 
+              tooltip="详细展示各个模块和子模块的答题情况，包括总题数、答对题数、正确率和用时。可以点击编辑按钮修改数据。"
+            />
+          </CardTitle>
           <CardDescription>各模块的详细答题情况</CardDescription>
         </CardHeader>
         <CardContent>
