@@ -19,7 +19,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { getExamRecordById, updateModuleScore, updateExamRecord, getUserSettings } from '@/db/api';
 import type { ExamRecordDetail, ModuleScore, UserSetting } from '@/types';
-import { ArrowLeft, Clock, Target, TrendingUp, AlertCircle, Edit, Calendar, FileText } from 'lucide-react';
+import { ArrowLeft, Clock, Target, TrendingUp, AlertCircle, Edit, Calendar, FileText, ExternalLink } from 'lucide-react';
 
 export default function ExamDetail() {
   const { id } = useParams<{ id: string }>();
@@ -34,6 +34,8 @@ export default function ExamDetail() {
   const [notes, setNotes] = useState<string>('');
   const [isEditingExamDate, setIsEditingExamDate] = useState(false);
   const [examDate, setExamDate] = useState<string>('');
+  const [isEditingReportUrl, setIsEditingReportUrl] = useState(false);
+  const [reportUrl, setReportUrl] = useState<string>('');
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -304,6 +306,60 @@ export default function ExamDetail() {
     }
   };
 
+  // 打开报告链接编辑对话框
+  const handleEditReportUrl = () => {
+    if (!examDetail) return;
+    setReportUrl(examDetail.report_url || '');
+    setIsEditingReportUrl(true);
+  };
+
+  // 保存报告链接
+  const handleSaveReportUrl = async () => {
+    if (!examDetail || !id) return;
+
+    // 验证URL格式(如果有输入的话)
+    if (reportUrl && reportUrl.trim()) {
+      try {
+        new URL(reportUrl.trim());
+      } catch {
+        toast({
+          title: '错误',
+          description: '请输入有效的URL地址',
+          variant: 'destructive',
+        });
+        return;
+      }
+    }
+
+    try {
+      setIsSaving(true);
+      const urlToSave = reportUrl.trim() || null;
+      await updateExamRecord(id, { report_url: urlToSave });
+      
+      // 更新本地状态
+      setExamDetail({
+        ...examDetail,
+        report_url: urlToSave || undefined,
+      });
+
+      toast({
+        title: '成功',
+        description: '考试报告链接已更新',
+      });
+      
+      setIsEditingReportUrl(false);
+    } catch (error) {
+      console.error('更新考试报告链接失败:', error);
+      toast({
+        title: '错误',
+        description: '更新考试报告链接失败',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="container mx-auto py-8 px-4">
@@ -512,6 +568,40 @@ export default function ExamDetail() {
           </div>
           <span className="text-muted-foreground/50">|</span>
           <span>上传时间: {formatDate(examDetail.created_at)}</span>
+          <span className="text-muted-foreground/50">|</span>
+          <div className="flex items-center gap-2">
+            {examDetail.report_url ? (
+              <>
+                <a
+                  href={examDetail.report_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 text-primary hover:underline"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  <span>考试报告链接地址</span>
+                </a>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6"
+                  onClick={handleEditReportUrl}
+                >
+                  <Edit className="h-3 w-3" />
+                </Button>
+              </>
+            ) : (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 px-2 text-muted-foreground hover:text-primary"
+                onClick={handleEditReportUrl}
+              >
+                <ExternalLink className="h-3 w-3 mr-1" />
+                添加考试报告链接地址
+              </Button>
+            )}
+          </div>
         </div>
         {examDetail.notes && (
           <div className="mt-3 p-3 bg-muted rounded-md">
@@ -914,6 +1004,41 @@ export default function ExamDetail() {
               取消
             </Button>
             <Button onClick={handleSaveExamDate} disabled={isSaving}>
+              {isSaving ? '保存中...' : '保存'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 编辑考试报告链接对话框 */}
+      <Dialog open={isEditingReportUrl} onOpenChange={setIsEditingReportUrl}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>编辑考试报告链接</DialogTitle>
+            <DialogDescription>
+              添加外部考试报告的链接地址,点击后将在新窗口打开
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="report-url">链接地址</Label>
+              <Input
+                id="report-url"
+                type="url"
+                value={reportUrl}
+                onChange={(e) => setReportUrl(e.target.value)}
+                placeholder="https://example.com/report"
+              />
+              <p className="text-xs text-muted-foreground">
+                请输入完整的URL地址,包括 http:// 或 https://
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditingReportUrl(false)}>
+              取消
+            </Button>
+            <Button onClick={handleSaveReportUrl} disabled={isSaving}>
               {isSaving ? '保存中...' : '保存'}
             </Button>
           </DialogFooter>
