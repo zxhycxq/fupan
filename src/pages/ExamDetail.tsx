@@ -48,6 +48,24 @@ function TitleWithTooltip({ title, tooltip }: { title: string; tooltip: string }
   );
 }
 
+// 格式化时间：秒转为"X分Y秒"
+function formatTime(seconds?: number): string {
+  if (!seconds) return '0分0秒';
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  return `${minutes}分${remainingSeconds}秒`;
+}
+
+// 分钟转秒
+function minutesToSeconds(minutes: number): number {
+  return Math.round(minutes * 60);
+}
+
+// 秒转分钟（保留小数）
+function secondsToMinutes(seconds: number): number {
+  return Math.round((seconds / 60) * 100) / 100;
+}
+
 export default function ExamDetail() {
   const { id } = useParams<{ id: string }>();
   const [examDetail, setExamDetail] = useState<ExamRecordDetail | null>(null);
@@ -108,22 +126,26 @@ export default function ExamDetail() {
   // 打开编辑对话框
   const handleEditTime = (module: ModuleScore) => {
     setEditingModule(module);
-    setEditTime(module.time_used?.toString() || '0');
+    // 将秒转为分钟显示
+    setEditTime(secondsToMinutes(module.time_used || 0).toString());
   };
 
   // 保存时间修改
   const handleSaveTime = async () => {
     if (!editingModule || !examDetail) return;
 
-    const newTime = parseInt(editTime);
-    if (isNaN(newTime) || newTime < 0) {
+    const minutes = parseFloat(editTime);
+    if (isNaN(minutes) || minutes < 0) {
       toast({
         title: '错误',
-        description: '请输入有效的时间(秒)',
+        description: '请输入有效的时间(分钟)',
         variant: 'destructive',
       });
       return;
     }
+
+    // 将分钟转为秒
+    const newTime = minutesToSeconds(minutes);
 
     try {
       setIsSaving(true);
@@ -705,7 +727,7 @@ export default function ExamDetail() {
                     </Badge>
                   </div>
                   
-                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4 text-sm">
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-4 text-sm">
                     <div>
                       <span className="text-muted-foreground">总题数:</span>
                       <span className="ml-2 font-medium">{mainModule.total_questions}</span>
@@ -718,13 +740,9 @@ export default function ExamDetail() {
                       <span className="text-muted-foreground">答错:</span>
                       <span className="ml-2 font-medium text-red-600">{mainModule.wrong_answers}</span>
                     </div>
-                    <div>
-                      <span className="text-muted-foreground">未答:</span>
-                      <span className="ml-2 font-medium text-gray-600">{mainModule.unanswered}</span>
-                    </div>
-                    <div>
+                    <div className="flex items-center">
                       <span className="text-muted-foreground">用时:</span>
-                      <span className="ml-2 font-medium">{mainModule.time_used}秒</span>
+                      <span className="ml-2 font-medium">{formatTime(mainModule.time_used)}</span>
                       <Button
                         variant="ghost"
                         size="sm"
@@ -746,12 +764,11 @@ export default function ExamDetail() {
                               {subModule.accuracy_rate?.toFixed(1)}%
                             </Badge>
                           </div>
-                          <div className="grid grid-cols-2 md:grid-cols-5 gap-2 text-xs text-muted-foreground">
+                          <div className="grid grid-cols-1 xl:grid-cols-2 gap-2 text-xs text-muted-foreground">
                             <div>总题数: {subModule.total_questions}</div>
                             <div>答对: {subModule.correct_answers}</div>
                             <div>答错: {subModule.wrong_answers}</div>
-                            <div>未答: {subModule.unanswered}</div>
-                            <div>用时: {subModule.time_used}秒</div>
+                            <div>用时: {formatTime(subModule.time_used)}</div>
                           </div>
                         </div>
                       ))}
@@ -770,22 +787,28 @@ export default function ExamDetail() {
           <DialogHeader>
             <DialogTitle>编辑用时</DialogTitle>
             <DialogDescription>
-              修改 {editingModule?.module_name} 的用时(秒)
+              修改 {editingModule?.module_name} 的用时
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="time" className="text-right">
-                用时(秒)
+            <div className="space-y-2">
+              <Label htmlFor="time">
+                用时(分钟)
               </Label>
               <Input
                 id="time"
                 type="number"
                 min="0"
+                step="0.01"
                 value={editTime}
                 onChange={(e) => setEditTime(e.target.value)}
-                className="col-span-3"
+                placeholder="请输入分钟数"
               />
+              {editTime && !isNaN(parseFloat(editTime)) && (
+                <p className="text-sm text-muted-foreground">
+                  = {formatTime(minutesToSeconds(parseFloat(editTime)))}
+                </p>
+              )}
             </div>
           </div>
           <DialogFooter>
