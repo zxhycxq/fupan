@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { Upload as UploadIcon, Loader2, X } from 'lucide-react';
-import { fileToBase64, submitImageRecognition, pollImageRecognitionResult } from '@/services/imageRecognition';
+import { fileToBase64, submitImageRecognition, pollImageRecognitionResult, compressImage } from '@/services/imageRecognition';
 import { parseExamData } from '@/services/dataParser';
 import { createExamRecord, createModuleScores } from '@/db/api';
 
@@ -104,21 +104,41 @@ export default function Upload() {
       for (let i = 0; i < selectedFiles.length; i++) {
         const { file } = selectedFiles[i];
         
-        setCurrentStep(`正在处理第 ${i + 1}/${selectedFiles.length} 张图片`);
-        setUploadProgress(((i + 1) / totalSteps) * 100);
+        setCurrentStep(`正在处理第 ${i + 1}/${selectedFiles.length} 张图片 - 压缩中...`);
+        setUploadProgress(((i + 0.3) / totalSteps) * 100);
 
-        // 1. 将图片转换为base64
-        const base64Image = await fileToBase64(file);
+        // 1. 压缩图片
+        let processedFile = file;
+        try {
+          // 如果图片大于2MB,进行压缩
+          if (file.size > 2 * 1024 * 1024) {
+            console.log(`图片 ${i + 1} 大小: ${(file.size / 1024 / 1024).toFixed(2)}MB, 开始压缩...`);
+            processedFile = await compressImage(file, 1920, 0.85);
+          } else {
+            console.log(`图片 ${i + 1} 大小: ${(file.size / 1024 / 1024).toFixed(2)}MB, 无需压缩`);
+          }
+        } catch (error) {
+          console.error('图片压缩失败,使用原图:', error);
+          processedFile = file;
+        }
 
-        // 2. 提交图像识别请求
+        setCurrentStep(`正在处理第 ${i + 1}/${selectedFiles.length} 张图片 - 识别中...`);
+        setUploadProgress(((i + 0.6) / totalSteps) * 100);
+
+        // 2. 将图片转换为base64
+        const base64Image = await fileToBase64(processedFile);
+
+        // 3. 提交图像识别请求
         const taskId = await submitImageRecognition({
           image: base64Image,
           question: '请详细提取这张考试成绩截图中的所有信息,包括总分、用时、各模块的名称、题数、答对数、答错数、未答数、正确率和用时。请保持原始格式,确保所有数字和文字都准确提取。',
         });
 
-        // 3. 轮询获取识别结果(增加超时时间)
+        // 4. 轮询获取识别结果(增加超时时间)
         const ocrText = await pollImageRecognitionResult(taskId, 30, 3000);
         allOcrTexts.push(ocrText);
+        
+        setUploadProgress(((i + 1) / totalSteps) * 100);
       }
 
       // 4. 合并所有识别结果
