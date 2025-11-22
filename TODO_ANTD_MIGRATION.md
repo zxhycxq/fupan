@@ -32,8 +32,8 @@
 1. ✓ 创建迁移计划
 2. ✓ 替换 Settings.tsx
 3. ✓ 修复 React 导入错误
-4. [ ] 替换 Upload.tsx
-5. [ ] 替换 ExamList.tsx
+4. ✓ 替换 Upload.tsx
+5. ✓ 替换 ExamList.tsx
 6. [ ] 替换 ExamDetail.tsx
 7. [ ] 替换 Dashboard.tsx
 8. [ ] 替换 GenerateData.tsx
@@ -53,4 +53,10 @@
 - ✓ 配置 antd ConfigProvider 和中文语言包
 - ✓ 配置 dayjs 中文
 - ✓ 修复 React useEffect 导入错误
+- ✓ Upload 页面完全迁移到 antd
+- ✓ ExamList 页面完全迁移到 antd
+
+## 进度
+已完成 5/12 步骤 (42%)
+
 
