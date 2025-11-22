@@ -197,34 +197,36 @@ export default function Upload() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="examNumber">考试期数</Label>
-              <Input
-                id="examNumber"
-                type="number"
-                min="1"
-                value={examNumber}
-                onChange={(e) => setExamNumber(parseInt(e.target.value))}
-                placeholder="请输入考试期数"
-                required
-              />
-            </div>
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="examNumber">考试期数</Label>
+                <Input
+                  id="examNumber"
+                  type="number"
+                  min="1"
+                  value={examNumber}
+                  onChange={(e) => setExamNumber(parseInt(e.target.value))}
+                  placeholder="请输入考试期数"
+                  required
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="timeUsed">用时(分钟)</Label>
-              <Input
-                id="timeUsed"
-                type="number"
-                min="0"
-                step="1"
-                value={timeUsedMinutes}
-                onChange={(e) => setTimeUsedMinutes(parseInt(e.target.value) || 0)}
-                placeholder="请输入考试用时(分钟)"
-                required
-              />
-              <p className="text-sm text-muted-foreground">
-                请输入考试用时,单位为分钟
-              </p>
+              <div className="space-y-2">
+                <Label htmlFor="timeUsed">用时(分钟)</Label>
+                <Input
+                  id="timeUsed"
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={timeUsedMinutes}
+                  onChange={(e) => setTimeUsedMinutes(parseInt(e.target.value) || 0)}
+                  placeholder="请输入考试用时(分钟)"
+                  required
+                />
+                <p className="text-sm text-muted-foreground">
+                  请输入考试用时,单位为分钟
+                </p>
+              </div>
             </div>
 
             <div className="space-y-2">

@@ -191,7 +191,7 @@ export default function Settings() {
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {MAIN_MODULES.map((module) => (
                   <div key={module} className="space-y-2">
                     <Label htmlFor={module}>{module}</Label>
@@ -236,7 +236,7 @@ export default function Settings() {
               </div>
 
               <RadioGroup value={theme} onValueChange={(value) => setTheme(value as typeof theme)}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
                   {themes.map((themeOption) => (
                     <div key={themeOption.value} className="relative">
                       <RadioGroupItem
