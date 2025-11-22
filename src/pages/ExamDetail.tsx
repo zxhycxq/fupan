@@ -55,8 +55,6 @@ export default function ExamDetail() {
   const [isLoading, setIsLoading] = useState(true);
   const [editingModule, setEditingModule] = useState<ModuleScore | null>(null);
   const [editTime, setEditTime] = useState<string>('');
-  const [isEditingExamTime, setIsEditingExamTime] = useState(false);
-  const [examTimeMinutes, setExamTimeMinutes] = useState<string>('');
   const [isEditingNotes, setIsEditingNotes] = useState(false);
   const [notes, setNotes] = useState<string>('');
   const [isEditingExamDate, setIsEditingExamDate] = useState(false);
@@ -152,55 +150,6 @@ export default function ExamDetail() {
       toast({
         title: '错误',
         description: '更新时间失败',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleEditExamTime = () => {
-    if (!examDetail) return;
-    const minutes = Math.floor(examDetail.time_used / 60);
-    setExamTimeMinutes(minutes.toString());
-    setIsEditingExamTime(true);
-  };
-
-  const handleSaveExamTime = async () => {
-    if (!examDetail || !id) return;
-
-    const minutes = parseInt(examTimeMinutes);
-    if (isNaN(minutes) || minutes < 0) {
-      toast({
-        title: '错误',
-        description: '请输入有效的时间(分钟)',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    try {
-      setIsSaving(true);
-      const newTimeSeconds = minutes * 60;
-      await updateExamRecord(id, { time_used: newTimeSeconds });
-      
-      // 更新本地状态
-      setExamDetail({
-        ...examDetail,
-        time_used: newTimeSeconds,
-      });
-
-      toast({
-        title: '成功',
-        description: '考试用时已更新',
-      });
-      
-      setIsEditingExamTime(false);
-    } catch (error) {
-      console.error('更新考试用时失败:', error);
-      toast({
-        title: '错误',
-        description: '更新考试用时失败',
         variant: 'destructive',
       });
     } finally {
@@ -677,7 +626,7 @@ export default function ExamDetail() {
               examDetail.total_score >= 60 ? 'text-blue-600' :
               'text-orange-600'
             }`}>
-              {examDetail.total_score.toFixed(2)}
+              {examDetail.total_score.toFixed(1)}
             </div>
             <p className="text-xs text-muted-foreground">满分100分</p>
           </CardContent>
@@ -686,23 +635,13 @@ export default function ExamDetail() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">用时</CardTitle>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6"
-                onClick={handleEditExamTime}
-              >
-                <Edit className="h-3 w-3" />
-              </Button>
-              <Clock className="h-4 w-4 text-muted-foreground" />
-            </div>
+            <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {Math.floor((examDetail.time_used || 0) / 60)}:{String((examDetail.time_used || 0) % 60).padStart(2, '0')}
+              {examDetail.time_used || '-'}
             </div>
-            <p className="text-xs text-muted-foreground">分:秒</p>
+            <p className="text-xs text-muted-foreground">分钟</p>
           </CardContent>
         </Card>
 
@@ -713,7 +652,7 @@ export default function ExamDetail() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              {examDetail.max_score?.toFixed(2) || '-'}
+              {examDetail.max_score?.toFixed(1) || '-'}
             </div>
             <p className="text-xs text-muted-foreground">本期最高分</p>
           </CardContent>
@@ -726,7 +665,7 @@ export default function ExamDetail() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {examDetail.average_score?.toFixed(2) || '-'}
+              {examDetail.average_score?.toFixed(1) || '-'}
             </div>
             <p className="text-xs text-muted-foreground">考生平均分</p>
           </CardContent>
@@ -756,11 +695,11 @@ export default function ExamDetail() {
           </CardHeader>
           <CardContent>
             <div className={`text-2xl font-bold ${
-              (examDetail.beat_percentage || 0) >= 80 ? 'text-green-600' :
-              (examDetail.beat_percentage || 0) >= 60 ? 'text-blue-600' :
+              (examDetail.pass_rate || 0) >= 80 ? 'text-green-600' :
+              (examDetail.pass_rate || 0) >= 60 ? 'text-blue-600' :
               'text-orange-600'
             }`}>
-              {examDetail.beat_percentage?.toFixed(1) || '-'}%
+              {examDetail.pass_rate?.toFixed(1) || '-'}%
             </div>
             <p className="text-xs text-muted-foreground">已击败考生</p>
           </CardContent>
@@ -941,43 +880,6 @@ export default function ExamDetail() {
               取消
             </Button>
             <Button onClick={handleSaveTime} disabled={isSaving}>
-              {isSaving ? '保存中...' : '保存'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* 编辑考试用时对话框 */}
-      <Dialog open={isEditingExamTime} onOpenChange={setIsEditingExamTime}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>编辑考试用时</DialogTitle>
-            <DialogDescription>
-              修改整场考试的用时(分钟)
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="examTime">用时(分钟)</Label>
-              <Input
-                id="examTime"
-                type="number"
-                min="0"
-                step="1"
-                value={examTimeMinutes}
-                onChange={(e) => setExamTimeMinutes(e.target.value)}
-                placeholder="请输入考试用时"
-              />
-              <p className="text-sm text-muted-foreground">
-                当前用时: {Math.floor((examDetail?.time_used || 0) / 60)} 分钟
-              </p>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditingExamTime(false)}>
-              取消
-            </Button>
-            <Button onClick={handleSaveExamTime} disabled={isSaving}>
               {isSaving ? '保存中...' : '保存'}
             </Button>
           </DialogFooter>
