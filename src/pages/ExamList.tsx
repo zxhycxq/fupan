@@ -100,16 +100,19 @@ export default function ExamList() {
         updates.exam_number = editingRecord.exam_number;
       }
       if (editingRecord.total_score !== undefined) {
-        updates.total_score = editingRecord.total_score;
+        // 保留1位小数
+        updates.total_score = Math.round(editingRecord.total_score * 10) / 10;
       }
       if (editingRecord.time_used !== undefined) {
         updates.time_used = editingRecord.time_used;
       }
       if (editingRecord.average_score !== undefined) {
-        updates.average_score = editingRecord.average_score;
+        // 保留1位小数
+        updates.average_score = Math.round(editingRecord.average_score * 10) / 10;
       }
       if (editingRecord.pass_rate !== undefined) {
-        updates.pass_rate = editingRecord.pass_rate;
+        // 保留1位小数
+        updates.pass_rate = Math.round(editingRecord.pass_rate * 10) / 10;
       }
 
       await updateExamRecord(id, updates);
@@ -204,10 +207,12 @@ export default function ExamList() {
           <InputNumber
             min={0}
             max={100}
-            precision={2}
+            step={0.1}
             value={editingRecord.total_score}
-            onChange={(val) => setEditingRecord({ ...editingRecord, total_score: val || 0 })}
+            onChange={(val) => setEditingRecord({ ...editingRecord, total_score: val ?? 60 })}
             style={{ width: '100%' }}
+            placeholder="60.0"
+            stringMode={false}
           />
         ) : (
           <span
@@ -215,7 +220,7 @@ export default function ExamList() {
               value >= 80 ? 'text-green-600' : value >= 60 ? 'text-blue-600' : 'text-orange-600'
             }`}
           >
-            {value.toFixed(2)}
+            {value.toFixed(1)}
           </span>
         );
       },
@@ -254,13 +259,15 @@ export default function ExamList() {
           <InputNumber
             min={0}
             max={100}
-            precision={2}
-            value={editingRecord.average_score || undefined}
-            onChange={(val) => setEditingRecord({ ...editingRecord, average_score: val || null })}
+            step={0.1}
+            value={editingRecord.average_score ?? undefined}
+            onChange={(val) => setEditingRecord({ ...editingRecord, average_score: val ?? 60 })}
             style={{ width: '100%' }}
+            placeholder="60.0"
+            stringMode={false}
           />
         ) : value ? (
-          value.toFixed(2)
+          value.toFixed(1)
         ) : (
           '-'
         );
@@ -277,11 +284,13 @@ export default function ExamList() {
           <InputNumber
             min={0}
             max={100}
-            precision={1}
-            value={editingRecord.pass_rate || undefined}
-            onChange={(val) => setEditingRecord({ ...editingRecord, pass_rate: val || null })}
+            step={0.1}
+            value={editingRecord.pass_rate ?? undefined}
+            onChange={(val) => setEditingRecord({ ...editingRecord, pass_rate: val ?? null })}
             addonAfter="%"
             style={{ width: '100%' }}
+            placeholder="50.0"
+            stringMode={false}
           />
         ) : value ? (
           `${value.toFixed(1)}%`
