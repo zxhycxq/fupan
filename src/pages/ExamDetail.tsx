@@ -25,7 +25,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { getExamRecordById, updateModuleScore, updateExamRecord, getUserSettings } from '@/db/api';
 import type { ExamRecordDetail, ModuleScore, UserSetting } from '@/types';
-import { ArrowLeft, Clock, Target, TrendingUp, AlertCircle, Edit, Calendar, FileText, ExternalLink, Info } from 'lucide-react';
+import { ArrowLeft, Clock, Target, TrendingUp, AlertCircle, Edit, Calendar, FileText, ExternalLink, Info, ChevronRight } from 'lucide-react';
 
 // 带说明的标题组件
 function TitleWithTooltip({ title, tooltip }: { title: string; tooltip: string }) {
@@ -755,16 +755,19 @@ export default function ExamDetail() {
                   </div>
 
                   {subModules.length > 0 && (
-                    <div className="pl-4 border-l-2 border-gray-200 space-y-3">
+                    <div className="mt-4 space-y-2">
                       {subModules.map(subModule => (
-                        <div key={subModule.id} className="text-sm">
+                        <div key={subModule.id} className="bg-muted/50 rounded-md p-3 text-sm">
                           <div className="flex items-center justify-between mb-2">
-                            <span className="font-medium">{subModule.module_name}</span>
+                            <div className="flex items-center gap-2">
+                              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                              <span className="font-medium">{subModule.module_name}</span>
+                            </div>
                             <Badge variant="outline" className="text-xs">
                               {subModule.accuracy_rate?.toFixed(1)}%
                             </Badge>
                           </div>
-                          <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                          <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground ml-6">
                             <div>总题数: {subModule.total_questions}</div>
                             <div>答对: {subModule.correct_answers}</div>
                             <div>答错: {subModule.wrong_answers}</div>
