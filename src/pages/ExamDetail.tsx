@@ -225,26 +225,25 @@ export default function ExamDetail() {
       left: 'center',
     },
     tooltip: {
-      trigger: 'item',
+      trigger: 'axis',
       formatter: (params: any) => {
-        // params.name 是系列名称 ('我的' 或 '目标')
-        // params.value 是该系列的所有值数组
-        const seriesName = params.name;
+        if (!params || params.length === 0) return '';
         
-        if (!params.value || !Array.isArray(params.value)) {
-          return '';
-        }
+        // params 是一个数组,包含所有系列在当前指标上的数据
+        const indicatorName = params[0].name; // 指标名称(模块名称)
         
         let result = `<div style="padding: 8px;">`;
-        result += `<div style="font-weight: bold; margin-bottom: 8px;">${seriesName}</div>`;
+        result += `<div style="font-weight: bold; margin-bottom: 8px;">${indicatorName}</div>`;
         
-        params.value.forEach((value: number, index: number) => {
-          const moduleName = mainModules[index].module_name;
+        params.forEach((param: any) => {
+          const seriesName = param.seriesName; // '我的' 或 '目标'
+          const value = param.value; // 该系列在当前指标上的值
           const color = seriesName === '我的' ? '#FF9800' : '#F44336';
+          
           result += `
             <div style="display: flex; align-items: center; margin-bottom: 4px;">
               <span style="display: inline-block; width: 10px; height: 10px; background-color: ${color}; border-radius: 50%; margin-right: 6px;"></span>
-              <span>${moduleName}: ${value.toFixed(2)}%</span>
+              <span>${seriesName}: ${value.toFixed(2)}%</span>
             </div>
           `;
         });
@@ -265,7 +264,7 @@ export default function ExamDetail() {
     },
     series: [
       {
-        name: '正确率对比',
+        name: '我的',
         type: 'radar',
         data: [
           {
@@ -282,6 +281,12 @@ export default function ExamDetail() {
               width: 2,
             },
           },
+        ],
+      },
+      {
+        name: '目标',
+        type: 'radar',
+        data: [
           {
             value: targetValues,
             name: '目标',
