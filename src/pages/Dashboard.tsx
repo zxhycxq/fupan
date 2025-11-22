@@ -16,6 +16,7 @@ export default function Dashboard() {
     modules: { module_name: string; data: (number | null)[] }[];
   }>({ exam_numbers: [], modules: [] });
   const [moduleDetailedStats, setModuleDetailedStats] = useState<{
+    exam_number: number;
     module_name: string;
     parent_module: string | null;
     total_questions: number;
@@ -357,12 +358,17 @@ export default function Dashboard() {
   };
 
   // 准备表格数据
-  interface TableDataType {
-    key: string;
-    module_name: string;
+  interface ExamData {
+    exam_number: number;
     total_questions: number;
     correct_answers: number;
     accuracy: number;
+  }
+
+  interface TableDataType {
+    key: string;
+    module_name: string;
+    exams: Map<number, ExamData>;
     children?: TableDataType[];
   }
 
@@ -372,64 +378,85 @@ export default function Dashboard() {
     return setting?.target_accuracy || 80; // 默认80%
   };
 
+  // 获取所有考试期数
+  const allExamNumbers = Array.from(new Set(moduleDetailedStats.map(s => s.exam_number))).sort((a, b) => a - b);
+
   // 组织表格数据：按主模块分组，子模块作为children
-  const tableData: TableDataType[] = [];
   const moduleMap = new Map<string, TableDataType>();
 
   moduleDetailedStats.forEach(stat => {
     if (!stat.parent_module) {
-      // 主模块数据（没有parent_module的记录）
+      // 主模块数据
       if (!moduleMap.has(stat.module_name)) {
         moduleMap.set(stat.module_name, {
           key: stat.module_name,
           module_name: stat.module_name,
-          total_questions: stat.total_questions,
-          correct_answers: stat.correct_answers,
-          accuracy: stat.accuracy,
+          exams: new Map(),
           children: [],
         });
-      } else {
-        const existing = moduleMap.get(stat.module_name)!;
-        existing.total_questions += stat.total_questions;
-        existing.correct_answers += stat.correct_answers;
-        existing.accuracy = existing.total_questions > 0
-          ? Number(((existing.correct_answers / existing.total_questions) * 100).toFixed(2))
-          : 0;
       }
+      
+      const module = moduleMap.get(stat.module_name)!;
+      module.exams.set(stat.exam_number, {
+        exam_number: stat.exam_number,
+        total_questions: stat.total_questions,
+        correct_answers: stat.correct_answers,
+        accuracy: stat.accuracy,
+      });
     } else {
-      // 子模块数据（有parent_module的记录）
+      // 子模块数据
       const parentName = stat.parent_module;
       
       if (!moduleMap.has(parentName)) {
         moduleMap.set(parentName, {
           key: parentName,
           module_name: parentName,
-          total_questions: 0,
-          correct_answers: 0,
-          accuracy: 0,
+          exams: new Map(),
           children: [],
         });
       }
       
       const parent = moduleMap.get(parentName)!;
-      parent.children!.push({
-        key: `${parentName}-${stat.module_name}`,
-        module_name: stat.module_name,
+      
+      // 查找或创建子模块
+      let child = parent.children!.find(c => c.module_name === stat.module_name);
+      if (!child) {
+        child = {
+          key: `${parentName}-${stat.module_name}`,
+          module_name: stat.module_name,
+          exams: new Map(),
+        };
+        parent.children!.push(child);
+      }
+      
+      // 添加子模块的考试数据
+      child.exams.set(stat.exam_number, {
+        exam_number: stat.exam_number,
         total_questions: stat.total_questions,
         correct_answers: stat.correct_answers,
         accuracy: stat.accuracy,
       });
       
-      // 更新父模块的统计
-      parent.total_questions += stat.total_questions;
-      parent.correct_answers += stat.correct_answers;
-      parent.accuracy = parent.total_questions > 0
-        ? Number(((parent.correct_answers / parent.total_questions) * 100).toFixed(2))
-        : 0;
+      // 更新父模块的汇总数据
+      const parentExam = parent.exams.get(stat.exam_number);
+      if (parentExam) {
+        parentExam.total_questions += stat.total_questions;
+        parentExam.correct_answers += stat.correct_answers;
+        parentExam.accuracy = parentExam.total_questions > 0
+          ? Number(((parentExam.correct_answers / parentExam.total_questions) * 100).toFixed(2))
+          : 0;
+      } else {
+        parent.exams.set(stat.exam_number, {
+          exam_number: stat.exam_number,
+          total_questions: stat.total_questions,
+          correct_answers: stat.correct_answers,
+          accuracy: stat.accuracy,
+        });
+      }
     }
   });
 
-  tableData.push(...Array.from(moduleMap.values()));
+  const tableData: TableDataType[] = Array.from(moduleMap.values());
 
   // 定义表格列
   const columns: ColumnsType<TableDataType> = [
@@ -437,38 +464,38 @@ export default function Dashboard() {
       title: '模块名称',
       dataIndex: 'module_name',
       key: 'module_name',
-      width: '40%',
+      fixed: 'left',
+      width: 150,
     },
-    {
-      title: '题目数',
-      dataIndex: 'total_questions',
-      key: 'total_questions',
-      width: '20%',
-      align: 'center',
-    },
-    {
-      title: '答对数',
-      dataIndex: 'correct_answers',
-      key: 'correct_answers',
-      width: '20%',
-      align: 'center',
-    },
-    {
-      title: '正确率',
-      dataIndex: 'accuracy',
-      key: 'accuracy',
-      width: '20%',
-      align: 'center',
-      render: (accuracy: number, record: TableDataType) => {
+    ...allExamNumbers.map(examNum => ({
+      title: `第${examNum}期`,
+      key: `exam_${examNum}`,
+      width: 180,
+      align: 'center' as const,
+      render: (_: any, record: TableDataType) => {
+        const examData = record.exams.get(examNum);
+        if (!examData) {
+          return <span className="text-muted-foreground">-</span>;
+        }
+        
         const target = getTargetAccuracy(record.module_name);
-        const isLow = accuracy < target;
+        const isLow = examData.accuracy < target;
+        
         return (
-          <span style={{ color: isLow ? '#ef4444' : 'inherit', fontWeight: isLow ? 'bold' : 'normal' }}>
-            {accuracy.toFixed(2)}%
-          </span>
+          <div className="text-sm">
+            <div>{examData.total_questions}题 / {examData.correct_answers}对</div>
+            <div 
+              style={{ 
+                color: isLow ? '#ef4444' : 'inherit', 
+                fontWeight: isLow ? 'bold' : 'normal' 
+              }}
+            >
+              {examData.accuracy.toFixed(2)}%
+            </div>
+          </div>
         );
       },
-    },
+    })),
   ];
 
   if (isLoading) {
@@ -626,7 +653,7 @@ export default function Dashboard() {
           <CardHeader>
             <CardTitle className="text-lg sm:text-xl">模块详细统计</CardTitle>
             <CardDescription className="text-sm">
-              各模块和子模块的详细答题统计，红色标注表示低于目标正确率
+              各模块和子模块在每期考试中的详细答题统计，红色标注表示低于目标正确率
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -636,6 +663,7 @@ export default function Dashboard() {
               pagination={false}
               size="middle"
               bordered
+              scroll={{ x: 'max-content' }}
               expandable={{
                 defaultExpandAllRows: false,
               }}

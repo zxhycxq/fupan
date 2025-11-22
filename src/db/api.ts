@@ -397,8 +397,9 @@ export async function saveExamConfig(
   }
 }
 
-// 获取所有模块和子模块的详细统计数据
+// 获取所有模块和子模块的详细统计数据（按期数分组）
 export async function getModuleDetailedStats(): Promise<{
+  exam_number: number;
   module_name: string;
   parent_module: string | null;
   total_questions: number;
@@ -407,7 +408,16 @@ export async function getModuleDetailedStats(): Promise<{
 }[]> {
   const { data, error } = await supabase
     .from('module_scores')
-    .select('module_name, parent_module, total_questions, correct_answers, accuracy_rate')
+    .select(`
+      exam_record_id,
+      module_name,
+      parent_module,
+      total_questions,
+      correct_answers,
+      accuracy_rate,
+      exam_records!inner(exam_number)
+    `)
+    .order('exam_records(exam_number)')
     .order('parent_module', { nullsFirst: true })
     .order('module_name');
 
@@ -416,40 +426,13 @@ export async function getModuleDetailedStats(): Promise<{
     throw error;
   }
 
-  // 聚合数据：按模块和父模块分组，计算总和
-  const statsMap = new Map<string, {
-    module_name: string;
-    parent_module: string | null;
-    total_questions: number;
-    correct_answers: number;
-  }>();
-
-  (data || []).forEach(record => {
-    // 如果有parent_module，说明这是子模块
-    const key = record.parent_module 
-      ? `${record.parent_module}|${record.module_name}`
-      : `${record.module_name}|`;
-    
-    const existing = statsMap.get(key);
-    
-    if (existing) {
-      existing.total_questions += record.total_questions;
-      existing.correct_answers += record.correct_answers;
-    } else {
-      statsMap.set(key, {
-        module_name: record.module_name,
-        parent_module: record.parent_module,
-        total_questions: record.total_questions,
-        correct_answers: record.correct_answers,
-      });
-    }
-  });
-
-  // 转换为数组并计算正确率
-  return Array.from(statsMap.values()).map(stat => ({
-    ...stat,
-    accuracy: stat.total_questions > 0 
-      ? Number(((stat.correct_answers / stat.total_questions) * 100).toFixed(2))
-      : 0,
+  // 转换数据格式
+  return (data || []).map(record => ({
+    exam_number: (record.exam_records as any).exam_number,
+    module_name: record.module_name,
+    parent_module: record.parent_module,
+    total_questions: record.total_questions,
+    correct_answers: record.correct_answers,
+    accuracy: record.accuracy_rate || 0,
   }));
 }
