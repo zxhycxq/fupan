@@ -688,42 +688,45 @@ export default function Dashboard() {
 
         <Col xs={24} md={12}>
           <Card
-            title="模块详细统计"
-            extra={<span className="text-sm text-gray-500">最近考试各模块表现</span>}
+            title="得分分布"
+            extra={<span className="text-sm text-gray-500">各分数段分布情况</span>}
           >
-          
             <ReactECharts 
               option={scoreDistributionOption} 
               style={{ height: window.innerWidth < 640 ? '300px' : '400px' }} 
             />
           </Card>
-
-        {/* 模块详细统计表格 */}
-        <Card className="md:col-span-2">
-          
-            <Table
-              columns={columns}
-              dataSource={tableDataWithTotal}
-              pagination={false}
-              size="middle"
-              bordered
-              scroll={{ x: 'max-content' }}
-              rowClassName={(record, index) => {
-                // 总计行使用特殊样式
-                if (record.key === 'total') {
-                  return 'bg-muted/50';
-                }
-                // 斑马线样式：偶数行使用浅色背景
-                return index % 2 === 0 ? '' : 'bg-muted/30';
-              }}
-              expandable={{
-                defaultExpandAllRows: false,
-                rowExpandable: (record) => record.key !== 'total' && (record.children?.length || 0) > 0,
-              }}
-            />
-          </Card>
         </Col>
       </Row>
+
+      {/* 模块详细统计表格 - 独立展示，占满屏幕宽度 */}
+      <div className="mt-8">
+        <Card 
+          title="历次考试各模块详细数据表"
+          extra={<span className="text-sm text-gray-500">查看所有考试的详细模块数据</span>}
+        >
+          <Table
+            columns={columns}
+            dataSource={tableDataWithTotal}
+            pagination={false}
+            size="middle"
+            bordered
+            scroll={{ x: 'max-content' }}
+            rowClassName={(record, index) => {
+              // 总计行使用特殊样式
+              if (record.key === 'total') {
+                return 'bg-muted/50';
+              }
+              // 斑马线样式：偶数行使用浅色背景
+              return index % 2 === 0 ? '' : 'bg-muted/30';
+            }}
+            expandable={{
+              defaultExpandAllRows: false,
+              rowExpandable: (record) => record.key !== 'total' && (record.children?.length || 0) > 0,
+            }}
+          />
+        </Card>
+      </div>
     </div>
   );
 }
