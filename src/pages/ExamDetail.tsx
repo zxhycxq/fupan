@@ -1,49 +1,51 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ReactECharts from 'echarts-for-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { useToast } from '@/hooks/use-toast';
+import { 
+  Card, 
+  Button, 
+  Skeleton, 
+  Tag, 
+  Input, 
+  Modal, 
+  Tooltip, 
+  message,
+  Row,
+  Col,
+  Space,
+  Typography
+} from 'antd';
+import { 
+  ArrowLeftOutlined, 
+  ClockCircleOutlined, 
+  AimOutlined, 
+  RiseOutlined, 
+  WarningOutlined, 
+  EditOutlined, 
+  CalendarOutlined, 
+  FileTextOutlined, 
+  LinkOutlined, 
+  InfoCircleOutlined, 
+  RightOutlined 
+} from '@ant-design/icons';
 import { getExamRecordById, updateModuleScore, updateExamRecord, getUserSettings } from '@/db/api';
 import type { ExamRecordDetail, ModuleScore, UserSetting } from '@/types';
-import { ArrowLeft, Clock, Target, TrendingUp, AlertCircle, Edit, Calendar, FileText, ExternalLink, Info, ChevronRight } from 'lucide-react';
+
+const { TextArea } = Input;
+const { Title, Text } = Typography;
 
 // 带说明的标题组件
 function TitleWithTooltip({ title, tooltip }: { title: string; tooltip: string }) {
   return (
     <div className="flex items-center gap-2">
       <span>{title}</span>
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button type="button" className="inline-flex items-center">
-              <Info className="h-4 w-4 text-muted-foreground cursor-help" />
-            </button>
-          </TooltipTrigger>
-          <TooltipContent className="max-w-xs">
+      <Tooltip title="
             <p>{tooltip}</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+          ">
+            <button type="button" className="inline-flex items-center">
+              <InfoCircleOutlined className="h-4 w-4 text-muted-foreground cursor-help" />
+            </button>
+          </Tooltip>
     </div>
   );
 }
@@ -78,7 +80,7 @@ export default function ExamDetail() {
   const [isEditingReportUrl, setIsEditingReportUrl] = useState(false);
   const [reportUrl, setReportUrl] = useState<string>('');
   const [isSaving, setIsSaving] = useState(false);
-  const { toast } = useToast();
+  // 使用 antd message
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -102,22 +104,14 @@ export default function ExamDetail() {
       setIsLoading(true);
       const detail = await getExamRecordById(examId);
       if (!detail) {
-        toast({
-          title: '错误',
-          description: '考试记录不存在',
-          variant: 'destructive',
-        });
+        message.success("错误");
         navigate('/exams');
         return;
       }
       setExamDetail(detail);
     } catch (error) {
       console.error('加载考试详情失败:', error);
-      toast({
-        title: '错误',
-        description: '加载考试详情失败',
-        variant: 'destructive',
-      });
+      message.success("错误");
     } finally {
       setIsLoading(false);
     }
@@ -136,11 +130,7 @@ export default function ExamDetail() {
 
     const minutes = parseFloat(editTime);
     if (isNaN(minutes) || minutes < 0) {
-      toast({
-        title: '错误',
-        description: '请输入有效的时间(分钟)',
-        variant: 'destructive',
-      });
+      message.success("错误");
       return;
     }
 
@@ -159,19 +149,12 @@ export default function ExamDetail() {
         ),
       });
 
-      toast({
-        title: '成功',
-        description: '时间已更新',
-      });
+      message.success("成功");
       
       setEditingModule(null);
     } catch (error) {
       console.error('更新时间失败:', error);
-      toast({
-        title: '错误',
-        description: '更新时间失败',
-        variant: 'destructive',
-      });
+      message.success("错误");
     } finally {
       setIsSaving(false);
     }
@@ -190,11 +173,7 @@ export default function ExamDetail() {
 
     // 验证备注长度
     if (notes.length > 500) {
-      toast({
-        title: '错误',
-        description: '备注不能超过500字',
-        variant: 'destructive',
-      });
+      message.success("错误");
       return;
     }
 
@@ -208,20 +187,13 @@ export default function ExamDetail() {
         notes,
       });
 
-      toast({
-        title: '成功',
-        description: '备注已保存',
-      });
+      message.success("成功");
       
       setIsEditingNotes(false);
     } catch (error) {
       console.error('保存备注失败:', error);
       const errorMessage = error instanceof Error ? error.message : '保存备注失败';
-      toast({
-        title: '错误',
-        description: errorMessage,
-        variant: 'destructive',
-      });
+      message.success("错误");
     } finally {
       setIsSaving(false);
     }
@@ -243,11 +215,7 @@ export default function ExamDetail() {
       try {
         new URL(reportUrl.trim());
       } catch {
-        toast({
-          title: '错误',
-          description: '请输入有效的URL地址',
-          variant: 'destructive',
-        });
+        message.success("错误");
         return;
       }
     }
@@ -263,20 +231,13 @@ export default function ExamDetail() {
         report_url: urlToSave || undefined,
       });
 
-      toast({
-        title: '成功',
-        description: '考试报告链接已更新',
-      });
+      message.success("成功");
       
       setIsEditingReportUrl(false);
     } catch (error) {
       console.error('更新考试报告链接失败:', error);
       const errorMessage = error instanceof Error ? error.message : '更新考试报告链接失败';
-      toast({
-        title: '错误',
-        description: errorMessage,
-        variant: 'destructive',
-      });
+      message.success("错误");
     } finally {
       setIsSaving(false);
     }
@@ -289,23 +250,21 @@ export default function ExamDetail() {
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
           {[...Array(4)].map((_, i) => (
             <Card key={i}>
-              <CardHeader>
+              
                 <Skeleton className="h-4 w-24" />
-              </CardHeader>
-              <CardContent>
+              
+              
                 <Skeleton className="h-8 w-16" />
-              </CardContent>
-            </Card>
+              </Card>
           ))}
         </div>
         <Card>
-          <CardHeader>
+          
             <Skeleton className="h-6 w-32" />
-          </CardHeader>
-          <CardContent>
+          
+          
             <Skeleton className="h-96 w-full" />
-          </CardContent>
-        </Card>
+          </Card>
       </div>
     );
   }
@@ -457,7 +416,7 @@ export default function ExamDetail() {
     xAxis: {
       type: 'category',
       data: mainModules.map(m => m.module_name),
-      axisLabel: {
+      axisdiv: {
         interval: 0,
         rotate: 45,
       },
@@ -492,11 +451,11 @@ export default function ExamDetail() {
   return (
     <div className="container mx-auto py-8 px-4">
       <Button
-        variant="ghost"
+        type="text"
         onClick={() => navigate('/exams')}
         className="mb-6"
       >
-        <ArrowLeft className="mr-2 h-4 w-4" />
+        <ArrowLeftOutlined className="mr-2 h-4 w-4" />
         返回列表
       </Button>
 
@@ -504,7 +463,7 @@ export default function ExamDetail() {
         <h1 className="text-3xl font-bold mb-2">第{examDetail.exam_number}期考试详情</h1>
         <div className="flex flex-wrap items-center gap-4 text-muted-foreground">
           <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
+            <CalendarOutlined className="h-4 w-4" />
             <span>考试日期: {examDetail.exam_date || examDetail.created_at.split('T')[0]}</span>
           </div>
           <span className="text-muted-foreground/50">|</span>
@@ -519,26 +478,26 @@ export default function ExamDetail() {
                   rel="noopener noreferrer"
                   className="flex items-center gap-1 text-primary hover:underline"
                 >
-                  <ExternalLink className="h-4 w-4" />
+                  <LinkOutlined className="h-4 w-4" />
                   <span>考试报告链接地址</span>
                 </a>
                 <Button
-                  variant="ghost"
-                  size="icon"
+                  type="text"
+                  size="small"
                   className="h-6 w-6"
                   onClick={handleEditReportUrl}
                 >
-                  <Edit className="h-3 w-3" />
+                  <EditOutlined className="h-3 w-3" />
                 </Button>
               </>
             ) : (
               <Button
-                variant="ghost"
-                size="sm"
+                type="text"
+                size="small"
                 className="h-6 px-2 text-muted-foreground hover:text-primary"
                 onClick={handleEditReportUrl}
               >
-                <ExternalLink className="h-3 w-3 mr-1" />
+                <LinkOutlined className="h-3 w-3 mr-1" />
                 添加考试报告链接地址
               </Button>
             )}
@@ -548,28 +507,28 @@ export default function ExamDetail() {
           <div className="mt-3 p-3 bg-muted rounded-md">
             <div className="flex items-start justify-between gap-2">
               <div className="flex items-start gap-2 flex-1">
-                <FileText className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
+                <FileTextOutlined className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
                 <p className="text-sm whitespace-pre-wrap break-words">{examDetail.notes}</p>
               </div>
               <Button
-                variant="ghost"
-                size="icon"
+                type="text"
+                size="small"
                 className="h-6 w-6 flex-shrink-0"
                 onClick={handleEditNotes}
               >
-                <Edit className="h-3 w-3" />
+                <EditOutlined className="h-3 w-3" />
               </Button>
             </div>
           </div>
         )}
         {!examDetail.notes && (
           <Button
-            variant="outline"
-            size="sm"
+            type="default"
+            size="small"
             className="mt-3"
             onClick={handleEditNotes}
           >
-            <FileText className="mr-2 h-4 w-4" />
+            <FileTextOutlined className="mr-2 h-4 w-4" />
             添加备注
           </Button>
         )}
@@ -578,11 +537,11 @@ export default function ExamDetail() {
       {/* 统计卡片 */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 mb-8">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">总分</CardTitle>
-            <Target className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
+          
+            总分
+            <AimOutlined className="h-4 w-4 text-muted-foreground" />
+          
+          
             <div className={`text-2xl font-bold ${
               examDetail.total_score >= 80 ? 'text-green-600' :
               examDetail.total_score >= 60 ? 'text-blue-600' :
@@ -591,54 +550,50 @@ export default function ExamDetail() {
               {examDetail.total_score.toFixed(1)}
             </div>
             <p className="text-xs text-muted-foreground">满分100分</p>
-          </CardContent>
-        </Card>
+          </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">用时</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
+          
+            用时
+            <ClockCircleOutlined className="h-4 w-4 text-muted-foreground" />
+          
+          
             <div className="text-2xl font-bold">
               {examDetail.time_used || '-'}
             </div>
             <p className="text-xs text-muted-foreground">分钟</p>
-          </CardContent>
-        </Card>
+          </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">最高分</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
+          
+            最高分
+            <RiseOutlined className="h-4 w-4 text-muted-foreground" />
+          
+          
             <div className="text-2xl font-bold text-green-600">
               {examDetail.max_score?.toFixed(1) || '-'}
             </div>
             <p className="text-xs text-muted-foreground">本期最高分</p>
-          </CardContent>
-        </Card>
+          </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">平均分</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
+          
+            平均分
+            <RiseOutlined className="h-4 w-4 text-muted-foreground" />
+          
+          
             <div className="text-2xl font-bold">
               {examDetail.average_score?.toFixed(1) || '-'}
             </div>
             <p className="text-xs text-muted-foreground">考生平均分</p>
-          </CardContent>
-        </Card>
+          </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">难度</CardTitle>
-            <AlertCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
+          
+            难度
+            <WarningOutlined className="h-4 w-4 text-muted-foreground" />
+          
+          
             <div className={`text-2xl font-bold ${
               (examDetail.difficulty || 0) >= 4 ? 'text-red-600' :
               (examDetail.difficulty || 0) >= 3 ? 'text-orange-600' :
@@ -647,15 +602,14 @@ export default function ExamDetail() {
               {examDetail.difficulty?.toFixed(1) || '-'}
             </div>
             <p className="text-xs text-muted-foreground">难度系数(0-5)</p>
-          </CardContent>
-        </Card>
+          </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">击败率</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
+          
+            击败率
+            <RiseOutlined className="h-4 w-4 text-muted-foreground" />
+          
+          
             <div className={`text-2xl font-bold ${
               (examDetail.pass_rate || 0) >= 80 ? 'text-green-600' :
               (examDetail.pass_rate || 0) >= 60 ? 'text-blue-600' :
@@ -664,77 +618,73 @@ export default function ExamDetail() {
               {examDetail.pass_rate?.toFixed(1) || '-'}%
             </div>
             <p className="text-xs text-muted-foreground">已击败考生</p>
-          </CardContent>
-        </Card>
+          </Card>
       </div>
 
       {/* 弱势模块提醒 */}
       {weakModules.length > 0 && (
         <Card className="mb-8 border-orange-200 bg-orange-50">
-          <CardHeader>
-            <CardTitle className="flex items-center text-orange-700">
-              <AlertCircle className="mr-2 h-5 w-5" />
+          
+            
+              <WarningOutlined className="mr-2 h-5 w-5" />
               弱势模块提醒
-            </CardTitle>
-            <CardDescription>以下模块正确率低于60%,需要重点加强</CardDescription>
-          </CardHeader>
-          <CardContent>
+            
+            以下模块正确率低于60%,需要重点加强
+          
+          
             <div className="flex flex-wrap gap-2">
               {weakModules.map(m => (
-                <Badge key={m.id} variant="outline" className="border-orange-300 text-orange-700">
+                <Tag key={m.id} className="border-orange-300 text-orange-700">
                   {m.module_name}: {m.accuracy_rate?.toFixed(1)}%
-                </Badge>
+                </Tag>
               ))}
             </div>
-          </CardContent>
-        </Card>
+          </Card>
       )}
 
       {/* 图表 */}
       <div className="grid gap-6 md:grid-cols-2 mb-8">
         <Card>
-          <CardHeader>
-            <CardTitle>
+          
+            
               <TitleWithTooltip 
                 title="各模块正确率" 
                 tooltip="雷达图展示各个考试模块的正确率分布情况，可以直观地看出各模块的强弱项。正确率越高，该模块掌握越好。"
               />
-            </CardTitle>
-            <CardDescription>雷达图展示各模块的正确率分布</CardDescription>
-          </CardHeader>
-          <CardContent>
+            
+            雷达图展示各模块的正确率分布
+          
+          
             <ReactECharts option={radarOption} style={{ height: '400px' }} />
-          </CardContent>
-        </Card>
+          </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle>
+          
+            
               <TitleWithTooltip 
                 title="各模块用时对比" 
                 tooltip="柱状图展示各模块的答题用时统计，帮助分析时间分配是否合理。用时过长可能表示该模块需要提高答题速度，用时过短则需要注意准确率。"
               />
-            </CardTitle>
-            <CardDescription>各模块答题用时统计</CardDescription>
-          </CardHeader>
-          <CardContent>
+            
+            各模块答题用时统计
+          
+          
             <ReactECharts option={timeComparisonOption} style={{ height: '400px' }} />
-          </CardContent>
-        </Card>
+          </Card>
       </div>
 
       {/* 模块详情表格 */}
       <Card>
-        <CardHeader>
-          <CardTitle>
+        
+          
             <TitleWithTooltip 
               title="模块详细数据" 
               tooltip="详细展示各个模块和子模块的答题情况，包括总题数、答对题数、正确率和用时。可以点击编辑按钮修改数据。"
             />
-          </CardTitle>
-          <CardDescription>各模块的详细答题情况</CardDescription>
-        </CardHeader>
-        <CardContent>
+          
+          各模块的详细答题情况
+        
+        
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
             {mainModules.map(mainModule => {
               const subModules = examDetail.module_scores.filter(
@@ -745,13 +695,13 @@ export default function ExamDetail() {
                 <div key={mainModule.id} className="border rounded-lg p-4">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-semibold">{mainModule.module_name}</h3>
-                    <Badge variant={
-                      (mainModule.accuracy_rate || 0) >= 80 ? 'default' :
-                      (mainModule.accuracy_rate || 0) >= 60 ? 'secondary' :
-                      'destructive'
+                    <Tag color={
+                      (mainModule.accuracy_rate || 0) >= 80 ? 'green' :
+                      (mainModule.accuracy_rate || 0) >= 60 ? 'blue' :
+                      'red'
                     }>
                       正确率: {mainModule.accuracy_rate?.toFixed(1)}%
-                    </Badge>
+                    </Tag>
                   </div>
                   
                   <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
@@ -777,12 +727,12 @@ export default function ExamDetail() {
                       <span className="text-muted-foreground">用时:</span>
                       <span className="ml-2 font-medium">{formatTime(mainModule.time_used)}</span>
                       <Button
-                        variant="ghost"
-                        size="sm"
+                        type="text"
+                        size="small"
                         className="ml-2 h-6 w-6 p-0"
                         onClick={() => handleEditTime(mainModule)}
                       >
-                        <Edit className="h-3 w-3" />
+                        <EditOutlined className="h-3 w-3" />
                       </Button>
                     </div>
                   </div>
@@ -793,12 +743,12 @@ export default function ExamDetail() {
                         <div key={subModule.id} className="bg-muted/50 rounded-md p-3 text-sm">
                           <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-2">
-                              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                              <RightOutlined className="h-4 w-4 text-muted-foreground" />
                               <span className="font-medium">{subModule.module_name}</span>
                             </div>
-                            <Badge variant="outline" className="text-xs">
+                            <Tag className="text-xs">
                               {subModule.accuracy_rate?.toFixed(1)}%
-                            </Badge>
+                            </Tag>
                           </div>
                           <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground ml-6">
                             <div>总题数: {subModule.total_questions}</div>
@@ -820,23 +770,17 @@ export default function ExamDetail() {
               );
             })}
           </div>
-        </CardContent>
-      </Card>
+        </Card>
 
       {/* 时间编辑对话框 */}
-      <Dialog open={!!editingModule} onOpenChange={() => setEditingModule(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>编辑用时</DialogTitle>
-            <DialogDescription>
-              修改 {editingModule?.module_name} 的用时
-            </DialogDescription>
-          </DialogHeader>
+      <Modal open={!!editingModule} onCancel={() => setEditingModule(null)}>
+        <div>
+          
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="time">
+              <div className="mb-2 font-medium">
                 用时(分钟)
-              </Label>
+              </div>
               <Input
                 id="time"
                 type="number"
@@ -853,30 +797,25 @@ export default function ExamDetail() {
               )}
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditingModule(null)}>
+          
+            <Button type="default" onClick={() => setEditingModule(null)}>
               取消
             </Button>
             <Button onClick={handleSaveTime} disabled={isSaving}>
               {isSaving ? '保存中...' : '保存'}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          
+        </div>
+      </Modal>
 
       {/* 编辑备注对话框 */}
-      <Dialog open={isEditingNotes} onOpenChange={setIsEditingNotes}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>编辑考试备注</DialogTitle>
-            <DialogDescription>
-              记录错误原因、注意事项等(最多500字)
-            </DialogDescription>
-          </DialogHeader>
+      <Modal open={isEditingNotes} onCancel={() => setIsEditingNotes(false)}>
+        <div className="max-w-2xl">
+          
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="notes">备注内容</Label>
-              <Textarea
+              <div className="mb-2 font-medium">备注内容</div>
+              <TextArea
                 id="notes"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
@@ -889,29 +828,24 @@ export default function ExamDetail() {
               </p>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditingNotes(false)}>
+          
+            <Button type="default" onClick={() => setIsEditingNotes(false)}>
               取消
             </Button>
             <Button onClick={handleSaveNotes} disabled={isSaving}>
               {isSaving ? '保存中...' : '保存'}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          
+        </div>
+      </Modal>
 
       {/* 编辑考试报告链接对话框 */}
-      <Dialog open={isEditingReportUrl} onOpenChange={setIsEditingReportUrl}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>编辑考试报告链接</DialogTitle>
-            <DialogDescription>
-              添加外部考试报告的链接地址,点击后将在新窗口打开
-            </DialogDescription>
-          </DialogHeader>
+      <Modal open={isEditingReportUrl} onCancel={() => setIsEditingReportUrl(false)}>
+        <div>
+          
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="report-url">链接地址</Label>
+              <div className="mb-2 font-medium">链接地址</div>
               <Input
                 id="report-url"
                 type="url"
@@ -924,16 +858,16 @@ export default function ExamDetail() {
               </p>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditingReportUrl(false)}>
+          
+            <Button type="default" onClick={() => setIsEditingReportUrl(false)}>
               取消
             </Button>
             <Button onClick={handleSaveReportUrl} disabled={isSaving}>
               {isSaving ? '保存中...' : '保存'}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          
+        </div>
+      </Modal>
     </div>
   );
 }
