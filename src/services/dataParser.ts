@@ -12,40 +12,45 @@ export function parseExamData(
   console.log('OCR文本长度:', ocrText.length);
   console.log('OCR文本前500字符:', ocrText.substring(0, 500));
 
-  // 提取总分 - 支持多种格式
+  // 提取总分 - 支持多种格式,包括紧凑格式
   const totalScoreMatch = ocrText.match(/我的得分[：:\s]*(\d+\.?\d*)/i) || 
                           ocrText.match(/得分[：:\s]*(\d+\.?\d*)/i) ||
-                          ocrText.match(/(\d+\.?\d*)\s*[/／/]\s*100/) ||
-                          ocrText.match(/(\d+\.?\d*)[/／/]100/);
+                          ocrText.match(/(\d+\.?\d*)\s*[/／]\s*100/) ||
+                          ocrText.match(/(\d+\.?\d*)[/／]100/);
   const totalScore = totalScoreMatch ? parseFloat(totalScoreMatch[1]) : 0;
   console.log('提取总分:', totalScore, '匹配结果:', totalScoreMatch?.[0]);
 
-  // 提取用时 - 支持多种格式
+  // 提取用时 - 支持多种格式,包括紧凑格式
   const timeMatch = ocrText.match(/总?用时[：:\s]*(\d+)\s*分\s*(\d+)\s*秒/i) ||
                     ocrText.match(/(\d+)\s*分\s*(\d+)\s*秒/) ||
                     ocrText.match(/(\d+)分(\d+)秒/);
   const timeUsed = timeMatch ? parseInt(timeMatch[1]) * 60 + parseInt(timeMatch[2]) : 0;
   console.log('提取用时:', timeUsed, '秒, 匹配结果:', timeMatch?.[0]);
 
-  // 提取最高分
-  const maxScoreMatch = ocrText.match(/最高分[：:\s]*(\d+\.?\d*)/i);
+  // 提取最高分 - 增强匹配
+  const maxScoreMatch = ocrText.match(/最高分[：:\s]*(\d+\.?\d*)/i) ||
+                        ocrText.match(/最高[：:\s]*(\d+\.?\d*)/i);
   const maxScore = maxScoreMatch ? parseFloat(maxScoreMatch[1]) : undefined;
-  console.log('提取最高分:', maxScore);
+  console.log('提取最高分:', maxScore, '匹配结果:', maxScoreMatch?.[0]);
 
-  // 提取平均分
-  const avgScoreMatch = ocrText.match(/平均分[：:\s]*(\d+\.?\d*)/i);
+  // 提取平均分 - 增强匹配
+  const avgScoreMatch = ocrText.match(/平均分[：:\s]*(\d+\.?\d*)/i) ||
+                        ocrText.match(/平均[：:\s]*(\d+\.?\d*)/i);
   const averageScore = avgScoreMatch ? parseFloat(avgScoreMatch[1]) : undefined;
-  console.log('提取平均分:', averageScore);
+  console.log('提取平均分:', averageScore, '匹配结果:', avgScoreMatch?.[0]);
 
-  // 提取难度系数
-  const difficultyMatch = ocrText.match(/难度[：:\s]*(\d+\.?\d*)/i);
+  // 提取难度系数 - 增强匹配,支持右上角的"难度4.8"格式
+  const difficultyMatch = ocrText.match(/难度[：:\s]*(\d+\.?\d*)/i) ||
+                          ocrText.match(/难度(\d+\.?\d*)/i);
   const difficulty = difficultyMatch ? parseFloat(difficultyMatch[1]) : undefined;
-  console.log('提取难度:', difficulty);
+  console.log('提取难度:', difficulty, '匹配结果:', difficultyMatch?.[0]);
 
-  // 提取已击败考生百分比
-  const beatPercentageMatch = ocrText.match(/已击败[考生\s]*(\d+\.?\d*)%/i);
+  // 提取已击败考生百分比 - 增强匹配,支持"73.3%"等格式
+  const beatPercentageMatch = ocrText.match(/已击败[考生\s]*[：:\s]*(\d+\.?\d*)%/i) ||
+                              ocrText.match(/击败[考生\s]*[：:\s]*(\d+\.?\d*)%/i) ||
+                              ocrText.match(/已击败(\d+\.?\d*)%/i);
   const beatPercentage = beatPercentageMatch ? parseFloat(beatPercentageMatch[1]) : undefined;
-  console.log('提取击败百分比:', beatPercentage);
+  console.log('提取击败百分比:', beatPercentage, '匹配结果:', beatPercentageMatch?.[0]);
 
   // 保持向后兼容 - pass_rate 也保存击败百分比
   const passRate = beatPercentage;
