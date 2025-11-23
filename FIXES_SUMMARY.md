@@ -14,13 +14,15 @@ Blocked a frame with origin "https://app-7q11e4xackch-vitesandbox.miaoda.cn" fro
 - Dashboard 页面（数据分析页面）
 - use-mobile hook（移动设备检测）
 - use-go-back hook（返回导航）
+- 图片上传和压缩功能
 
 **根本原因：**
-在跨域环境（如 iframe 或沙箱环境）中，浏览器的同源策略阻止了对 window 对象的访问，导致：
+在跨域环境（如 iframe 或沙箱环境）中，浏览器的同源策略阻止了对 window 和 document 对象的访问，导致：
 1. 直接访问 `window.innerWidth` 失败
 2. 事件监听器的添加和移除失败
 3. 访问 `window.history` 失败
 4. 访问 `window.matchMedia` 失败
+5. 使用 `document.createElement('canvas')` 失败
 
 ### 问题 2: 数据分析页面表格布局
 
@@ -53,6 +55,13 @@ Blocked a frame with origin "https://app-7q11e4xackch-vitesandbox.miaoda.cn" fro
 - ✅ 添加 `typeof window !== 'undefined'` 检查
 - ✅ 使用可选链操作符 `?.` 安全访问属性
 - ✅ 提供降级方案（导航到首页）
+
+#### imageRecognition.ts
+- ✅ 为 `compressImage` 函数添加完整的错误处理
+- ✅ 检查 `document` 对象是否可用
+- ✅ 在所有可能失败的步骤添加 try-catch
+- ✅ 失败时使用原图而非抛出错误
+- ✅ 确保图片上传功能在跨域环境中正常工作
 
 ### 2. 表格布局优化
 
@@ -144,6 +153,7 @@ fontSize: isMobile ? 14 : 16
 1. `src/pages/Dashboard.tsx` - 数据分析页面
 2. `src/hooks/use-mobile.ts` - 移动设备检测 hook
 3. `src/hooks/use-go-back.ts` - 返回导航 hook
+4. `src/services/imageRecognition.ts` - 图片识别和压缩服务
 
 ### 新增的文档
 1. `CROSS_ORIGIN_FIX.md` - 跨域错误修复详细说明
@@ -153,6 +163,8 @@ fontSize: isMobile ? 14 : 16
 ## 提交历史
 
 ```
+c25aa22 fix: 修复图片上传和压缩功能的跨域错误
+20d19b0 docs: 添加修复总结文档
 d8d3093 docs: 更新跨域修复文档，添加 hooks 修复说明
 60ec49a fix: 修复所有 hooks 中的跨域访问错误
 295bc57 docs: 添加跨域环境错误修复说明文档
@@ -169,6 +181,8 @@ a8608c9 feat: 优化数据分析页面表格布局
 4. 调整浏览器窗口大小
 5. 测试移动设备响应式布局
 6. 测试返回导航功能
+7. **测试图片上传功能**
+8. **测试图片压缩功能**
 
 ### 表格布局测试
 1. 查看数据分析页面
@@ -176,6 +190,14 @@ a8608c9 feat: 优化数据分析页面表格布局
 3. 验证表格标题显示正确
 4. 验证表格数据显示完整
 5. 测试表格的展开/收起功能
+
+### 图片上传测试
+1. 上传小于 2MB 的图片（不压缩）
+2. 上传大于 2MB 的图片（自动压缩）
+3. 上传多张图片
+4. 在跨域环境中测试上传
+5. 验证压缩失败时使用原图
+6. 验证 OCR 识别功能正常
 
 ## 最佳实践
 
@@ -242,9 +264,36 @@ try {
 }
 ```
 
+### 5. 检查 DOM API 可用性
+```typescript
+// ✅ 检查 document 对象
+if (typeof document === 'undefined') {
+  console.warn('当前环境不支持 document');
+  // 提供降级方案
+  return;
+}
+
+// ✅ 使用 try-catch 包装 DOM 操作
+try {
+  const canvas = document.createElement('canvas');
+  // ... 使用 canvas
+} catch (error) {
+  console.warn('创建 canvas 失败:', error);
+  // 提供降级方案
+}
+```
+
 ## 总结
 
 本次修复解决了应用在跨域环境中的运行问题，确保了应用的健壮性和可用性。通过添加适当的错误处理和使用 React 状态管理，我们不仅修复了当前的问题，还提高了代码的质量和可维护性。
+
+### 主要成果
+
+1. **跨域兼容性**：应用现在可以在任何环境中运行，包括 iframe 和沙箱环境
+2. **错误处理**：所有可能失败的操作都有适当的错误处理和降级方案
+3. **用户体验**：即使在受限环境中，应用也能提供良好的用户体验
+4. **代码质量**：通过添加错误处理和类型检查，提高了代码的健壮性
+5. **图片上传**：修复了图片压缩功能，确保在跨域环境中也能正常上传图片
 
 同时，优化了数据分析页面的表格布局，使其更适合展示大量数据，提升了用户体验。
 
