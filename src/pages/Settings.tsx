@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Card, Button, InputNumber, Select, Radio, DatePicker, Space, message, Spin, Alert } from 'antd';
+import { Card, Button, InputNumber, Select, DatePicker, Space, message, Spin, Alert } from 'antd';
 import { SaveOutlined, ReloadOutlined, CalendarOutlined, BgColorsOutlined } from '@ant-design/icons';
 import { useTheme, themes } from '@/hooks/use-theme';
 import { getUserSettings, batchUpsertUserSettings, getExamConfig, saveExamConfig } from '@/db/api';
@@ -219,28 +219,78 @@ export default function Settings() {
               </p>
             </div>
 
-            <Radio.Group 
-              value={theme} 
-              onChange={(e) => setTheme(e.target.value)}
-              className="w-full"
-            >
-              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
-                {themes.map((themeOption) => (
-                  <Radio.Button 
-                    key={themeOption.value} 
-                    value={themeOption.value}
-                    className="h-auto"
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              {themes.map((themeOption) => {
+                const isActive = theme === themeOption.value;
+                const themeColorMap: Record<string, string> = {
+                  default: '#1677ff',
+                  blue: '#3b82f6',
+                  green: '#22c55e',
+                  purple: '#a855f7',
+                  orange: '#f97316',
+                };
+                const themeColor = themeColorMap[themeOption.value];
+
+                return (
+                  <div
+                    key={themeOption.value}
+                    onClick={() => setTheme(themeOption.value)}
+                    className={`
+                      relative cursor-pointer rounded-lg border-2 p-4 transition-all
+                      ${isActive 
+                        ? 'border-blue-500 bg-blue-50 shadow-md' 
+                        : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
+                      }
+                    `}
                   >
-                    <div className="py-3 px-2 text-center">
-                      <div className="font-semibold">{themeOption.label}</div>
-                      <div className="text-xs text-gray-500 mt-1">
-                        {themeOption.description}
+                    <div className="flex items-start gap-3">
+                      {/* 颜色预览 */}
+                      <div 
+                        className="w-12 h-12 rounded-lg shadow-sm flex-shrink-0"
+                        style={{ backgroundColor: themeColor }}
+                      />
+                      
+                      {/* 主题信息 */}
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold text-base mb-1">
+                          {themeOption.label}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {themeOption.description}
+                        </div>
                       </div>
+
+                      {/* 选中标记 */}
+                      {isActive && (
+                        <div className="absolute top-2 right-2">
+                          <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center">
+                            <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  </Radio.Button>
-                ))}
-              </div>
-            </Radio.Group>
+
+                    {/* 颜色示例条 */}
+                    <div className="mt-3 flex gap-1">
+                      <div 
+                        className="h-2 flex-1 rounded-full"
+                        style={{ backgroundColor: themeColor, opacity: 1 }}
+                      />
+                      <div 
+                        className="h-2 flex-1 rounded-full"
+                        style={{ backgroundColor: themeColor, opacity: 0.7 }}
+                      />
+                      <div 
+                        className="h-2 flex-1 rounded-full"
+                        style={{ backgroundColor: themeColor, opacity: 0.4 }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
 
             <Alert
               message="说明"
@@ -249,6 +299,7 @@ export default function Settings() {
                   <li>主题配色会立即生效,无需保存</li>
                   <li>主题设置会自动保存到浏览器本地</li>
                   <li>不同主题适合不同的使用场景和个人喜好</li>
+                  <li>主题颜色会应用到所有按钮、图表和交互元素</li>
                 </ul>
               }
               type="info"
