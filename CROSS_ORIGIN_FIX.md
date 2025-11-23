@@ -94,6 +94,33 @@ useEffect(() => {
    - 捕获并忽略跨域相关的 SecurityError
    - 提供友好的警告信息
 
+### 文件：`src/hooks/use-mobile.ts`
+
+1. **添加安全的窗口宽度检测**
+   - 新增 `getWindowWidth` 函数，使用 try-catch 包装
+   - 提供默认值（1024px）作为降级方案
+
+2. **修复 matchMedia 访问**
+   - 在 `window.matchMedia` 调用外添加 try-catch
+   - 在事件监听器清理时添加错误处理
+   - 确保在跨域环境中不会抛出错误
+
+3. **优化代码结构**
+   - 将窗口宽度检测逻辑提取为独立函数
+   - 使用 `checkMobile` 函数统一处理移动设备检测
+
+### 文件：`src/hooks/use-go-back.ts`
+
+1. **添加 window.history 访问保护**
+   - 使用 try-catch 包装 `window.history` 访问
+   - 添加 `typeof window !== 'undefined'` 检查
+   - 使用可选链操作符 `?.` 安全访问属性
+
+2. **提供降级方案**
+   - 如果访问历史记录失败，默认导航到首页
+   - 添加友好的警告信息
+   - 确保用户体验不受影响
+
 ## 技术细节
 
 ### 为什么会出现跨域错误？
