@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Card, InputNumber, Progress, message, Space, Image } from 'antd';
+import { Button, Card, InputNumber, Progress, message, Space } from 'antd';
 import { UploadOutlined, LoadingOutlined, CloseOutlined, DeleteOutlined } from '@ant-design/icons';
 import { fileToBase64, recognizeText, compressImage } from '@/services/imageRecognition';
 import { parseExamData } from '@/services/dataParser';
@@ -263,13 +263,10 @@ export default function Upload() {
                       <div className="absolute top-2 left-2 bg-blue-500 text-white px-2 py-1 rounded text-xs font-medium">
                         {index + 1}
                       </div>
-                      <Image
+                      <img
                         src={fileWithPreview.previewUrl}
                         alt={`预览 ${index + 1}`}
                         className="w-full h-48 object-contain rounded"
-                        preview={{
-                          mask: '点击预览'
-                        }}
                       />
                       <div className="mt-2 text-sm text-gray-600 truncate">
                         {fileWithPreview.file.name}
