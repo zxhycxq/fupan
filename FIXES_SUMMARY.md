@@ -15,6 +15,7 @@ Blocked a frame with origin "https://app-7q11e4xackch-vitesandbox.miaoda.cn" fro
 - use-mobile hook（移动设备检测）
 - use-go-back hook（返回导航）
 - 图片上传和压缩功能
+- **Ant Design Image 组件（图片预览）**
 
 **根本原因：**
 在跨域环境（如 iframe 或沙箱环境）中，浏览器的同源策略阻止了对 window 和 document 对象的访问，导致：
@@ -23,6 +24,7 @@ Blocked a frame with origin "https://app-7q11e4xackch-vitesandbox.miaoda.cn" fro
 3. 访问 `window.history` 失败
 4. 访问 `window.matchMedia` 失败
 5. 使用 `document.createElement('canvas')` 失败
+6. **Ant Design Image 组件的预览功能创建 iframe 失败**
 
 ### 问题 2: 数据分析页面表格布局
 
@@ -62,6 +64,12 @@ Blocked a frame with origin "https://app-7q11e4xackch-vitesandbox.miaoda.cn" fro
 - ✅ 在所有可能失败的步骤添加 try-catch
 - ✅ 失败时使用原图而非抛出错误
 - ✅ 确保图片上传功能在跨域环境中正常工作
+
+#### Upload.tsx
+- ✅ 将 Ant Design 的 `Image` 组件替换为原生 `img` 标签
+- ✅ 移除预览功能，避免 iframe 创建导致的跨域错误
+- ✅ 保持图片显示功能正常
+- ✅ 确保图片上传流程不受影响
 
 ### 2. 表格布局优化
 
@@ -154,6 +162,7 @@ fontSize: isMobile ? 14 : 16
 2. `src/hooks/use-mobile.ts` - 移动设备检测 hook
 3. `src/hooks/use-go-back.ts` - 返回导航 hook
 4. `src/services/imageRecognition.ts` - 图片识别和压缩服务
+5. **`src/pages/Upload.tsx` - 图片上传页面**
 
 ### 新增的文档
 1. `CROSS_ORIGIN_FIX.md` - 跨域错误修复详细说明
@@ -163,6 +172,9 @@ fontSize: isMobile ? 14 : 16
 ## 提交历史
 
 ```
+3f31221 fix: 修复 Ant Design Image 组件导致的跨域错误
+bad6162 docs: 更新跨域修复文档，添加图片压缩修复详情
+4032b7a docs: 更新修复总结文档，添加图片上传修复说明
 c25aa22 fix: 修复图片上传和压缩功能的跨域错误
 20d19b0 docs: 添加修复总结文档
 d8d3093 docs: 更新跨域修复文档，添加 hooks 修复说明
@@ -283,6 +295,19 @@ try {
 }
 ```
 
+### 6. 避免使用会创建 iframe 的组件
+```typescript
+// ❌ 错误 - Ant Design Image 组件会创建 iframe
+import { Image } from 'antd';
+<Image src={url} preview={{ mask: '点击预览' }} />
+
+// ✅ 正确 - 使用原生 img 标签
+<img src={url} alt="预览" className="..." />
+
+// 或者禁用预览功能
+<Image src={url} preview={false} />
+```
+
 ## 总结
 
 本次修复解决了应用在跨域环境中的运行问题，确保了应用的健壮性和可用性。通过添加适当的错误处理和使用 React 状态管理，我们不仅修复了当前的问题，还提高了代码的质量和可维护性。
@@ -294,6 +319,17 @@ try {
 3. **用户体验**：即使在受限环境中，应用也能提供良好的用户体验
 4. **代码质量**：通过添加错误处理和类型检查，提高了代码的健壮性
 5. **图片上传**：修复了图片压缩功能，确保在跨域环境中也能正常上传图片
+6. **组件兼容性**：识别并修复了 Ant Design 组件在跨域环境中的问题
+
+### 关键发现
+
+**Ant Design Image 组件的跨域问题**：
+- Ant Design 的 Image 组件提供了预览功能
+- 预览功能会创建 iframe 或使用 React Portal
+- 在跨域环境中，iframe 的创建会触发 SecurityError
+- 解决方案：使用原生 img 标签或禁用预览功能
+
+这个问题在迁移到 Ant Design 后才出现，说明在使用第三方 UI 库时需要特别注意其内部实现可能带来的跨域问题。
 
 同时，优化了数据分析页面的表格布局，使其更适合展示大量数据，提升了用户体验。
 
