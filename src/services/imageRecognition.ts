@@ -73,58 +73,88 @@ export function fileToBase64(file: File): Promise<string> {
 // 压缩图片
 export function compressImage(file: File, maxWidth: number = 1920, quality: number = 0.9): Promise<File> {
   return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        let width = img.width;
-        let height = img.height;
+    try {
+      // 检查是否支持 document 和 canvas
+      if (typeof document === 'undefined') {
+        console.warn('当前环境不支持 document，跳过图片压缩');
+        resolve(file);
+        return;
+      }
 
-        // 如果图片宽度超过最大宽度,按比例缩放
-        if (width > maxWidth) {
-          height = (height * maxWidth) / width;
-          width = maxWidth;
-        }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const img = new Image();
+          img.onload = () => {
+            try {
+              const canvas = document.createElement('canvas');
+              let width = img.width;
+              let height = img.height;
 
-        canvas.width = width;
-        canvas.height = height;
+              // 如果图片宽度超过最大宽度,按比例缩放
+              if (width > maxWidth) {
+                height = (height * maxWidth) / width;
+                width = maxWidth;
+              }
 
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          reject(new Error('无法创建canvas上下文'));
-          return;
-        }
+              canvas.width = width;
+              canvas.height = height;
 
-        // 绘制图片
-        ctx.drawImage(img, 0, 0, width, height);
+              const ctx = canvas.getContext('2d');
+              if (!ctx) {
+                console.warn('无法创建canvas上下文，使用原图');
+                resolve(file);
+                return;
+              }
 
-        // 转换为blob
-        canvas.toBlob(
-          (blob) => {
-            if (!blob) {
-              reject(new Error('图片压缩失败'));
-              return;
+              // 绘制图片
+              ctx.drawImage(img, 0, 0, width, height);
+
+              // 转换为blob
+              canvas.toBlob(
+                (blob) => {
+                  if (!blob) {
+                    console.warn('图片压缩失败，使用原图');
+                    resolve(file);
+                    return;
+                  }
+
+                  // 创建新的File对象
+                  const compressedFile = new File([blob], file.name, {
+                    type: 'image/jpeg',
+                    lastModified: Date.now(),
+                  });
+
+                  console.log(`图片压缩: ${(file.size / 1024 / 1024).toFixed(2)}MB -> ${(compressedFile.size / 1024 / 1024).toFixed(2)}MB`);
+                  resolve(compressedFile);
+                },
+                'image/jpeg',
+                quality
+              );
+            } catch (error) {
+              console.warn('图片压缩过程出错，使用原图:', error);
+              resolve(file);
             }
-
-            // 创建新的File对象
-            const compressedFile = new File([blob], file.name, {
-              type: 'image/jpeg',
-              lastModified: Date.now(),
-            });
-
-            console.log(`图片压缩: ${(file.size / 1024 / 1024).toFixed(2)}MB -> ${(compressedFile.size / 1024 / 1024).toFixed(2)}MB`);
-            resolve(compressedFile);
-          },
-          'image/jpeg',
-          quality
-        );
+          };
+          img.onerror = () => {
+            console.warn('图片加载失败，使用原图');
+            resolve(file);
+          };
+          img.src = e.target?.result as string;
+        } catch (error) {
+          console.warn('图片处理出错，使用原图:', error);
+          resolve(file);
+        }
       };
-      img.onerror = () => reject(new Error('图片加载失败'));
-      img.src = e.target?.result as string;
-    };
-    reader.onerror = () => reject(new Error('文件读取失败'));
-    reader.readAsDataURL(file);
+      reader.onerror = () => {
+        console.warn('文件读取失败，使用原图');
+        resolve(file);
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.warn('压缩图片时出错，使用原图:', error);
+      resolve(file);
+    }
   });
 }
 
