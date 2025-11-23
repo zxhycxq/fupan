@@ -23,6 +23,46 @@ export default function Dashboard() {
   }[]>([]);
   const [userSettings, setUserSettings] = useState<UserSetting[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // 安全地获取窗口宽度
+  const getWindowWidth = () => {
+    try {
+      return typeof window !== 'undefined' ? window.innerWidth : 1024;
+    } catch (error) {
+      return 1024; // 默认桌面宽度
+    }
+  };
+
+  // 检测移动设备
+  useEffect(() => {
+    const checkMobile = () => {
+      const width = getWindowWidth();
+      setIsMobile(width < 640);
+    };
+
+    checkMobile();
+
+    const handleResize = () => {
+      checkMobile();
+    };
+
+    try {
+      window.addEventListener('resize', handleResize);
+      return () => {
+        try {
+          window.removeEventListener('resize', handleResize);
+        } catch (error) {
+          // 忽略跨域错误
+          console.warn('清理 resize 监听器时出错:', error);
+        }
+      };
+    } catch (error) {
+      // 忽略跨域错误
+      console.warn('添加 resize 监听器时出错:', error);
+      return () => {};
+    }
+  }, []);
 
   useEffect(() => {
     loadData();
@@ -70,7 +110,7 @@ export default function Dashboard() {
       text: '总分趋势',
       left: 'center',
       textStyle: {
-        fontSize: window.innerWidth < 640 ? 14 : 16,
+        fontSize: isMobile ? 14 : 16,
       },
     },
     tooltip: {
@@ -82,17 +122,17 @@ export default function Dashboard() {
       },
     },
     grid: {
-      left: window.innerWidth < 640 ? '5%' : '3%',
-      right: window.innerWidth < 640 ? '5%' : '4%',
-      bottom: window.innerWidth < 640 ? '8%' : '3%',
-      top: window.innerWidth < 640 ? 50 : 60,
+      left: isMobile ? '5%' : '3%',
+      right: isMobile ? '5%' : '4%',
+      bottom: isMobile ? '8%' : '3%',
+      top: isMobile ? 50 : 60,
       containLabel: true,
     },
     xAxis: {
       type: 'category',
       data: examRecords.map(r => `第${r.exam_number}期`),
       axisLabel: {
-        fontSize: window.innerWidth < 640 ? 10 : 12,
+        fontSize: isMobile ? 10 : 12,
       },
     },
     yAxis: {
@@ -101,10 +141,10 @@ export default function Dashboard() {
       min: 0,
       max: 100,
       nameTextStyle: {
-        fontSize: window.innerWidth < 640 ? 10 : 12,
+        fontSize: isMobile ? 10 : 12,
       },
       axisLabel: {
-        fontSize: window.innerWidth < 640 ? 10 : 12,
+        fontSize: isMobile ? 10 : 12,
         formatter: '{value}分',
       },
     },
@@ -140,7 +180,7 @@ export default function Dashboard() {
       text: '各模块平均正确率',
       left: 'center',
       textStyle: {
-        fontSize: window.innerWidth < 640 ? 14 : 16,
+        fontSize: isMobile ? 14 : 16,
       },
     },
     tooltip: {
@@ -155,10 +195,10 @@ export default function Dashboard() {
       },
     },
     grid: {
-      left: window.innerWidth < 640 ? '5%' : '3%',
-      right: window.innerWidth < 640 ? '5%' : '4%',
-      bottom: window.innerWidth < 640 ? '15%' : '10%',
-      top: window.innerWidth < 640 ? 50 : 60,
+      left: isMobile ? '5%' : '3%',
+      right: isMobile ? '5%' : '4%',
+      bottom: isMobile ? '15%' : '10%',
+      top: isMobile ? 50 : 60,
       containLabel: true,
     },
     xAxis: {
@@ -166,8 +206,8 @@ export default function Dashboard() {
       data: moduleAvgScores.map(m => m.module_name),
       axisLabel: {
         interval: 0,
-        rotate: window.innerWidth < 640 ? 45 : 30,
-        fontSize: window.innerWidth < 640 ? 10 : 12,
+        rotate: isMobile ? 45 : 30,
+        fontSize: isMobile ? 10 : 12,
       },
     },
     yAxis: {
@@ -176,10 +216,10 @@ export default function Dashboard() {
       min: 0,
       max: 100,
       nameTextStyle: {
-        fontSize: window.innerWidth < 640 ? 10 : 12,
+        fontSize: isMobile ? 10 : 12,
       },
       axisLabel: {
-        fontSize: window.innerWidth < 640 ? 10 : 12,
+        fontSize: isMobile ? 10 : 12,
         formatter: '{value}%',
       },
     },
@@ -206,7 +246,7 @@ export default function Dashboard() {
       text: '各模块正确率趋势',
       left: 'center',
       textStyle: {
-        fontSize: window.innerWidth < 640 ? 14 : 16,
+        fontSize: isMobile ? 14 : 16,
       },
     },
     tooltip: {
@@ -228,14 +268,14 @@ export default function Dashboard() {
       top: 30,
       type: 'scroll',
       textStyle: {
-        fontSize: window.innerWidth < 640 ? 10 : 12,
+        fontSize: isMobile ? 10 : 12,
       },
     },
     grid: {
-      left: window.innerWidth < 640 ? '8%' : '5%',
-      right: window.innerWidth < 640 ? '8%' : '5%',
-      bottom: window.innerWidth < 640 ? '8%' : '3%',
-      top: window.innerWidth < 640 ? 70 : 80,
+      left: isMobile ? '8%' : '5%',
+      right: isMobile ? '8%' : '5%',
+      bottom: isMobile ? '8%' : '3%',
+      top: isMobile ? 70 : 80,
       containLabel: true,
     },
     xAxis: {
@@ -244,10 +284,10 @@ export default function Dashboard() {
       data: moduleTrendData.exam_numbers.map(n => `第${n}次`),
       name: '考试期数',
       nameTextStyle: {
-        fontSize: window.innerWidth < 640 ? 10 : 12,
+        fontSize: isMobile ? 10 : 12,
       },
       axisLabel: {
-        fontSize: window.innerWidth < 640 ? 10 : 12,
+        fontSize: isMobile ? 10 : 12,
       },
     },
     yAxis: {
@@ -256,10 +296,10 @@ export default function Dashboard() {
       min: 0,
       max: 100,
       nameTextStyle: {
-        fontSize: window.innerWidth < 640 ? 10 : 12,
+        fontSize: isMobile ? 10 : 12,
       },
       axisLabel: {
-        fontSize: window.innerWidth < 640 ? 10 : 12,
+        fontSize: isMobile ? 10 : 12,
         formatter: '{value}%',
       },
     },
@@ -295,7 +335,7 @@ export default function Dashboard() {
       text: '得分分布',
       left: 'center',
       textStyle: {
-        fontSize: window.innerWidth < 640 ? 14 : 16,
+        fontSize: isMobile ? 14 : 16,
       },
     },
     tooltip: {
@@ -305,19 +345,19 @@ export default function Dashboard() {
       },
     },
     legend: {
-      orient: window.innerWidth < 640 ? 'horizontal' : 'vertical',
-      left: window.innerWidth < 640 ? 'center' : 'left',
-      top: window.innerWidth < 640 ? 'bottom' : 'middle',
+      orient: isMobile ? 'horizontal' : 'vertical',
+      left: isMobile ? 'center' : 'left',
+      top: isMobile ? 'bottom' : 'middle',
       textStyle: {
-        fontSize: window.innerWidth < 640 ? 10 : 12,
+        fontSize: isMobile ? 10 : 12,
       },
     },
     series: [
       {
         name: '得分区间',
         type: 'pie',
-        radius: window.innerWidth < 640 ? '45%' : '50%',
-        center: window.innerWidth < 640 ? ['50%', '45%'] : ['50%', '50%'],
+        radius: isMobile ? '45%' : '50%',
+        center: isMobile ? ['50%', '45%'] : ['50%', '50%'],
         data: [
           {
             value: examRecords.filter(r => r.total_score >= 90).length,
@@ -341,7 +381,7 @@ export default function Dashboard() {
           },
         ],
         label: {
-          fontSize: window.innerWidth < 640 ? 10 : 12,
+          fontSize: isMobile ? 10 : 12,
           formatter: '{b}: {c}次 ({d}%)',
         },
         emphasis: {
@@ -656,7 +696,7 @@ export default function Dashboard() {
           >
             <ReactECharts 
               option={scoreTrendOption} 
-              style={{ height: window.innerWidth < 640 ? '300px' : '400px' }} 
+              style={{ height: isMobile ? '300px' : '400px' }} 
             />
           </Card>
         </Col>
@@ -669,7 +709,7 @@ export default function Dashboard() {
           >
             <ReactECharts 
               option={moduleTrendOption} 
-              style={{ height: window.innerWidth < 640 ? '350px' : '450px' }} 
+              style={{ height: isMobile ? '350px' : '450px' }} 
             />
           </Card>
         </Col>
@@ -681,7 +721,7 @@ export default function Dashboard() {
           >
             <ReactECharts 
               option={moduleAvgOption} 
-              style={{ height: window.innerWidth < 640 ? '300px' : '400px' }} 
+              style={{ height: isMobile ? '300px' : '400px' }} 
             />
           </Card>
         </Col>
@@ -693,7 +733,7 @@ export default function Dashboard() {
           >
             <ReactECharts 
               option={scoreDistributionOption} 
-              style={{ height: window.innerWidth < 640 ? '300px' : '400px' }} 
+              style={{ height: isMobile ? '300px' : '400px' }} 
             />
           </Card>
         </Col>
