@@ -1,10 +1,10 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, Button, Skeleton, Input, Alert, Table, InputNumber, Modal, DatePicker, Rate, message, Space } from 'antd';
+import { Card, Button, Skeleton, Alert, Table, Modal, Rate, message, Space, Drawer, Form, Input, InputNumber, DatePicker } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import { getAllExamRecords, deleteExamRecord, updateExamRecord, updateExamRating, updateExamIndexNumber, checkIndexNumberExists } from '@/db/api';
+import { getAllExamRecords, deleteExamRecord, updateExamRecord, updateExamRating, checkIndexNumberExists } from '@/db/api';
 import type { ExamRecord } from '@/types';
-import { EyeOutlined, DeleteOutlined, PlusOutlined, EditOutlined, SaveOutlined, CloseOutlined, InfoCircleOutlined, MenuOutlined } from '@ant-design/icons';
+import { EyeOutlined, DeleteOutlined, PlusOutlined, EditOutlined, InfoCircleOutlined, MenuOutlined } from '@ant-design/icons';
 import { SortableContainer, SortableElement, SortableHandle } from 'react-sortable-hoc';
 import { arrayMoveImmutable } from 'array-move';
 import dayjs from 'dayjs';
@@ -23,9 +23,10 @@ const SortableBody = SortableContainer((props: any) => <tbody {...props} />);
 export default function ExamList() {
   const [examRecords, setExamRecords] = useState<ExamRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [editingKey, setEditingKey] = useState<string>('');
-  const [editingRecord, setEditingRecord] = useState<Partial<ExamRecord>>({});
-  const [hasUnsavedSort, setHasUnsavedSort] = useState(false); // 是否有未保存的排序
+  const [drawerVisible, setDrawerVisible] = useState(false);
+  const [editingRecord, setEditingRecord] = useState<Partial<ExamRecord> | null>(null);
+  const [hasUnsavedSort, setHasUnsavedSort] = useState(false);
+  const [form] = Form.useForm();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -65,16 +66,26 @@ export default function ExamList() {
     });
   };
 
-  const isEditing = (record: ExamRecord) => record.id === editingKey;
-
-  const edit = (record: ExamRecord) => {
-    setEditingKey(record.id);
+  // 打开编辑抽屉
+  const openEditDrawer = (record: ExamRecord) => {
     setEditingRecord({ ...record });
+    form.setFieldsValue({
+      index_number: record.index_number,
+      exam_name: record.exam_name,
+      total_score: record.total_score,
+      time_used: record.time_used,
+      average_score: record.average_score,
+      pass_rate: record.pass_rate,
+      exam_date: record.exam_date ? dayjs(record.exam_date) : null,
+    });
+    setDrawerVisible(true);
   };
 
-  const cancel = () => {
-    setEditingKey('');
-    setEditingRecord({});
+  // 关闭编辑抽屉
+  const closeEditDrawer = () => {
+    setDrawerVisible(false);
+    setEditingRecord(null);
+    form.resetFields();
   };
 
   // 更新星级
@@ -82,7 +93,6 @@ export default function ExamList() {
     try {
       await updateExamRating(id, rating);
       message.success('星级已更新');
-      // 更新本地状态
       setExamRecords(prev => 
         prev.map(record => 
           record.id === id ? { ...record, rating } : record
@@ -94,64 +104,45 @@ export default function ExamList() {
     }
   };
 
-  const save = async (id: string) => {
+  // 保存编辑
+  const handleSaveEdit = async () => {
+    if (!editingRecord) return;
+
     try {
+      const values = await form.validateFields();
       const updates: Partial<Omit<ExamRecord, 'id' | 'created_at'>> = {};
-      
+
       // 验证考试名称
-      if (editingRecord.exam_name !== undefined) {
-        if (!editingRecord.exam_name || editingRecord.exam_name.trim() === '') {
-          message.error('考试名称不能为空');
-          return;
-        }
-        updates.exam_name = editingRecord.exam_name.trim();
+      if (!values.exam_name || values.exam_name.trim() === '') {
+        message.error('考试名称不能为空');
+        return;
       }
+      updates.exam_name = values.exam_name.trim();
 
       // 验证并更新索引号
-      if (editingRecord.index_number !== undefined) {
-        if (editingRecord.index_number < 1) {
-          message.error('索引号必须大于 0');
-          return;
-        }
-        
-        // 检查索引号是否已被使用
-        const exists = await checkIndexNumberExists(editingRecord.index_number, id);
-        if (exists) {
-          message.error('该索引号已被使用，请选择其他索引号');
-          return;
-        }
-        
-        updates.index_number = editingRecord.index_number;
+      if (values.index_number < 1) {
+        message.error('索引号必须大于 0');
+        return;
       }
 
-      if (editingRecord.exam_number !== undefined) {
-        updates.exam_number = editingRecord.exam_number;
-      }
-      if (editingRecord.total_score !== undefined) {
-        // 保留1位小数
-        updates.total_score = Math.round(editingRecord.total_score * 10) / 10;
-      }
-      if (editingRecord.time_used !== undefined) {
-        updates.time_used = editingRecord.time_used;
-      }
-      if (editingRecord.average_score !== undefined) {
-        // 保留1位小数
-        updates.average_score = Math.round(editingRecord.average_score * 10) / 10;
-      }
-      if (editingRecord.pass_rate !== undefined) {
-        // 保留1位小数
-        updates.pass_rate = Math.round(editingRecord.pass_rate * 10) / 10;
-      }
-      if (editingRecord.exam_date !== undefined) {
-        updates.exam_date = editingRecord.exam_date;
+      // 检查索引号是否已被使用
+      const exists = await checkIndexNumberExists(values.index_number, editingRecord.id);
+      if (exists) {
+        message.error('该索引号已被使用，请选择其他索引号');
+        return;
       }
 
-      await updateExamRecord(id, updates);
-      
+      updates.index_number = values.index_number;
+      updates.total_score = Math.round(values.total_score * 10) / 10;
+      updates.time_used = values.time_used || null;
+      updates.average_score = values.average_score ? Math.round(values.average_score * 10) / 10 : null;
+      updates.pass_rate = values.pass_rate ? Math.round(values.pass_rate * 10) / 10 : null;
+      updates.exam_date = values.exam_date ? values.exam_date.format('YYYY-MM-DD') : null;
+
+      await updateExamRecord(editingRecord.id!, updates);
+
       message.success('考试记录已更新');
-      
-      setEditingKey('');
-      setEditingRecord({});
+      closeEditDrawer();
       loadExamRecords();
     } catch (error) {
       console.error('保存失败:', error);
@@ -170,30 +161,42 @@ export default function ExamList() {
     });
   };
 
-  // 拖拽排序处理
+  // 拖拽排序
   const onSortEnd = ({ oldIndex, newIndex }: { oldIndex: number; newIndex: number }) => {
     if (oldIndex !== newIndex) {
       const newData = arrayMoveImmutable(examRecords, oldIndex, newIndex);
       setExamRecords(newData);
-      setHasUnsavedSort(true); // 标记有未保存的排序
+      setHasUnsavedSort(true);
     }
   };
 
   // 保存排序
-  const saveSortOrder = async () => {
+  const handleSaveSort = async () => {
     try {
-      // 更新每条记录的sort_order
-      const updates = examRecords.map((record, index) => 
-        updateExamRecord(record.id, { sort_order: index + 1 })
-      );
-      await Promise.all(updates);
-      
-      setHasUnsavedSort(false);
+      // 更新每条记录的 index_number
+      const updates = examRecords.map((record, index) => ({
+        id: record.id,
+        index_number: index + 1,
+      }));
+
+      // 批量更新
+      for (const update of updates) {
+        await updateExamRecord(update.id, { index_number: update.index_number });
+      }
+
       message.success('排序已保存');
+      setHasUnsavedSort(false);
+      loadExamRecords();
     } catch (error) {
       console.error('保存排序失败:', error);
-      message.error('保存排序失败');
+      message.error('保存排序失败，请重试');
     }
+  };
+
+  // 取消排序
+  const handleCancelSort = () => {
+    loadExamRecords();
+    setHasUnsavedSort(false);
   };
 
   const DraggableContainer = (props: any) => (
@@ -211,7 +214,7 @@ export default function ExamList() {
     return <SortableItem index={index} {...restProps} />;
   };
 
-  const columns: ColumnsType<ExamRecord> = useMemo(() => [
+  const columns: ColumnsType<ExamRecord> = [
     {
       title: '排序',
       dataIndex: 'sort',
@@ -224,160 +227,60 @@ export default function ExamList() {
       dataIndex: 'index_number',
       key: 'index_number',
       width: 100,
-      render: (value: number, record: ExamRecord) => {
-        const editable = isEditing(record);
-        return editable ? (
-          <InputNumber
-            min={1}
-            value={editingRecord.index_number}
-            onChange={(val) => {
-              setEditingRecord({ ...editingRecord, index_number: val || 1 });
-            }}
-            style={{ width: '100%' }}
-          />
-        ) : (
-          <span className="font-medium text-gray-700">{value}</span>
-        );
-      },
+      render: (value: number) => (
+        <span className="font-medium text-gray-700">{value}</span>
+      ),
     },
     {
       title: '考试名称',
       dataIndex: 'exam_name',
       key: 'exam_name',
       width: 200,
-      render: (value: string, record: ExamRecord) => {
-        const editable = isEditing(record);
-        return editable ? (
-          <Input
-            value={editingRecord.exam_name}
-            onChange={(e) => {
-              setEditingRecord({ ...editingRecord, exam_name: e.target.value });
-            }}
-            maxLength={50}
-            placeholder="请输入考试名称"
-            style={{ width: '100%' }}
-          />
-        ) : (
-          <span className="font-medium">{value}</span>
-        );
-      },
+      render: (value: string) => (
+        <span className="font-medium">{value}</span>
+      ),
     },
     {
       title: '总分',
       dataIndex: 'total_score',
       key: 'total_score',
       width: 90,
-      render: (value: number, record: ExamRecord) => {
-        const editable = isEditing(record);
-        return editable ? (
-          <Input
-            type="number"
-            min={0}
-            max={100}
-            step={0.1}
-            value={editingRecord.total_score}
-            onChange={(e) => {
-              const val = parseFloat(e.target.value);
-              setEditingRecord({ ...editingRecord, total_score: isNaN(val) ? 0 : val });
-            }}
-            style={{ width: '100%' }}
-            placeholder="0.0"
-          />
-        ) : (
-          <span
-            className={`font-semibold ${
-              value >= 80 ? 'text-green-600' : value >= 60 ? 'text-blue-600' : 'text-orange-600'
-            }`}
-          >
-            {value.toFixed(1)}
-          </span>
-        );
-      },
+      render: (value: number) => (
+        <span
+          className={`font-semibold ${
+            value >= 80 ? 'text-green-600' : value >= 60 ? 'text-blue-600' : 'text-orange-600'
+          }`}
+        >
+          {value.toFixed(1)}
+        </span>
+      ),
     },
     {
       title: '用时',
       dataIndex: 'time_used',
       key: 'time_used',
       width: 140,
-      render: (value: number | null, record: ExamRecord) => {
-        const editable = isEditing(record);
-        return editable ? (
-          <Input
-            type="number"
-            min={0}
-            value={editingRecord.time_used || ''}
-            onChange={(e) => {
-              const val = parseInt(e.target.value);
-              setEditingRecord({ ...editingRecord, time_used: isNaN(val) ? null : val });
-            }}
-            placeholder="分钟"
-            style={{ width: '100%' }}
-          />
-        ) : value ? (
-          `${value}分钟`
-        ) : (
-          '-'
-        );
-      },
+      render: (value: number | null) => (
+        value ? `${value}分钟` : '-'
+      ),
     },
     {
       title: '平均分',
       dataIndex: 'average_score',
       key: 'average_score',
       width: 90,
-      render: (value: number | null, record: ExamRecord) => {
-        const editable = isEditing(record);
-        return editable ? (
-          <Input
-            type="number"
-            min={0}
-            max={100}
-            step={0.1}
-            value={editingRecord.average_score ?? ''}
-            onChange={(e) => {
-              const val = parseFloat(e.target.value);
-              setEditingRecord({ ...editingRecord, average_score: isNaN(val) ? 0 : val });
-            }}
-            style={{ width: '100%' }}
-            placeholder="0.0"
-          />
-        ) : value ? (
-          value.toFixed(1)
-        ) : (
-          '-'
-        );
-      },
+      render: (value: number | null) => (
+        value ? value.toFixed(1) : '-'
+      ),
     },
     {
       title: '击败率',
       dataIndex: 'pass_rate',
       key: 'pass_rate',
       width: 90,
-      render: (value: number | null, record: ExamRecord) => {
-        const editable = isEditing(record);
-        return editable ? (
-          <div className="flex items-center">
-            <Input
-              type="number"
-              min={0}
-              max={100}
-              step={0.1}
-              value={editingRecord.pass_rate ?? ''}
-              onChange={(e) => {
-                const val = parseFloat(e.target.value);
-                setEditingRecord({ ...editingRecord, pass_rate: isNaN(val) ? 0 : val });
-              }}
-              style={{ width: '100%' }}
-              placeholder="0.0"
-            />
-            <span className="ml-1">%</span>
-          </div>
-        ) : value ? (
-          `${value.toFixed(1)}%`
-        ) : (
-          '-'
-        );
-      },
+      render: (value: number | null) => (
+        value ? `${value.toFixed(1)}%` : '-'
+      ),
     },
     {
       title: '上传时间',
@@ -391,32 +294,7 @@ export default function ExamList() {
       dataIndex: 'exam_date',
       key: 'exam_date',
       width: 140,
-      render: (value: string | null, record: ExamRecord) => {
-        const editable = isEditing(record);
-        return editable ? (
-          <DatePicker
-            value={editingRecord.exam_date ? dayjs(editingRecord.exam_date) : null}
-            onChange={(date) => {
-              setEditingRecord({ 
-                ...editingRecord, 
-                exam_date: date ? date.format('YYYY-MM-DD') : null 
-              });
-            }}
-            disabledDate={(current) => {
-              // 不可晚于上传时间
-              const uploadDate = dayjs(record.created_at).startOf('day');
-              return current && current.isAfter(uploadDate);
-            }}
-            format="YYYY-MM-DD"
-            placeholder="选择日期"
-            style={{ width: '100%' }}
-          />
-        ) : value ? (
-          value
-        ) : (
-          '-'
-        );
-      },
+      render: (value: string | null) => value || '-',
     },
     {
       title: '星级',
@@ -436,66 +314,43 @@ export default function ExamList() {
       key: 'action',
       width: 140,
       fixed: 'right',
-      render: (_: any, record: ExamRecord) => {
-        const editable = isEditing(record);
-        return editable ? (
-          <Space size="small">
-            <Button 
-              size="small" 
-              type="text"
-              icon={<SaveOutlined className="text-green-600" />}
-              onClick={() => save(record.id)} 
-              title="保存"
-            />
-            <Button 
-              size="small" 
-              type="text"
-              icon={<CloseOutlined className="text-gray-600" />}
-              onClick={cancel} 
-              title="取消"
-            />
-          </Space>
-        ) : (
-          <Space size="small">
-            <Button
-              type="text"
-              size="small"
-              icon={<EyeOutlined />}
-              onClick={() => navigate(`/exam/${record.id}`)}
-              disabled={editingKey !== ''}
-              title="查看详情"
-            />
-            <Button
-              type="text"
-              size="small"
-              icon={<EditOutlined />}
-              onClick={() => edit(record)}
-              disabled={editingKey !== ''}
-              title="编辑"
-            />
-            <Button
-              type="text"
-              size="small"
-              danger
-              icon={<DeleteOutlined />}
-              onClick={() => handleDelete(record.id, record.exam_name)}
-              disabled={editingKey !== ''}
-              title="删除"
-            />
-          </Space>
-        );
-      },
+      render: (_: any, record: ExamRecord) => (
+        <Space size="small">
+          <Button
+            type="text"
+            size="small"
+            icon={<EyeOutlined />}
+            onClick={() => navigate(`/exam/${record.id}`)}
+            title="查看详情"
+          />
+          <Button
+            type="text"
+            size="small"
+            icon={<EditOutlined />}
+            onClick={() => openEditDrawer(record)}
+            title="编辑"
+          />
+          <Button
+            type="text"
+            size="small"
+            danger
+            icon={<DeleteOutlined />}
+            onClick={() => handleDelete(record.id, record.exam_name)}
+            title="删除"
+          />
+        </Space>
+      ),
     },
-  ], [editingKey, editingRecord, navigate]);
+  ];
 
   if (isLoading) {
     return (
-      <div className="container mx-auto py-8 px-4">
+      <div className="container mx-auto py-4 px-2 xl:py-8 xl:px-4">
         <Card loading>
           <div className="space-y-4">
-            {[...Array(5)].map((_, i) => (
-              <Skeleton key={i} active />
-            ))}
+            <Skeleton active />
+            <Skeleton active />
+            <Skeleton active />
           </div>
         </Card>
       </div>
@@ -503,91 +358,193 @@ export default function ExamList() {
   }
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <Card 
+    <div className="container mx-auto py-4 px-2 xl:py-8 xl:px-4">
+      <Card
         title={
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-xl font-semibold">考试记录</div>
-              <div className="text-sm text-gray-500 font-normal mt-1">查看和管理所有考试记录</div>
+          <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
+            <h2 className="text-lg xl:text-xl font-bold m-0">考试记录列表</h2>
+            <div className="flex flex-wrap items-center gap-2">
+              {hasUnsavedSort && (
+                <>
+                  <Button type="primary" onClick={handleSaveSort} size="small">
+                    保存排序
+                  </Button>
+                  <Button onClick={handleCancelSort} size="small">
+                    取消排序
+                  </Button>
+                </>
+              )}
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={() => navigate('/upload')}
+                size="small"
+              >
+                上传新记录
+              </Button>
             </div>
-            <Button 
-              type="primary" 
-              icon={<PlusOutlined />}
-              onClick={() => navigate('/upload')}
-            >
-              上传新成绩
+          </div>
+        }
+        className="shadow-sm"
+      >
+        {hasUnsavedSort && (
+          <Alert
+            message="排序未保存"
+            description='您已调整了记录的排序，请点击"保存排序"按钮保存更改。'
+            type="warning"
+            showIcon
+            icon={<InfoCircleOutlined />}
+            className="mb-4"
+          />
+        )}
+
+        {examRecords.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-500 mb-4">暂无考试记录</p>
+            <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/upload')}>
+              上传第一条记录
+            </Button>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <Table
+              columns={columns}
+              dataSource={examRecords}
+              rowKey="id"
+              pagination={false}
+              scroll={{ x: 1400 }}
+              components={{
+                body: {
+                  wrapper: DraggableContainer,
+                  row: DraggableBodyRow,
+                },
+              }}
+            />
+          </div>
+        )}
+      </Card>
+
+      {/* 编辑抽屉 */}
+      <Drawer
+        title="编辑考试记录"
+        placement="right"
+        width={window.innerWidth < 768 ? '100%' : 480}
+        onClose={closeEditDrawer}
+        open={drawerVisible}
+        footer={
+          <div className="flex justify-end gap-2">
+            <Button onClick={closeEditDrawer}>取消</Button>
+            <Button type="primary" onClick={handleSaveEdit}>
+              保存
             </Button>
           </div>
         }
       >
-          {examRecords.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-500 mb-4">暂无考试记录</p>
-              <Button 
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={() => navigate('/upload')}
-              >
-                上传第一份成绩
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {/* 排序提示 */}
-              <Alert
-                message={
-                  <div className="flex items-center justify-between">
-                    <span>
-                      提示：可以拖动左侧图标调整考试记录顺序，建议按照考试时间顺序排列。
-                      {hasUnsavedSort && <span className="text-orange-600 ml-2">（有未保存的排序）</span>}
-                    </span>
-                    {hasUnsavedSort && (
-                      <Button 
-                        size="small" 
-                        type="primary"
-                        icon={<SaveOutlined />}
-                        onClick={saveSortOrder}
-                      >
-                        保存排序
-                      </Button>
-                    )}
-                  </div>
-                }
-                type="info"
-                icon={<InfoCircleOutlined />}
-                showIcon
-              />
-              
-              <Table
-                columns={columns}
-                dataSource={examRecords}
-                rowKey="id"
-                pagination={false}
-                scroll={{ x: 1400 }}
-                components={{
-                  body: {
-                    wrapper: DraggableContainer,
-                    row: DraggableBodyRow,
-                  },
-                }}
-                bordered
-              />
-            </div>
-          )}
-      </Card>
-      <style>{`
-        .row-dragging {
-          background: #fafafa;
-          border: 1px solid #ccc;
-        }
-        .row-dragging td {
-          padding: 16px;
-        }
-        .row-dragging .drag-visible {
-          visibility: visible;
-        }
-      `}</style>
+        <Form
+          form={form}
+          layout="vertical"
+          autoComplete="off"
+        >
+          <Form.Item
+            label="索引号"
+            name="index_number"
+            rules={[
+              { required: true, message: '请输入索引号' },
+              { type: 'number', min: 1, message: '索引号必须大于 0' },
+            ]}
+          >
+            <InputNumber
+              min={1}
+              style={{ width: '100%' }}
+              placeholder="请输入索引号"
+            />
+          </Form.Item>
+
+          <Form.Item
+            label="考试名称"
+            name="exam_name"
+            rules={[
+              { required: true, message: '请输入考试名称' },
+              { max: 50, message: '考试名称不能超过50个字符' },
+            ]}
+          >
+            <Input
+              maxLength={50}
+              placeholder="请输入考试名称"
+            />
+          </Form.Item>
+
+          <Form.Item
+            label="总分"
+            name="total_score"
+            rules={[
+              { required: true, message: '请输入总分' },
+              { type: 'number', min: 0, max: 100, message: '总分必须在 0-100 之间' },
+            ]}
+          >
+            <InputNumber
+              min={0}
+              max={100}
+              step={0.1}
+              style={{ width: '100%' }}
+              placeholder="请输入总分"
+            />
+          </Form.Item>
+
+          <Form.Item
+            label="用时（分钟）"
+            name="time_used"
+          >
+            <InputNumber
+              min={0}
+              style={{ width: '100%' }}
+              placeholder="请输入用时"
+            />
+          </Form.Item>
+
+          <Form.Item
+            label="平均分"
+            name="average_score"
+          >
+            <InputNumber
+              min={0}
+              max={100}
+              step={0.1}
+              style={{ width: '100%' }}
+              placeholder="请输入平均分"
+            />
+          </Form.Item>
+
+          <Form.Item
+            label="击败率（%）"
+            name="pass_rate"
+          >
+            <InputNumber
+              min={0}
+              max={100}
+              step={0.1}
+              style={{ width: '100%' }}
+              placeholder="请输入击败率"
+            />
+          </Form.Item>
+
+          <Form.Item
+            label="考试日期"
+            name="exam_date"
+          >
+            <DatePicker
+              style={{ width: '100%' }}
+              format="YYYY-MM-DD"
+              placeholder="选择考试日期"
+              disabledDate={(current) => {
+                if (!editingRecord) return false;
+                const uploadDate = dayjs(editingRecord.created_at).startOf('day');
+                return current && current.isAfter(uploadDate);
+              }}
+            />
+          </Form.Item>
+        </Form>
+      </Drawer>
     </div>
   );
 }
