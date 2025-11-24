@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, Button, Skeleton, Input, Alert, Table, InputNumber, Modal, DatePicker, Rate, message, Space } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
@@ -211,7 +211,7 @@ export default function ExamList() {
     return <SortableItem index={index} {...restProps} />;
   };
 
-  const columns: ColumnsType<ExamRecord> = [
+  const columns: ColumnsType<ExamRecord> = useMemo(() => [
     {
       title: '排序',
       dataIndex: 'sort',
@@ -486,7 +486,7 @@ export default function ExamList() {
         );
       },
     },
-  ];
+  ], [editingKey, editingRecord, navigate]);
 
   if (isLoading) {
     return (
