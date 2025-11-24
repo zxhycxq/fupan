@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, Button, Skeleton, Input, Alert, Table, InputNumber, Modal, DatePicker, message, Space } from 'antd';
+import { Card, Button, Skeleton, Input, Alert, Table, InputNumber, Modal, DatePicker, Rate, message, Space } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import { getAllExamRecords, deleteExamRecord, updateExamRecord } from '@/db/api';
+import { getAllExamRecords, deleteExamRecord, updateExamRecord, updateExamRating, updateExamIndexNumber, checkIndexNumberExists } from '@/db/api';
 import type { ExamRecord } from '@/types';
 import { EyeOutlined, DeleteOutlined, PlusOutlined, EditOutlined, SaveOutlined, CloseOutlined, InfoCircleOutlined, MenuOutlined } from '@ant-design/icons';
 import { SortableContainer, SortableElement, SortableHandle } from 'react-sortable-hoc';
@@ -45,10 +45,10 @@ export default function ExamList() {
     }
   };
 
-  const handleDelete = async (id: string, examNumber: number) => {
+  const handleDelete = async (id: string, examName: string) => {
     Modal.confirm({
       title: '确认删除',
-      content: `确定要删除第${examNumber}期的考试记录吗？此操作无法撤销。`,
+      content: `确定要删除"${examName}"的考试记录吗？此操作无法撤销。`,
       okText: '删除',
       cancelText: '取消',
       okButtonProps: { danger: true },
@@ -77,10 +77,53 @@ export default function ExamList() {
     setEditingRecord({});
   };
 
+  // 更新星级
+  const handleRatingChange = async (id: string, rating: number) => {
+    try {
+      await updateExamRating(id, rating);
+      message.success('星级已更新');
+      // 更新本地状态
+      setExamRecords(prev => 
+        prev.map(record => 
+          record.id === id ? { ...record, rating } : record
+        )
+      );
+    } catch (error) {
+      console.error('更新星级失败:', error);
+      message.error('更新星级失败，请重试');
+    }
+  };
+
   const save = async (id: string) => {
     try {
       const updates: Partial<Omit<ExamRecord, 'id' | 'created_at'>> = {};
       
+      // 验证考试名称
+      if (editingRecord.exam_name !== undefined) {
+        if (!editingRecord.exam_name || editingRecord.exam_name.trim() === '') {
+          message.error('考试名称不能为空');
+          return;
+        }
+        updates.exam_name = editingRecord.exam_name.trim();
+      }
+
+      // 验证并更新索引号
+      if (editingRecord.index_number !== undefined) {
+        if (editingRecord.index_number < 1) {
+          message.error('索引号必须大于 0');
+          return;
+        }
+        
+        // 检查索引号是否已被使用
+        const exists = await checkIndexNumberExists(editingRecord.index_number, id);
+        if (exists) {
+          message.error('该索引号已被使用，请选择其他索引号');
+          return;
+        }
+        
+        updates.index_number = editingRecord.index_number;
+      }
+
       if (editingRecord.exam_number !== undefined) {
         updates.exam_number = editingRecord.exam_number;
       }
@@ -177,27 +220,60 @@ export default function ExamList() {
       render: () => <DragHandle />,
     },
     {
-      title: '期数',
-      dataIndex: 'exam_number',
-      key: 'exam_number',
-      width: 140,
+      title: '索引',
+      dataIndex: 'index_number',
+      key: 'index_number',
+      width: 100,
       render: (value: number, record: ExamRecord) => {
         const editable = isEditing(record);
         return editable ? (
-          <Input
-            type="number"
-            min={0}
-            value={editingRecord.exam_number}
-            onChange={(e) => {
-              const val = parseInt(e.target.value);
-              setEditingRecord({ ...editingRecord, exam_number: isNaN(val) ? 1 : val });
+          <InputNumber
+            min={1}
+            value={editingRecord.index_number}
+            onChange={(val) => {
+              setEditingRecord({ ...editingRecord, index_number: val || 1 });
             }}
             style={{ width: '100%' }}
           />
         ) : (
-          `第${value}期`
+          <span className="font-medium text-gray-700">{value}</span>
         );
       },
+    },
+    {
+      title: '考试名称',
+      dataIndex: 'exam_name',
+      key: 'exam_name',
+      width: 200,
+      render: (value: string, record: ExamRecord) => {
+        const editable = isEditing(record);
+        return editable ? (
+          <Input
+            value={editingRecord.exam_name}
+            onChange={(e) => {
+              setEditingRecord({ ...editingRecord, exam_name: e.target.value });
+            }}
+            maxLength={50}
+            placeholder="请输入考试名称"
+            style={{ width: '100%' }}
+          />
+        ) : (
+          <span className="font-medium">{value}</span>
+        );
+      },
+    },
+    {
+      title: '星级',
+      dataIndex: 'rating',
+      key: 'rating',
+      width: 160,
+      render: (value: number, record: ExamRecord) => (
+        <Rate
+          allowHalf
+          value={value || 0}
+          onChange={(rating) => handleRatingChange(record.id, rating)}
+        />
+      ),
     },
     {
       title: '总分',
@@ -401,7 +477,7 @@ export default function ExamList() {
               size="small"
               danger
               icon={<DeleteOutlined />}
-              onClick={() => handleDelete(record.id, record.exam_number)}
+              onClick={() => handleDelete(record.id, record.exam_name)}
               disabled={editingKey !== ''}
               title="删除"
             />

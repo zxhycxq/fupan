@@ -6,8 +6,7 @@ export async function getAllExamRecords(): Promise<ExamRecord[]> {
   const { data, error } = await supabase
     .from('exam_records')
     .select('*')
-    .order('sort_order', { ascending: true, nullsFirst: false })
-    .order('created_at', { ascending: true });
+    .order('index_number', { ascending: true });
 
   if (error) {
     console.error('获取考试记录失败:', error);
@@ -198,13 +197,14 @@ export async function getModuleAverageScores(): Promise<{ module_name: string; a
 // 获取模块趋势数据(按考试期数)
 export async function getModuleTrendData(): Promise<{
   exam_numbers: number[];
+  exam_names: string[];
   modules: { module_name: string; data: (number | null)[] }[];
 }> {
   // 获取所有考试记录和模块得分
   const { data: examRecords, error: examError } = await supabase
     .from('exam_records')
-    .select('id, exam_number')
-    .order('exam_number', { ascending: true });
+    .select('id, exam_number, exam_name, index_number')
+    .order('index_number', { ascending: true });
 
   if (examError) {
     console.error('获取考试记录失败:', examError);
@@ -212,7 +212,7 @@ export async function getModuleTrendData(): Promise<{
   }
 
   if (!Array.isArray(examRecords) || examRecords.length === 0) {
-    return { exam_numbers: [], modules: [] };
+    return { exam_numbers: [], exam_names: [], modules: [] };
   }
 
   // 获取所有主模块得分
@@ -228,11 +228,12 @@ export async function getModuleTrendData(): Promise<{
   }
 
   if (!Array.isArray(moduleScores)) {
-    return { exam_numbers: [], modules: [] };
+    return { exam_numbers: [], exam_names: [], modules: [] };
   }
 
   // 构建数据结构
   const exam_numbers = examRecords.map(r => r.exam_number);
+  const exam_names = examRecords.map(r => r.exam_name || `第${r.exam_number}期`);
   const moduleMap = new Map<string, Map<string, number>>();
 
   // 按模块名称和考试ID组织数据
@@ -252,7 +253,7 @@ export async function getModuleTrendData(): Promise<{
     return { module_name, data };
   });
 
-  return { exam_numbers, modules };
+  return { exam_numbers, exam_names, modules };
 }
 
 // 更新模块得分
@@ -437,3 +438,90 @@ export async function getModuleDetailedStats(): Promise<{
     accuracy: record.accuracy_rate || 0,
   }));
 }
+
+// 更新考试记录的星级
+export async function updateExamRating(id: string, rating: number): Promise<void> {
+  // 验证星级范围
+  if (rating < 0 || rating > 5) {
+    throw new Error('星级必须在 0-5 之间');
+  }
+
+  const { error } = await supabase
+    .from('exam_records')
+    .update({ rating })
+    .eq('id', id);
+
+  if (error) {
+    console.error('更新星级失败:', error);
+    throw error;
+  }
+}
+
+// 检查索引号是否已存在（排除指定ID）
+export async function checkIndexNumberExists(
+  indexNumber: number, 
+  excludeId?: string
+): Promise<boolean> {
+  let query = supabase
+    .from('exam_records')
+    .select('id')
+    .eq('index_number', indexNumber);
+
+  if (excludeId) {
+    query = query.neq('id', excludeId);
+  }
+
+  const { data, error } = await query.maybeSingle();
+
+  if (error) {
+    console.error('检查索引号失败:', error);
+    throw error;
+  }
+
+  return data !== null;
+}
+
+// 更新考试记录的索引号
+export async function updateExamIndexNumber(
+  id: string, 
+  indexNumber: number
+): Promise<void> {
+  // 验证索引号
+  if (indexNumber < 1) {
+    throw new Error('索引号必须大于 0');
+  }
+
+  // 检查索引号是否已被使用
+  const exists = await checkIndexNumberExists(indexNumber, id);
+  if (exists) {
+    throw new Error('该索引号已被使用，请选择其他索引号');
+  }
+
+  const { error } = await supabase
+    .from('exam_records')
+    .update({ index_number: indexNumber })
+    .eq('id', id);
+
+  if (error) {
+    console.error('更新索引号失败:', error);
+    throw error;
+  }
+}
+
+// 获取下一个可用的索引号
+export async function getNextIndexNumber(): Promise<number> {
+  const { data, error } = await supabase
+    .from('exam_records')
+    .select('index_number')
+    .order('index_number', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    console.error('获取最大索引号失败:', error);
+    throw error;
+  }
+
+  return data ? data.index_number + 1 : 1;
+}
+

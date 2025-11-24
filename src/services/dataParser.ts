@@ -52,6 +52,9 @@ export function parseExamData(
 
   const examRecord: Omit<ExamRecord, 'id' | 'created_at' | 'updated_at'> = {
     exam_number: examNumber,
+    exam_name: '', // 将在 Upload 页面设置
+    index_number: examNumber, // 将在 Upload 页面设置
+    rating: 0, // 默认星级为 0
     total_score: totalScore,
     max_score: maxScore,
     average_score: averageScore,

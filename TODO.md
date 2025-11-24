@@ -1,21 +1,36 @@
-# 考试成绩分析系统 - 列表页优化任务
+# Task: 为考试记录列表添加星级列，修改期数为考试名称和索引号
 
-## 计划
-- [x] 1. 修正考试日期验证逻辑（不能晚于上传时间，而不是不能早于）
-- [x] 2. 添加排序提示信息
-- [x] 3. 实现排序确认保存功能
-  - [x] 3.1 添加保存排序按钮
-  - [x] 3.2 实现排序保存逻辑
-  - [x] 3.3 更新数据库中的排序字段
-- [x] 4. 操作按钮改为图标显示
-- [x] 5. 所有输入数值的最小值改为0
-- [x] 6. 统一所有列宽为140
-- [x] 7. 测试lint检查
+## Plan
+- [x] Step 1: 创建数据库迁移文件，添加 rating、exam_name 和 index_number 字段
+- [x] Step 2: 应用数据库迁移，设置约束和索引
+- [x] Step 3: 更新 ExamRecord 类型定义，添加新字段
+- [x] Step 4: 更新 UploadFormData 和其他相关类型
+- [x] Step 5: 添加 API 函数：updateExamRating、checkIndexNumberExists、updateExamIndexNumber、getNextIndexNumber
+- [x] Step 6: 修改 getAllExamRecords 函数，按索引号排序
+- [x] Step 7: 更新 Upload 页面，将期数改为考试名称和索引号
+- [x] Step 8: 修改 ExamList 页面，添加星级列
+- [x] Step 9: 修改 ExamDetail 页面，显示考试名称和索引
+- [x] Step 10: 修改 Dashboard 页面，更新图表显示
+- [x] Step 11: 修复 dataParser.ts 和 generateTestData.ts 的类型错误
+- [x] Step 12: 运行 lint 检查
 
-## 完成情况
-✓ 所有任务已完成
+## Notes
+- 星级功能使用 Ant Design 的 Rate 组件，支持半星，范围 0-5
+- 索引号用于排序，设置唯一约束，不能重复
+- 考试名称替代原来的期数概念
+- 所有相关页面都已更新以使用新的字段
+- 数据库迁移已成功应用
+- 所有类型定义已更新
+- Lint 检查通过，无错误
 
-## 注意事项
-- 排序后需要保存到数据库的sort_order字段
-- 图表等数据需要按照sort_order排序
-- 确保数据在列表页和详情页之间正确同步
+## Completed
+git config --global user.name miaoda
+1. 数据库添加了 rating、exam_name 和 index_number 字段
+2. 添加了相关的 API 函数
+3. Upload 页面支持输入考试名称和索引号
+4. ExamList 页面添加了星级列，可以直接点击星星评分
+5. ExamList 页面将期数改为索引号和考试名称
+6. ExamDetail 页面显示考试名称和索引号
+7. Dashboard 页面的图表使用考试名称
+8. 所有相关文件的类型定义已更新
+9. Lint 检查通过

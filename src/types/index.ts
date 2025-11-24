@@ -8,7 +8,10 @@ export interface Option {
 // 考试记录类型
 export interface ExamRecord {
   id: string;
-  exam_number: number;
+  exam_number: number; // 保留用于向后兼容
+  exam_name: string; // 考试名称
+  index_number: number; // 索引项，用于排序
+  rating: number; // 星级评分，支持半星，范围 0-5
   total_score: number;
   max_score?: number;
   average_score?: number;
@@ -74,13 +77,16 @@ export interface OcrResponse {
 
 // 上传表单数据类型
 export interface UploadFormData {
-  exam_number: number;
+  exam_name: string; // 考试名称
+  index_number: number; // 索引项
   image: File | null;
 }
 
 // 图表数据类型
 export interface ChartData {
   exam_number: number;
+  exam_name: string;
+  index_number: number;
   total_score: number;
   time_used?: number;
   created_at: string;
@@ -114,7 +120,8 @@ export interface ExamConfig {
 
 // 识别结果确认数据类型
 export interface RecognitionConfirmData {
-  exam_number: number;
+  exam_name: string; // 考试名称
+  index_number: number; // 索引项
   total_score: number;
   time_used: number;
   module_scores: Omit<ModuleScore, 'id' | 'exam_record_id' | 'created_at'>[];

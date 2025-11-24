@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Card, InputNumber, Progress, message, Space } from 'antd';
+import { Button, Card, Input, InputNumber, Progress, message, Space } from 'antd';
 import { UploadOutlined, LoadingOutlined, CloseOutlined, DeleteOutlined } from '@ant-design/icons';
 import { fileToBase64, recognizeText, compressImage } from '@/services/imageRecognition';
 import { parseExamData } from '@/services/dataParser';
-import { createExamRecord, createModuleScores } from '@/db/api';
+import { createExamRecord, createModuleScores, getNextIndexNumber, checkIndexNumberExists } from '@/db/api';
 
 interface FileWithPreview {
   file: File;
@@ -12,13 +12,28 @@ interface FileWithPreview {
 }
 
 export default function Upload() {
-  const [examNumber, setExamNumber] = useState<number>(1);
+  const [examName, setExamName] = useState<string>('');
+  const [indexNumber, setIndexNumber] = useState<number>(1);
   const [timeUsedMinutes, setTimeUsedMinutes] = useState<number>(0);
   const [selectedFiles, setSelectedFiles] = useState<FileWithPreview[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState('');
   const navigate = useNavigate();
+
+  // 获取下一个可用的索引号
+  useEffect(() => {
+    const fetchNextIndex = async () => {
+      try {
+        const nextIndex = await getNextIndexNumber();
+        setIndexNumber(nextIndex);
+        setExamName(`第${nextIndex}期`);
+      } catch (error) {
+        console.error('获取下一个索引号失败:', error);
+      }
+    };
+    fetchNextIndex();
+  }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -65,8 +80,26 @@ export default function Upload() {
       return;
     }
 
-    if (!examNumber || examNumber < 1) {
-      message.error('请输入有效的考试期数');
+    if (!examName || examName.trim() === '') {
+      message.error('请输入考试名称');
+      return;
+    }
+
+    if (!indexNumber || indexNumber < 1) {
+      message.error('请输入有效的索引号(必须大于0)');
+      return;
+    }
+
+    // 检查索引号是否已存在
+    try {
+      const exists = await checkIndexNumberExists(indexNumber);
+      if (exists) {
+        message.error('该索引号已被使用，请选择其他索引号');
+        return;
+      }
+    } catch (error) {
+      console.error('检查索引号失败:', error);
+      message.error('检查索引号失败，请重试');
       return;
     }
 
@@ -131,13 +164,25 @@ export default function Upload() {
       
       // 传入用户输入的用时(分钟转秒)
       const timeUsedSeconds = timeUsedMinutes * 60;
-      const { examRecord, moduleScores } = parseExamData(combinedText, examNumber, timeUsedSeconds);
+      const { examRecord, moduleScores } = parseExamData(
+        combinedText, 
+        indexNumber, // 使用 indexNumber 作为 exam_number 保持向后兼容
+        timeUsedSeconds
+      );
+
+      // 添加考试名称和索引号
+      const recordWithNameAndIndex = {
+        ...examRecord,
+        exam_name: examName,
+        index_number: indexNumber,
+        rating: 0, // 默认星级为 0
+      };
 
       // 保存到数据库
       setCurrentStep('正在保存数据...');
       setUploadProgress(((selectedFiles.length + 2) / totalSteps) * 100);
       
-      const savedRecord = await createExamRecord(examRecord);
+      const savedRecord = await createExamRecord(recordWithNameAndIndex);
 
       // 保存模块得分
       if (moduleScores.length > 0) {
@@ -176,17 +221,35 @@ export default function Upload() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
             <div>
-              <div className="mb-2 text-sm font-medium">考试期数</div>
+              <div className="mb-2 text-sm font-medium">考试名称 <span className="text-red-500">*</span></div>
+              <Input
+                value={examName}
+                onChange={(e) => setExamName(e.target.value)}
+                placeholder="请输入考试名称"
+                maxLength={50}
+                showCount
+                required
+              />
+              <div className="text-sm text-gray-500 mt-1">
+                例如：第1期、2024年国考模拟等
+              </div>
+            </div>
+
+            <div>
+              <div className="mb-2 text-sm font-medium">索引号 <span className="text-red-500">*</span></div>
               <InputNumber
                 min={1}
-                value={examNumber}
-                onChange={(value) => setExamNumber(value || 1)}
-                placeholder="请输入考试期数"
+                value={indexNumber}
+                onChange={(value) => setIndexNumber(value || 1)}
+                placeholder="请输入索引号"
                 style={{ width: '100%' }}
                 required
               />
+              <div className="text-sm text-gray-500 mt-1">
+                用于排序，不能重复，默认自动递增
+              </div>
             </div>
 
             <div>
@@ -200,7 +263,7 @@ export default function Upload() {
                 required
               />
               <div className="text-sm text-gray-500 mt-1">
-                请输入考试用时,单位为分钟
+                请输入考试用时，单位为分钟
               </div>
             </div>
           </div>

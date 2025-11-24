@@ -11,8 +11,9 @@ export default function Dashboard() {
   const [moduleAvgScores, setModuleAvgScores] = useState<{ module_name: string; avg_accuracy: number }[]>([]);
   const [moduleTrendData, setModuleTrendData] = useState<{
     exam_numbers: number[];
+    exam_names?: string[]; // 添加考试名称数组
     modules: { module_name: string; data: (number | null)[] }[];
-  }>({ exam_numbers: [], modules: [] });
+  }>({ exam_numbers: [], exam_names: [], modules: [] });
   const [moduleDetailedStats, setModuleDetailedStats] = useState<{
     exam_number: number;
     module_name: string;
@@ -130,7 +131,7 @@ export default function Dashboard() {
     },
     xAxis: {
       type: 'category',
-      data: examRecords.map(r => `第${r.exam_number}期`),
+      data: examRecords.map(r => r.exam_name || `第${r.exam_number}期`),
       axisLabel: {
         fontSize: isMobile ? 10 : 12,
       },
@@ -281,8 +282,8 @@ export default function Dashboard() {
     xAxis: {
       type: 'category',
       boundaryGap: ['5%', '5%'], // 左右留间隙
-      data: moduleTrendData.exam_numbers.map(n => `第${n}次`),
-      name: '考试期数',
+      data: moduleTrendData.exam_names || moduleTrendData.exam_numbers.map(n => `第${n}次`),
+      name: '考试',
       nameTextStyle: {
         fontSize: isMobile ? 10 : 12,
       },

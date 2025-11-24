@@ -460,7 +460,10 @@ export default function ExamDetail() {
       </Button>
 
       <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">第{examDetail.exam_number}期考试详情</h1>
+        <h1 className="text-3xl font-bold mb-2">{examDetail.exam_name} - 详情</h1>
+        <div className="text-gray-500">
+          索引号: {examDetail.index_number} | 创建时间: {new Date(examDetail.created_at).toLocaleString('zh-CN')}
+        </div>
         <div className="flex flex-wrap items-center gap-4 text-muted-foreground">
           <div className="flex items-center gap-2">
             <CalendarOutlined className="h-4 w-4" />

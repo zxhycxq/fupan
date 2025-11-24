@@ -141,6 +141,9 @@ export function generateExamRecord(examNumber: number): {
 
   const examRecord: Omit<ExamRecord, 'id' | 'created_at'> = {
     exam_number: examNumber,
+    exam_name: `第${examNumber}期`,
+    index_number: examNumber,
+    rating: 0,
     total_score: totalScore,
     time_used: totalTime,
     updated_at: new Date().toISOString(),
