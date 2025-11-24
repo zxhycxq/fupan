@@ -13,6 +13,12 @@
 - [x] Step 10: 修改 Dashboard 页面，更新图表显示
 - [x] Step 11: 修复 dataParser.ts 和 generateTestData.ts 的类型错误
 - [x] Step 12: 运行 lint 检查
+- [x] Step 13: 优化列宽和布局
+  - [x] 缩小总分、平均分、击败率列宽（90px）
+  - [x] 星级列移到倒数第二列
+  - [x] 星级列设置最小宽度150px
+  - [x] 操作列固定在右侧
+  - [x] 添加横向滚动支持
 
 ## Notes
 - 星级功能使用 Ant Design 的 Rate 组件，支持半星，范围 0-5
@@ -22,6 +28,7 @@
 - 数据库迁移已成功应用
 - 所有类型定义已更新
 - Lint 检查通过，无错误
+- 列布局已优化，星级列在倒数第二列，操作列固定
 
 ## Completed
 git config --global user.name miaoda
@@ -34,3 +41,8 @@ git config --global user.name miaoda
 7. Dashboard 页面的图表使用考试名称
 8. 所有相关文件的类型定义已更新
 9. Lint 检查通过
+10. 列布局优化完成：
+    - 总分、平均分、击败率列宽缩小到90px
+    - 星级列移到倒数第二列，宽度150px
+    - 操作列固定在右侧
+    - 添加横向滚动支持

@@ -263,23 +263,10 @@ export default function ExamList() {
       },
     },
     {
-      title: '星级',
-      dataIndex: 'rating',
-      key: 'rating',
-      width: 160,
-      render: (value: number, record: ExamRecord) => (
-        <Rate
-          allowHalf
-          value={value || 0}
-          onChange={(rating) => handleRatingChange(record.id, rating)}
-        />
-      ),
-    },
-    {
       title: '总分',
       dataIndex: 'total_score',
       key: 'total_score',
-      width: 140,
+      width: 90,
       render: (value: number, record: ExamRecord) => {
         const editable = isEditing(record);
         return editable ? (
@@ -337,7 +324,7 @@ export default function ExamList() {
       title: '平均分',
       dataIndex: 'average_score',
       key: 'average_score',
-      width: 140,
+      width: 90,
       render: (value: number | null, record: ExamRecord) => {
         const editable = isEditing(record);
         return editable ? (
@@ -365,7 +352,7 @@ export default function ExamList() {
       title: '击败率',
       dataIndex: 'pass_rate',
       key: 'pass_rate',
-      width: 140,
+      width: 90,
       render: (value: number | null, record: ExamRecord) => {
         const editable = isEditing(record);
         return editable ? (
@@ -432,9 +419,23 @@ export default function ExamList() {
       },
     },
     {
+      title: '星级',
+      dataIndex: 'rating',
+      key: 'rating',
+      width: 150,
+      render: (value: number, record: ExamRecord) => (
+        <Rate
+          allowHalf
+          value={value || 0}
+          onChange={(rating) => handleRatingChange(record.id, rating)}
+        />
+      ),
+    },
+    {
       title: '操作',
       key: 'action',
       width: 140,
+      fixed: 'right',
       render: (_: any, record: ExamRecord) => {
         const editable = isEditing(record);
         return editable ? (
@@ -563,6 +564,7 @@ export default function ExamList() {
                 dataSource={examRecords}
                 rowKey="id"
                 pagination={false}
+                scroll={{ x: 1400 }}
                 components={{
                   body: {
                     wrapper: DraggableContainer,
