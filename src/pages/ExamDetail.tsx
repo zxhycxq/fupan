@@ -776,99 +776,81 @@ export default function ExamDetail() {
         </Card>
 
       {/* 时间编辑对话框 */}
-      <Modal open={!!editingModule} onCancel={() => setEditingModule(null)}>
-        <div>
-          
-          <div className="grid gap-4 py-4">
-            <div className="space-y-2">
-              <div className="mb-2 font-medium">
-                用时(分钟)
-              </div>
-              <Input
-                id="time"
-                type="number"
-                min="0"
-                step="0.01"
-                value={editTime}
-                onChange={(e) => setEditTime(e.target.value)}
-                placeholder="请输入分钟数"
-              />
-              {editTime && !isNaN(parseFloat(editTime)) && (
-                <p className="text-sm text-muted-foreground">
-                  = {formatTime(minutesToSeconds(parseFloat(editTime)))}
-                </p>
-              )}
-            </div>
+      <Modal 
+        title="用时(分钟)"
+        open={!!editingModule} 
+        onCancel={() => setEditingModule(null)}
+        onOk={handleSaveTime}
+        okText="确定"
+        cancelText="取消"
+        confirmLoading={isSaving}
+      >
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Input
+              type="number"
+              min="0"
+              step="0.01"
+              value={editTime}
+              onChange={(e) => setEditTime(e.target.value)}
+              placeholder="请输入分钟数"
+              style={{ width: '120px' }}
+            />
+            <span className="text-gray-600">分钟</span>
           </div>
-          
-            <Button type="default" onClick={() => setEditingModule(null)}>
-              取消
-            </Button>
-            <Button onClick={handleSaveTime} disabled={isSaving}>
-              {isSaving ? '保存中...' : '保存'}
-            </Button>
-          
+          {editTime && !isNaN(parseFloat(editTime)) && (
+            <p className="text-sm text-gray-500">
+              = {formatTime(minutesToSeconds(parseFloat(editTime)))}
+            </p>
+          )}
         </div>
       </Modal>
 
       {/* 编辑备注对话框 */}
-      <Modal open={isEditingNotes} onCancel={() => setIsEditingNotes(false)}>
-        <div className="max-w-2xl">
-          
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <div className="mb-2 font-medium">备注内容</div>
-              <TextArea
-                id="notes"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="请输入备注内容..."
-                className="min-h-[200px] resize-none"
-                maxLength={500}
-              />
-              <p className="text-xs text-muted-foreground text-right">
-                {notes.length}/500字
-              </p>
-            </div>
-          </div>
-          
-            <Button type="default" onClick={() => setIsEditingNotes(false)}>
-              取消
-            </Button>
-            <Button onClick={handleSaveNotes} disabled={isSaving}>
-              {isSaving ? '保存中...' : '保存'}
-            </Button>
-          
+      <Modal 
+        title="备注内容"
+        open={isEditingNotes} 
+        onCancel={() => setIsEditingNotes(false)}
+        onOk={handleSaveNotes}
+        okText="确定"
+        cancelText="取消"
+        confirmLoading={isSaving}
+        width={600}
+      >
+        <div className="space-y-2">
+          <TextArea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="请输入备注内容..."
+            rows={8}
+            maxLength={500}
+          />
+          <p className="text-xs text-gray-500 text-right">
+            {notes.length}/500字
+          </p>
         </div>
       </Modal>
 
       {/* 编辑考试报告链接对话框 */}
-      <Modal open={isEditingReportUrl} onCancel={() => setIsEditingReportUrl(false)}>
-        <div>
-          
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <div className="mb-2 font-medium">链接地址</div>
-              <Input
-                id="report-url"
-                type="url"
-                value={reportUrl}
-                onChange={(e) => setReportUrl(e.target.value)}
-                placeholder="https://example.com/report"
-              />
-              <p className="text-xs text-muted-foreground">
-                请输入完整的URL地址,包括 http:// 或 https://
-              </p>
-            </div>
-          </div>
-          
-            <Button type="default" onClick={() => setIsEditingReportUrl(false)}>
-              取消
-            </Button>
-            <Button onClick={handleSaveReportUrl} disabled={isSaving}>
-              {isSaving ? '保存中...' : '保存'}
-            </Button>
-          
+      <Modal 
+        title="链接地址"
+        open={isEditingReportUrl} 
+        onCancel={() => setIsEditingReportUrl(false)}
+        onOk={handleSaveReportUrl}
+        okText="确定"
+        cancelText="取消"
+        confirmLoading={isSaving}
+      >
+        <div className="space-y-2">
+          <Input
+            type="url"
+            value={reportUrl}
+            onChange={(e) => setReportUrl(e.target.value)}
+            placeholder="https://example.com/report"
+          />
+          <p className="text-xs text-gray-500">
+            请输入完整的URL地址，包括 http:// 或 https://
+          </p>
         </div>
       </Modal>
     </div>
