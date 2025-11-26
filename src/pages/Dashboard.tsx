@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import ReactECharts from 'echarts-for-react';
-import { Table, Card, Skeleton, Statistic, Row, Col } from 'antd';
+import { Table, Card, Skeleton, Statistic, Row, Col, Button, message } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import { RiseOutlined, ClockCircleOutlined, AimOutlined, TrophyOutlined } from '@ant-design/icons';
+import { RiseOutlined, ClockCircleOutlined, AimOutlined, TrophyOutlined, DownloadOutlined } from '@ant-design/icons';
 import { getAllExamRecords, getModuleAverageScores, getModuleTrendData, getModuleDetailedStats, getUserSettings } from '@/db/api';
 import type { ExamRecord, UserSetting } from '@/types';
+import * as XLSX from 'xlsx';
 
 export default function Dashboard() {
   const [examRecords, setExamRecords] = useState<ExamRecord[]>([]);
@@ -624,6 +625,103 @@ export default function Dashboard() {
     })),
   ];
 
+  // 导出为 Excel
+  const handleExportExcel = () => {
+    try {
+      // 准备导出数据
+      const exportData: any[] = [];
+      
+      // 添加表头行
+      const headerRow: any = { '模块名称': '模块名称' };
+      allExamNumbers.forEach(examNum => {
+        // 查找对应的考试记录获取考试名称
+        const examRecord = examRecords.find(r => r.index_number === examNum);
+        const examName = examRecord?.exam_name || `第${examNum}期`;
+        
+        headerRow[`${examName}_题目数`] = '题目数';
+        headerRow[`${examName}_答对数`] = '答对数';
+        headerRow[`${examName}_正确率`] = '正确率';
+        headerRow[`${examName}_用时`] = '用时(分钟)';
+      });
+      exportData.push(headerRow);
+      
+      // 添加数据行
+      const addRowData = (record: TableDataType, isChild = false) => {
+        const rowData: any = {
+          '模块名称': isChild ? `  ${record.module_name}` : record.module_name
+        };
+        
+        allExamNumbers.forEach(examNum => {
+          const examData = record.exams.get(examNum);
+          const examRecord = examRecords.find(r => r.index_number === examNum);
+          const examName = examRecord?.exam_name || `第${examNum}期`;
+          
+          if (examData) {
+            rowData[`${examName}_题目数`] = examData.total_questions;
+            rowData[`${examName}_答对数`] = examData.correct_answers;
+            rowData[`${examName}_正确率`] = `${examData.accuracy.toFixed(1)}%`;
+            
+            // 只有大模块显示用时
+            if (!isChild && record.children && record.children.length > 0) {
+              rowData[`${examName}_用时`] = (examData.time_used / 60).toFixed(1);
+            } else {
+              rowData[`${examName}_用时`] = '-';
+            }
+          } else {
+            rowData[`${examName}_题目数`] = '-';
+            rowData[`${examName}_答对数`] = '-';
+            rowData[`${examName}_正确率`] = '-';
+            rowData[`${examName}_用时`] = '-';
+          }
+        });
+        
+        exportData.push(rowData);
+      };
+      
+      // 遍历所有模块数据
+      tableDataWithTotal.forEach(module => {
+        // 添加主模块
+        addRowData(module);
+        
+        // 添加子模块
+        if (module.children && module.children.length > 0 && module.key !== 'total') {
+          module.children.forEach(child => {
+            addRowData(child, true);
+          });
+        }
+      });
+      
+      // 创建工作表
+      const ws = XLSX.utils.json_to_sheet(exportData, { skipHeader: true });
+      
+      // 设置列宽
+      const colWidths = [{ wch: 20 }]; // 模块名称列
+      allExamNumbers.forEach(() => {
+        colWidths.push({ wch: 10 }); // 题目数
+        colWidths.push({ wch: 10 }); // 答对数
+        colWidths.push({ wch: 12 }); // 正确率
+        colWidths.push({ wch: 12 }); // 用时
+      });
+      ws['!cols'] = colWidths;
+      
+      // 创建工作簿
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, '模块详细数据');
+      
+      // 生成文件名（包含当前日期）
+      const date = new Date().toISOString().split('T')[0];
+      const fileName = `考试成绩模块详细数据_${date}.xlsx`;
+      
+      // 导出文件
+      XLSX.writeFile(wb, fileName);
+      
+      message.success('导出成功！');
+    } catch (error) {
+      console.error('导出失败:', error);
+      message.error('导出失败，请重试');
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="container mx-auto py-8 px-4">
@@ -772,7 +870,19 @@ export default function Dashboard() {
       <div className="mt-8">
         <Card 
           title="历次考试各模块详细数据表"
-          extra={<span className="text-sm text-gray-500">查看所有考试的详细模块数据</span>}
+          extra={
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-gray-500">查看所有考试的详细模块数据</span>
+              <Button 
+                type="primary" 
+                icon={<DownloadOutlined />}
+                onClick={handleExportExcel}
+                size="middle"
+              >
+                导出Excel
+              </Button>
+            </div>
+          }
         >
           <Table
             columns={columns}
