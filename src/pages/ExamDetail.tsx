@@ -689,7 +689,13 @@ export default function ExamDetail() {
             雷达图展示各模块的正确率分布
           
           
-            <ReactECharts option={radarOption} style={{ height: '400px' }} />
+            {mainModules.length > 0 ? (
+              <ReactECharts option={radarOption} style={{ height: '400px' }} />
+            ) : (
+              <div className="flex items-center justify-center h-[400px] text-gray-500">
+                暂无数据
+              </div>
+            )}
           </Card>
 
         <Card>
@@ -703,7 +709,13 @@ export default function ExamDetail() {
             各模块答题用时统计
           
           
-            <ReactECharts option={timeComparisonOption} style={{ height: '400px' }} />
+            {mainModules.length > 0 ? (
+              <ReactECharts option={timeComparisonOption} style={{ height: '400px' }} />
+            ) : (
+              <div className="flex items-center justify-center h-[400px] text-gray-500">
+                暂无数据
+              </div>
+            )}
           </Card>
       </div>
 
