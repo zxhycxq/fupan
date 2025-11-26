@@ -407,6 +407,7 @@ export async function getModuleDetailedStats(): Promise<{
   total_questions: number;
   correct_answers: number;
   accuracy: number;
+  time_used: number; // 用时（秒）
 }[]> {
   const { data, error } = await supabase
     .from('module_scores')
@@ -417,6 +418,7 @@ export async function getModuleDetailedStats(): Promise<{
       total_questions,
       correct_answers,
       accuracy_rate,
+      time_used,
       exam_records!inner(exam_number)
     `)
     .order('exam_records(exam_number)')
@@ -436,6 +438,7 @@ export async function getModuleDetailedStats(): Promise<{
     total_questions: record.total_questions,
     correct_answers: record.correct_answers,
     accuracy: record.accuracy_rate || 0,
+    time_used: record.time_used || 0,
   }));
 }
 

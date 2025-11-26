@@ -21,6 +21,7 @@ export default function Dashboard() {
     total_questions: number;
     correct_answers: number;
     accuracy: number;
+    time_used: number; // 用时（秒）
   }[]>([]);
   const [userSettings, setUserSettings] = useState<UserSetting[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -402,6 +403,7 @@ export default function Dashboard() {
     total_questions: number;
     correct_answers: number;
     accuracy: number;
+    time_used: number; // 用时（秒）
   }
 
   interface TableDataType {
@@ -442,6 +444,7 @@ export default function Dashboard() {
         total_questions: stat.total_questions,
         correct_answers: stat.correct_answers,
         accuracy: stat.accuracy,
+        time_used: stat.time_used,
       });
     } else {
       // 子模块数据
@@ -475,6 +478,7 @@ export default function Dashboard() {
         total_questions: stat.total_questions,
         correct_answers: stat.correct_answers,
         accuracy: stat.accuracy,
+        time_used: stat.time_used,
       });
     }
   });
@@ -491,6 +495,7 @@ export default function Dashboard() {
   allExamNumbers.forEach(examNum => {
     let totalQuestions = 0;
     let totalCorrect = 0;
+    let totalTime = 0;
     
     // 只统计主模块的数据
     tableData.forEach(module => {
@@ -498,6 +503,7 @@ export default function Dashboard() {
       if (examData) {
         totalQuestions += examData.total_questions;
         totalCorrect += examData.correct_answers;
+        totalTime += examData.time_used;
       }
     });
     
@@ -506,6 +512,7 @@ export default function Dashboard() {
       total_questions: totalQuestions,
       correct_answers: totalCorrect,
       accuracy: totalQuestions > 0 ? Number(((totalCorrect / totalQuestions) * 100).toFixed(2)) : 0,
+      time_used: totalTime,
     });
   });
 
@@ -590,6 +597,27 @@ export default function Dashboard() {
                 {content}
               </span>
             );
+          },
+        },
+        {
+          title: '用时',
+          key: `exam_${examNum}_time`,
+          width: 80,
+          align: 'center' as const,
+          render: (_: any, record: TableDataType) => {
+            // 只显示大模块（没有children或者是总计行）的用时
+            if (record.children && record.children.length > 0 && record.key !== 'total') {
+              const examData = record.exams.get(examNum);
+              if (!examData) {
+                return <span className="text-muted-foreground">-</span>;
+              }
+              // 将秒转换为分钟，保留1位小数
+              const minutes = (examData.time_used / 60).toFixed(1);
+              const content = `${minutes}分`;
+              return record.key === 'total' ? <strong>{content}</strong> : content;
+            }
+            // 子模块不显示用时
+            return <span className="text-muted-foreground">-</span>;
           },
         },
       ],
