@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, Button, Skeleton, Alert, Table, Modal, Rate, message, Space, Drawer, Form, Input, InputNumber, DatePicker } from 'antd';
+
+const { TextArea } = Input;
 import type { ColumnsType } from 'antd/es/table';
-import { getAllExamRecords, deleteExamRecord, updateExamRecord, updateExamRating, checkIndexNumberExists } from '@/db/api';
+import { getAllExamRecords, deleteExamRecord, updateExamRecord, updateExamRating, checkIndexNumberExists, updateExamNotes } from '@/db/api';
 import type { ExamRecord } from '@/types';
 import { EyeOutlined, DeleteOutlined, PlusOutlined, EditOutlined, InfoCircleOutlined, MenuOutlined, RiseOutlined, WarningOutlined } from '@ant-design/icons';
 import { SortableContainer, SortableElement, SortableHandle } from 'react-sortable-hoc';
@@ -29,6 +31,8 @@ export default function ExamList() {
   const [notesModalVisible, setNotesModalVisible] = useState(false);
   const [notesModalType, setNotesModalType] = useState<'improvements' | 'mistakes'>('improvements');
   const [notesModalContent, setNotesModalContent] = useState<string>('');
+  const [editingRecordId, setEditingRecordId] = useState<string>('');
+  const [isSaving, setIsSaving] = useState(false);
   const [form] = Form.useForm();
   const navigate = useNavigate();
 
@@ -203,10 +207,50 @@ export default function ExamList() {
   };
 
   // 打开备注弹窗
-  const handleShowNotes = (type: 'improvements' | 'mistakes', content: string) => {
+  const handleShowNotes = (recordId: string, type: 'improvements' | 'mistakes', content: string) => {
+    setEditingRecordId(recordId);
     setNotesModalType(type);
-    setNotesModalContent(content || '暂无内容');
+    setNotesModalContent(content || '');
     setNotesModalVisible(true);
+  };
+
+  // 保存备注
+  const handleSaveNotes = async () => {
+    try {
+      setIsSaving(true);
+      
+      // 获取当前记录
+      const currentRecord = examRecords.find(r => r.id === editingRecordId);
+      if (!currentRecord) {
+        message.error('记录不存在');
+        return;
+      }
+      
+      // 根据类型更新对应的字段
+      const improvements = notesModalType === 'improvements' 
+        ? notesModalContent 
+        : (currentRecord.improvements || '');
+      const mistakes = notesModalType === 'mistakes' 
+        ? notesModalContent 
+        : (currentRecord.mistakes || '');
+      
+      await updateExamNotes(editingRecordId, improvements, mistakes);
+      
+      // 更新本地状态
+      setExamRecords(prev => prev.map(record => 
+        record.id === editingRecordId 
+          ? { ...record, improvements, mistakes }
+          : record
+      ));
+      
+      message.success('备注已保存');
+      setNotesModalVisible(false);
+    } catch (error) {
+      console.error('保存备注失败:', error);
+      message.error('保存备注失败，请重试');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const DraggableContainer = (props: any) => (
@@ -316,7 +360,7 @@ export default function ExamList() {
             type="text"
             size="small"
             icon={<RiseOutlined />}
-            onClick={() => handleShowNotes('improvements', record.improvements || '')}
+            onClick={() => handleShowNotes(record.id, 'improvements', record.improvements || '')}
             title="有进步的地方"
             className={record.improvements ? 'text-green-600' : 'text-gray-400'}
           />
@@ -324,7 +368,7 @@ export default function ExamList() {
             type="text"
             size="small"
             icon={<WarningOutlined />}
-            onClick={() => handleShowNotes('mistakes', record.mistakes || '')}
+            onClick={() => handleShowNotes(record.id, 'mistakes', record.mistakes || '')}
             title="出错的地方"
             className={record.mistakes ? 'text-red-600' : 'text-gray-400'}
           />
@@ -600,20 +644,22 @@ export default function ExamList() {
         }
         open={notesModalVisible}
         onCancel={() => setNotesModalVisible(false)}
-        footer={[
-          <Button key="close" onClick={() => setNotesModalVisible(false)}>
-            关闭
-          </Button>
-        ]}
+        onOk={handleSaveNotes}
+        okText="确定"
+        cancelText="取消"
+        confirmLoading={isSaving}
         width={600}
       >
-        <div className={`p-4 rounded-md ${
-          notesModalType === 'improvements' 
-            ? 'bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800' 
-            : 'bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800'
-        }`}>
-          <p className="text-sm whitespace-pre-wrap break-words text-gray-700 dark:text-gray-300">
-            {notesModalContent}
+        <div>
+          <TextArea
+            value={notesModalContent}
+            onChange={(e) => setNotesModalContent(e.target.value)}
+            placeholder={notesModalType === 'improvements' ? '记录本次考试中有进步的地方...' : '记录本次考试中出错的地方...'}
+            rows={8}
+            maxLength={500}
+          />
+          <p className="text-xs text-gray-500 text-right mt-1">
+            {notesModalContent.length}/500字
           </p>
         </div>
       </Modal>
