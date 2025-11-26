@@ -20,7 +20,9 @@ export interface ExamRecord {
   beat_percentage?: number;
   time_used?: number;
   image_url?: string;
-  notes?: string; // 考试备注(最多500字)
+  notes?: string; // 考试备注(最多500字) - 保留用于向后兼容
+  improvements?: string; // 有进步的地方
+  mistakes?: string; // 出错的地方
   exam_date?: string; // 考试日期(YYYY-MM-DD格式)
   report_url?: string; // 考试报告链接地址
   sort_order?: number; // 排序顺序

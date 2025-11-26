@@ -28,7 +28,7 @@ import {
   InfoCircleOutlined, 
   RightOutlined 
 } from '@ant-design/icons';
-import { getExamRecordById, updateModuleScore, updateExamRecord, getUserSettings } from '@/db/api';
+import { getExamRecordById, updateModuleScore, updateExamRecord, getUserSettings, updateExamNotes } from '@/db/api';
 import type { ExamRecordDetail, ModuleScore, UserSetting } from '@/types';
 
 const { TextArea } = Input;
@@ -76,7 +76,8 @@ export default function ExamDetail() {
   const [editingModule, setEditingModule] = useState<ModuleScore | null>(null);
   const [editTime, setEditTime] = useState<string>('');
   const [isEditingNotes, setIsEditingNotes] = useState(false);
-  const [notes, setNotes] = useState<string>('');
+  const [improvements, setImprovements] = useState<string>('');
+  const [mistakes, setMistakes] = useState<string>('');
   const [isEditingReportUrl, setIsEditingReportUrl] = useState(false);
   const [reportUrl, setReportUrl] = useState<string>('');
   const [isSaving, setIsSaving] = useState(false);
@@ -163,7 +164,8 @@ export default function ExamDetail() {
   // 打开备注编辑对话框
   const handleEditNotes = () => {
     if (!examDetail) return;
-    setNotes(examDetail.notes || '');
+    setImprovements(examDetail.improvements || '');
+    setMistakes(examDetail.mistakes || '');
     setIsEditingNotes(true);
   };
 
@@ -172,28 +174,33 @@ export default function ExamDetail() {
     if (!examDetail || !id) return;
 
     // 验证备注长度
-    if (notes.length > 500) {
-      message.success("错误");
+    if (improvements.length > 500) {
+      message.error('有进步的地方不能超过500字');
+      return;
+    }
+    if (mistakes.length > 500) {
+      message.error('出错的地方不能超过500字');
       return;
     }
 
     try {
       setIsSaving(true);
-      await updateExamRecord(id, { notes });
+      await updateExamNotes(id, improvements, mistakes);
       
       // 更新本地状态
       setExamDetail({
         ...examDetail,
-        notes,
+        improvements,
+        mistakes,
       });
 
-      message.success("成功");
+      message.success('备注保存成功');
       
       setIsEditingNotes(false);
     } catch (error) {
       console.error('保存备注失败:', error);
       const errorMessage = error instanceof Error ? error.message : '保存备注失败';
-      message.success("错误");
+      message.error(errorMessage);
     } finally {
       setIsSaving(false);
     }
@@ -506,35 +513,59 @@ export default function ExamDetail() {
             )}
           </div>
         </div>
-        {examDetail.notes && (
-          <div className="mt-3 p-3 bg-muted rounded-md">
-            <div className="flex items-start justify-between gap-2">
-              <div className="flex items-start gap-2 flex-1">
-                <FileTextOutlined className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
-                <p className="text-sm whitespace-pre-wrap break-words">{examDetail.notes}</p>
+        
+        {/* 备注区域 - 两列布局 */}
+        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* 有进步的地方 */}
+          <div className="p-3 bg-green-50 dark:bg-green-950/20 rounded-md border border-green-200 dark:border-green-800">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <RiseOutlined className="h-4 w-4 text-green-600 dark:text-green-400" />
+                <span className="text-sm font-medium text-green-700 dark:text-green-300">有进步的地方</span>
               </div>
               <Button
                 type="text"
                 size="small"
-                className="h-6 w-6 flex-shrink-0"
+                className="h-6 w-6"
                 onClick={handleEditNotes}
               >
                 <EditOutlined className="h-3 w-3" />
               </Button>
             </div>
+            {examDetail.improvements ? (
+              <p className="text-sm whitespace-pre-wrap break-words text-gray-700 dark:text-gray-300">
+                {examDetail.improvements}
+              </p>
+            ) : (
+              <p className="text-sm text-muted-foreground">暂无内容</p>
+            )}
           </div>
-        )}
-        {!examDetail.notes && (
-          <Button
-            type="default"
-            size="small"
-            className="mt-3"
-            onClick={handleEditNotes}
-          >
-            <FileTextOutlined className="mr-2 h-4 w-4" />
-            添加备注
-          </Button>
-        )}
+
+          {/* 出错的地方 */}
+          <div className="p-3 bg-red-50 dark:bg-red-950/20 rounded-md border border-red-200 dark:border-red-800">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <WarningOutlined className="h-4 w-4 text-red-600 dark:text-red-400" />
+                <span className="text-sm font-medium text-red-700 dark:text-red-300">出错的地方</span>
+              </div>
+              <Button
+                type="text"
+                size="small"
+                className="h-6 w-6"
+                onClick={handleEditNotes}
+              >
+                <EditOutlined className="h-3 w-3" />
+              </Button>
+            </div>
+            {examDetail.mistakes ? (
+              <p className="text-sm whitespace-pre-wrap break-words text-gray-700 dark:text-gray-300">
+                {examDetail.mistakes}
+              </p>
+            ) : (
+              <p className="text-sm text-muted-foreground">暂无内容</p>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* 统计卡片 */}
@@ -817,17 +848,42 @@ export default function ExamDetail() {
         confirmLoading={isSaving}
         width={600}
       >
-        <div className="space-y-2">
-          <TextArea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="请输入备注内容..."
-            rows={8}
-            maxLength={500}
-          />
-          <p className="text-xs text-gray-500 text-right">
-            {notes.length}/500字
-          </p>
+        <div className="space-y-4">
+          {/* 有进步的地方 */}
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <RiseOutlined className="text-green-600" />
+              <span className="font-medium">有进步的地方</span>
+            </div>
+            <TextArea
+              value={improvements}
+              onChange={(e) => setImprovements(e.target.value)}
+              placeholder="记录本次考试中有进步的地方..."
+              rows={6}
+              maxLength={500}
+            />
+            <p className="text-xs text-gray-500 text-right mt-1">
+              {improvements.length}/500字
+            </p>
+          </div>
+
+          {/* 出错的地方 */}
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <WarningOutlined className="text-red-600" />
+              <span className="font-medium">出错的地方</span>
+            </div>
+            <TextArea
+              value={mistakes}
+              onChange={(e) => setMistakes(e.target.value)}
+              placeholder="记录本次考试中出错的地方..."
+              rows={6}
+              maxLength={500}
+            />
+            <p className="text-xs text-gray-500 text-right mt-1">
+              {mistakes.length}/500字
+            </p>
+          </div>
         </div>
       </Modal>
 

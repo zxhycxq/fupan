@@ -528,3 +528,24 @@ export async function getNextIndexNumber(): Promise<number> {
   return data ? data.index_number + 1 : 1;
 }
 
+// 更新考试记录的备注（进步和错误）
+export async function updateExamNotes(
+  id: string, 
+  improvements: string, 
+  mistakes: string
+): Promise<void> {
+  const { error } = await supabase
+    .from('exam_records')
+    .update({ 
+      improvements,
+      mistakes,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', id);
+
+  if (error) {
+    console.error('更新备注失败:', error);
+    throw error;
+  }
+}
+

@@ -4,7 +4,7 @@ import { Card, Button, Skeleton, Alert, Table, Modal, Rate, message, Space, Draw
 import type { ColumnsType } from 'antd/es/table';
 import { getAllExamRecords, deleteExamRecord, updateExamRecord, updateExamRating, checkIndexNumberExists } from '@/db/api';
 import type { ExamRecord } from '@/types';
-import { EyeOutlined, DeleteOutlined, PlusOutlined, EditOutlined, InfoCircleOutlined, MenuOutlined } from '@ant-design/icons';
+import { EyeOutlined, DeleteOutlined, PlusOutlined, EditOutlined, InfoCircleOutlined, MenuOutlined, RiseOutlined, WarningOutlined } from '@ant-design/icons';
 import { SortableContainer, SortableElement, SortableHandle } from 'react-sortable-hoc';
 import { arrayMoveImmutable } from 'array-move';
 import dayjs from 'dayjs';
@@ -26,6 +26,9 @@ export default function ExamList() {
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [editingRecord, setEditingRecord] = useState<Partial<ExamRecord> | null>(null);
   const [hasUnsavedSort, setHasUnsavedSort] = useState(false);
+  const [notesModalVisible, setNotesModalVisible] = useState(false);
+  const [notesModalType, setNotesModalType] = useState<'improvements' | 'mistakes'>('improvements');
+  const [notesModalContent, setNotesModalContent] = useState<string>('');
   const [form] = Form.useForm();
   const navigate = useNavigate();
 
@@ -199,6 +202,13 @@ export default function ExamList() {
     setHasUnsavedSort(false);
   };
 
+  // 打开备注弹窗
+  const handleShowNotes = (type: 'improvements' | 'mistakes', content: string) => {
+    setNotesModalType(type);
+    setNotesModalContent(content || '暂无内容');
+    setNotesModalVisible(true);
+  };
+
   const DraggableContainer = (props: any) => (
     <SortableBody
       useDragHandle
@@ -295,6 +305,31 @@ export default function ExamList() {
       key: 'exam_date',
       width: 140,
       render: (value: string | null) => value || '-',
+    },
+    {
+      title: '备注',
+      key: 'notes',
+      width: 100,
+      render: (_: any, record: ExamRecord) => (
+        <Space size="small">
+          <Button
+            type="text"
+            size="small"
+            icon={<RiseOutlined />}
+            onClick={() => handleShowNotes('improvements', record.improvements || '')}
+            title="有进步的地方"
+            className={record.improvements ? 'text-green-600' : 'text-gray-400'}
+          />
+          <Button
+            type="text"
+            size="small"
+            icon={<WarningOutlined />}
+            onClick={() => handleShowNotes('mistakes', record.mistakes || '')}
+            title="出错的地方"
+            className={record.mistakes ? 'text-red-600' : 'text-gray-400'}
+          />
+        </Space>
+      ),
     },
     {
       title: '星级',
@@ -545,6 +580,43 @@ export default function ExamList() {
           </Form.Item>
         </Form>
       </Drawer>
+
+      {/* 备注弹窗 */}
+      <Modal
+        title={
+          <div className="flex items-center gap-2">
+            {notesModalType === 'improvements' ? (
+              <>
+                <RiseOutlined className="text-green-600" />
+                <span>有进步的地方</span>
+              </>
+            ) : (
+              <>
+                <WarningOutlined className="text-red-600" />
+                <span>出错的地方</span>
+              </>
+            )}
+          </div>
+        }
+        open={notesModalVisible}
+        onCancel={() => setNotesModalVisible(false)}
+        footer={[
+          <Button key="close" onClick={() => setNotesModalVisible(false)}>
+            关闭
+          </Button>
+        ]}
+        width={600}
+      >
+        <div className={`p-4 rounded-md ${
+          notesModalType === 'improvements' 
+            ? 'bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800' 
+            : 'bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800'
+        }`}>
+          <p className="text-sm whitespace-pre-wrap break-words text-gray-700 dark:text-gray-300">
+            {notesModalContent}
+          </p>
+        </div>
+      </Modal>
     </div>
   );
 }
