@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, Button, Skeleton, Alert, Table, Modal, Rate, message, Space, Drawer, Form, Input, InputNumber, DatePicker } from 'antd';
+import { Card, Button, Skeleton, Alert, Table, Modal, Rate, message, Space, Drawer, Form, Input, InputNumber, DatePicker, Tooltip } from 'antd';
 
 const { TextArea } = Input;
 import type { ColumnsType } from 'antd/es/table';
 import { getAllExamRecords, deleteExamRecord, updateExamRecord, updateExamRating, checkIndexNumberExists, updateExamNotes } from '@/db/api';
 import type { ExamRecord } from '@/types';
-import { EyeOutlined, DeleteOutlined, PlusOutlined, EditOutlined, InfoCircleOutlined, MenuOutlined, RiseOutlined, WarningOutlined } from '@ant-design/icons';
+import { EyeOutlined, DeleteOutlined, PlusOutlined, EditOutlined, InfoCircleOutlined, MenuOutlined, RiseOutlined, WarningOutlined, ClockCircleOutlined } from '@ant-design/icons';
 import { SortableContainer, SortableElement, SortableHandle } from 'react-sortable-hoc';
 import { arrayMoveImmutable } from 'array-move';
 import dayjs from 'dayjs';
@@ -310,13 +310,34 @@ export default function ExamList() {
       ),
     },
     {
-      title: '用时',
+      title: (
+        <Space size={4}>
+          <span>用时</span>
+          <Tooltip title="超过115分钟可能来不及涂卡">
+            <InfoCircleOutlined className="text-gray-400 text-xs" />
+          </Tooltip>
+        </Space>
+      ),
       dataIndex: 'time_used',
       key: 'time_used',
       width: 140,
-      render: (value: number | null) => (
-        value ? `${value}分钟` : '-'
-      ),
+      render: (value: number | null) => {
+        if (!value) return '-';
+        
+        const isOvertime = value > 115;
+        return (
+          <Space size={4}>
+            <span className={isOvertime ? 'text-red-600 font-semibold' : ''}>
+              {value}分钟
+            </span>
+            {isOvertime && (
+              <Tooltip title="超过115分钟可能来不及涂卡">
+                <ClockCircleOutlined className="text-red-600" />
+              </Tooltip>
+            )}
+          </Space>
+        );
+      },
     },
     {
       title: '平均分',

@@ -147,8 +147,8 @@ importers:
         specifier: 2.0.6
         version: 2.0.6(@supabase/supabase-js@2.76.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.30.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
       miaoda-sc-plugin:
-        specifier: 1.0.29
-        version: 1.0.29(vite@5.4.19(@types/node@24.2.1)(lightningcss@1.30.1))
+        specifier: 1.0.31
+        version: 1.0.31(vite@5.4.19(@types/node@24.2.1)(lightningcss@1.30.1))
       next-themes:
         specifier: ^0.4.6
         version: 0.4.6(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -3061,8 +3061,8 @@ packages:
       react-dom: '*'
       react-router-dom: '*'
 
-  miaoda-sc-plugin@1.0.29:
-    resolution: {integrity: sha512-y8U9g/ATK7eEwNBG97NsmLKp3iL+igdHn+cRHxqXCCbvuBwtAMo1zPmUVDhLQhukxoxR1SOufDnEYfq1+IpIrQ==, tarball: http://registry.npm.baidu-int.com/miaoda-sc-plugin/-/miaoda-sc-plugin-1.0.29.tgz}
+  miaoda-sc-plugin@1.0.31:
+    resolution: {integrity: sha512-jmuKTquYfOWX8H+OqV849POmpwFtG8JL7vH9ZOLpxS3FC+zyZj2pmeDAkhWkGwCO2LsU100x0CvZ6L5zX+yZug==, tarball: http://registry.npm.baidu-int.com/miaoda-sc-plugin/-/miaoda-sc-plugin-1.0.31.tgz}
     peerDependencies:
       vite: ^4.0.0 || ^5.0.0
 
@@ -7119,7 +7119,7 @@ snapshots:
       react-dom: 18.3.1(react@18.3.1)
       react-router-dom: 6.30.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
 
-  miaoda-sc-plugin@1.0.29(vite@5.4.19(@types/node@24.2.1)(lightningcss@1.30.1)):
+  miaoda-sc-plugin@1.0.31(vite@5.4.19(@types/node@24.2.1)(lightningcss@1.30.1)):
     dependencies:
       '@babel/parser': 7.28.0
       '@babel/traverse': 7.28.0
