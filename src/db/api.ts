@@ -419,9 +419,9 @@ export async function getModuleDetailedStats(): Promise<{
       correct_answers,
       accuracy_rate,
       time_used,
-      exam_records!inner(exam_number)
+      exam_records!inner(index_number)
     `)
-    .order('exam_records(exam_number)')
+    .order('exam_records(index_number)')
     .order('parent_module', { nullsFirst: true })
     .order('module_name');
 
@@ -430,9 +430,9 @@ export async function getModuleDetailedStats(): Promise<{
     throw error;
   }
 
-  // 转换数据格式
+  // 转换数据格式，使用 index_number 作为 exam_number
   return (data || []).map(record => ({
-    exam_number: (record.exam_records as any).exam_number,
+    exam_number: (record.exam_records as any).index_number,
     module_name: record.module_name,
     parent_module: record.parent_module,
     total_questions: record.total_questions,
