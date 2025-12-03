@@ -90,10 +90,21 @@ export default function Dashboard() {
       
       console.log('=== Dashboard 数据加载完成 ===');
       console.log('考试记录数量:', records.length);
-      console.log('模块详细统计数量:', detailedStats.length);
-      console.log('模块详细统计:', detailedStats.map(s => 
-        `期数${s.exam_number} - ${s.parent_module ? s.parent_module + ' > ' : ''}${s.module_name}`
-      ).join(', '));
+      console.log('考试记录列表:', records.map(r => `索引${r.index_number} - ${r.exam_name}`).join(', '));
+      
+      console.log('\n模块详细统计数量:', detailedStats.length);
+      const statsExamNumbers = Array.from(new Set(detailedStats.map(s => s.exam_number))).sort((a, b) => a - b);
+      console.log('有模块数据的考试期数:', statsExamNumbers.join(', '));
+      
+      const recordIndexNumbers = records.map(r => r.index_number).sort((a, b) => a - b);
+      const missingIndexNumbers = recordIndexNumbers.filter(idx => !statsExamNumbers.includes(idx));
+      if (missingIndexNumbers.length > 0) {
+        console.warn('⚠️ 警告：以下考试记录没有模块数据:', missingIndexNumbers.join(', '));
+        missingIndexNumbers.forEach(idx => {
+          const record = records.find(r => r.index_number === idx);
+          console.warn(`  - 索引${idx}: ${record?.exam_name}, 考试日期: ${record?.exam_date || '无'}`);
+        });
+      }
       
       setExamRecords(records);
       setModuleAvgScores(avgScores);
@@ -434,18 +445,16 @@ export default function Dashboard() {
     return setting?.target_accuracy || 80; // 默认80%
   };
 
-  // 获取所有考试期数
-  const allExamNumbers = Array.from(new Set(moduleDetailedStats.map(s => s.exam_number))).sort((a, b) => a - b);
+  // 获取所有考试期数（从考试记录中获取，确保包含所有记录）
+  const allExamNumbers = examRecords.map(r => r.index_number).sort((a, b) => a - b);
 
   // 创建考试信息映射（期数 -> {名称, 日期}）
   const examInfoMap = new Map<number, { name: string; date: string | null }>();
-  moduleDetailedStats.forEach(stat => {
-    if (!examInfoMap.has(stat.exam_number)) {
-      examInfoMap.set(stat.exam_number, {
-        name: stat.exam_name,
-        date: stat.exam_date,
-      });
-    }
+  examRecords.forEach(record => {
+    examInfoMap.set(record.index_number, {
+      name: record.exam_name || `第${record.index_number}期`,
+      date: record.exam_date,
+    });
   });
 
   // 组织表格数据：按主模块分组，子模块作为children
