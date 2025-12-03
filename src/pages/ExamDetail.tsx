@@ -833,17 +833,23 @@ export default function ExamDetail() {
             <Input
               type="number"
               min="0"
-              step="0.01"
+              step="1"
               value={editTime}
-              onChange={(e) => setEditTime(e.target.value)}
+              onChange={(e) => {
+                // 只允许输入整数
+                const value = e.target.value;
+                if (value === '' || /^\d+$/.test(value)) {
+                  setEditTime(value);
+                }
+              }}
               placeholder="请输入分钟数"
               style={{ width: '120px' }}
             />
             <span className="text-gray-600">分钟</span>
           </div>
-          {editTime && !isNaN(parseFloat(editTime)) && (
+          {editTime && !isNaN(parseInt(editTime)) && (
             <p className="text-sm text-gray-500">
-              = {formatTime(minutesToSeconds(parseFloat(editTime)))}
+              = {parseInt(editTime)}分钟
             </p>
           )}
         </div>
