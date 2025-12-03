@@ -300,6 +300,24 @@ All colors MUST be HSL.
   }
 }
 
+/* 考试日历样式 */
+.exam-calendar .ant-picker-calendar-date-content {
+  height: auto !important;
+  min-height: 60px;
+}
+
+.exam-calendar .ant-picker-cell-in-view.ant-picker-cell-selected .ant-picker-cell-inner {
+  background: hsl(var(--primary) / 0.1);
+}
+
+.exam-calendar .ant-badge-status-text {
+  font-size: 12px;
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 @layer base {
   * {
     @apply border-border;

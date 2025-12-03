@@ -1,13 +1,17 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import ReactECharts from 'echarts-for-react';
-import { Table, Card, Skeleton, Statistic, Row, Col, Button, message } from 'antd';
+import { Table, Card, Skeleton, Statistic, Row, Col, Button, message, Calendar, Badge, Tooltip } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
+import type { Dayjs } from 'dayjs';
 import { RiseOutlined, ClockCircleOutlined, AimOutlined, TrophyOutlined, DownloadOutlined } from '@ant-design/icons';
 import { getAllExamRecords, getModuleAverageScores, getModuleTrendData, getModuleDetailedStats, getUserSettings } from '@/db/api';
 import type { ExamRecord, UserSetting } from '@/types';
 import * as XLSX from 'xlsx';
+import dayjs from 'dayjs';
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const [examRecords, setExamRecords] = useState<ExamRecord[]>([]);
   const [moduleAvgScores, setModuleAvgScores] = useState<{ module_name: string; avg_accuracy: number }[]>([]);
   const [moduleTrendData, setModuleTrendData] = useState<{
@@ -625,6 +629,50 @@ export default function Dashboard() {
     })),
   ];
 
+  // 获取某一天的考试记录
+  const getExamsForDate = (date: Dayjs) => {
+    return examRecords.filter(record => {
+      if (!record.exam_date) return false;
+      const examDate = dayjs(record.exam_date);
+      return examDate.isSame(date, 'day');
+    });
+  };
+
+  // 根据分数获取颜色
+  const getScoreColor = (score: number) => {
+    if (score >= 80) return 'success'; // 绿色
+    if (score >= 60) return 'warning'; // 橙色
+    return 'error'; // 红色
+  };
+
+  // 日历单元格渲染
+  const dateCellRender = (date: Dayjs) => {
+    const exams = getExamsForDate(date);
+    if (exams.length === 0) return null;
+
+    return (
+      <ul className="space-y-1">
+        {exams.map(exam => (
+          <li key={exam.id}>
+            <Tooltip title={`${exam.exam_name || `第${exam.index_number}期`} - ${exam.total_score}分`}>
+              <Badge 
+                status={getScoreColor(exam.total_score || 0)} 
+                text={
+                  <span 
+                    className="text-xs cursor-pointer hover:underline"
+                    onClick={() => navigate(`/exam/${exam.id}`)}
+                  >
+                    {exam.exam_name || `第${exam.index_number}期`}
+                  </span>
+                }
+              />
+            </Tooltip>
+          </li>
+        ))}
+      </ul>
+    );
+  };
+
   // 导出为 Excel
   const handleExportExcel = () => {
     try {
@@ -814,8 +862,29 @@ export default function Dashboard() {
         </Col>
       </Row>
 
+      {/* 考试日历 */}
+      <Row gutter={[16, 16]} className="mt-8">
+        <Col xs={24}>
+          <Card 
+            title="考试日历"
+            extra={
+              <div className="flex items-center gap-4 text-xs">
+                <span><Badge status="success" /> 80分以上</span>
+                <span><Badge status="warning" /> 60-79分</span>
+                <span><Badge status="error" /> 60分以下</span>
+              </div>
+            }
+          >
+            <Calendar 
+              dateCellRender={dateCellRender}
+              className="exam-calendar"
+            />
+          </Card>
+        </Col>
+      </Row>
+
       {/* 图表 */}
-      <Row gutter={[16, 16]}>
+      <Row gutter={[16, 16]} className="mt-8">
         <Col xs={24}>
           <Card 
             title="总分趋势"
