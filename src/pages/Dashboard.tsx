@@ -85,6 +85,14 @@ export default function Dashboard() {
         getModuleDetailedStats(),
         getUserSettings('default'),
       ]);
+      
+      console.log('=== Dashboard 数据加载完成 ===');
+      console.log('考试记录数量:', records.length);
+      console.log('模块详细统计数量:', detailedStats.length);
+      console.log('模块详细统计:', detailedStats.map(s => 
+        `期数${s.exam_number} - ${s.parent_module ? s.parent_module + ' > ' : ''}${s.module_name}`
+      ).join(', '));
+      
       setExamRecords(records);
       setModuleAvgScores(avgScores);
       setModuleTrendData(trendData);

@@ -170,6 +170,10 @@ export default function Upload() {
         timeUsedSeconds
       );
 
+      console.log('=== 准备保存数据 ===');
+      console.log('解析到的模块数量:', moduleScores.length);
+      console.log('模块列表:', moduleScores.map(m => `${m.parent_module ? m.parent_module + ' > ' : ''}${m.module_name}`).join(', '));
+
       // 添加考试名称和索引号
       const recordWithNameAndIndex = {
         ...examRecord,
@@ -183,6 +187,7 @@ export default function Upload() {
       setUploadProgress(((selectedFiles.length + 2) / totalSteps) * 100);
       
       const savedRecord = await createExamRecord(recordWithNameAndIndex);
+      console.log('考试记录已保存, ID:', savedRecord.id);
 
       // 保存模块得分
       if (moduleScores.length > 0) {
@@ -190,7 +195,11 @@ export default function Upload() {
           ...score,
           exam_record_id: savedRecord.id,
         }));
-        await createModuleScores(scoresWithExamId);
+        console.log('准备保存', scoresWithExamId.length, '个模块数据');
+        const savedScores = await createModuleScores(scoresWithExamId);
+        console.log('实际保存了', savedScores.length, '个模块数据');
+      } else {
+        console.warn('警告: 没有解析到任何模块数据!');
       }
 
       message.success(`已成功上传并解析 ${selectedFiles.length} 张图片`);
