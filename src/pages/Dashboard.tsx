@@ -21,6 +21,8 @@ export default function Dashboard() {
   }>({ exam_numbers: [], exam_names: [], modules: [] });
   const [moduleDetailedStats, setModuleDetailedStats] = useState<{
     exam_number: number;
+    exam_name: string;
+    exam_date: string | null;
     module_name: string;
     parent_module: string | null;
     total_questions: number;
@@ -435,6 +437,17 @@ export default function Dashboard() {
   // 获取所有考试期数
   const allExamNumbers = Array.from(new Set(moduleDetailedStats.map(s => s.exam_number))).sort((a, b) => a - b);
 
+  // 创建考试信息映射（期数 -> {名称, 日期}）
+  const examInfoMap = new Map<number, { name: string; date: string | null }>();
+  moduleDetailedStats.forEach(stat => {
+    if (!examInfoMap.has(stat.exam_number)) {
+      examInfoMap.set(stat.exam_number, {
+        name: stat.exam_name,
+        date: stat.exam_date,
+      });
+    }
+  });
+
   // 组织表格数据：按主模块分组，子模块作为children
   const moduleMap = new Map<string, TableDataType>();
 
@@ -547,10 +560,16 @@ export default function Dashboard() {
         return text;
       },
     },
-    ...allExamNumbers.map(examNum => ({
-      title: `第${examNum}期`,
-      key: `exam_${examNum}`,
-      children: [
+    ...allExamNumbers.map(examNum => {
+      const examInfo = examInfoMap.get(examNum);
+      const examName = examInfo?.name || `第${examNum}期`;
+      const examDate = examInfo?.date || '';
+      const title = examDate ? `${examName} - ${examDate}` : examName;
+      
+      return {
+        title,
+        key: `exam_${examNum}`,
+        children: [
         {
           title: '题目数',
           key: `exam_${examNum}_questions`,
@@ -634,7 +653,8 @@ export default function Dashboard() {
           },
         },
       ],
-    })),
+      };
+    }),
   ];
 
   // 获取某一天的考试记录

@@ -402,6 +402,8 @@ export async function saveExamConfig(
 // 获取所有模块和子模块的详细统计数据（按期数分组）
 export async function getModuleDetailedStats(): Promise<{
   exam_number: number;
+  exam_name: string;
+  exam_date: string | null;
   module_name: string;
   parent_module: string | null;
   total_questions: number;
@@ -419,7 +421,7 @@ export async function getModuleDetailedStats(): Promise<{
       correct_answers,
       accuracy_rate,
       time_used,
-      exam_records!inner(index_number)
+      exam_records!inner(index_number, exam_name, exam_date)
     `)
     .order('exam_records(index_number)')
     .order('parent_module', { nullsFirst: true })
@@ -433,6 +435,8 @@ export async function getModuleDetailedStats(): Promise<{
   // 转换数据格式，使用 index_number 作为 exam_number
   return (data || []).map(record => ({
     exam_number: (record.exam_records as any).index_number,
+    exam_name: (record.exam_records as any).exam_name || '',
+    exam_date: (record.exam_records as any).exam_date || null,
     module_name: record.module_name,
     parent_module: record.parent_module,
     total_questions: record.total_questions,
