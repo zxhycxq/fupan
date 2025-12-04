@@ -718,32 +718,34 @@ export default function Dashboard() {
     const isWeekend = date.day() === 0 || date.day() === 6; // 0是周日，6是周六
     
     return (
-      <div className="h-full p-1 pr-2 border-b border-gray-100">
-        <div className="text-right">
-          <div className={`text-sm ${isWeekend ? 'text-red-500' : ''}`}>{date.date()}</div>
-          <div className="text-xs text-gray-400">{lunarDay}</div>
+      <div className="ant-picker-cell-inner ant-picker-calendar-date">
+        <div className="ant-picker-calendar-date-value" style={{ textAlign: 'right', paddingRight: '8px' }}>
+          <span className={isWeekend ? 'text-red-500' : ''}>{date.date()}</span>
         </div>
-        {exams.length > 0 && (
-          <ul className="mt-1 space-y-1">
-            {exams.map(exam => (
-              <li key={exam.id}>
-                <Tooltip title={`${exam.exam_name || `第${exam.index_number}期`} - ${exam.total_score}分`}>
-                  <Badge 
-                    status={getScoreColor(exam.total_score || 0)} 
-                    text={
-                      <span 
-                        className="text-xs cursor-pointer hover:underline"
-                        onClick={() => navigate(`/exam/${exam.id}`)}
-                      >
-                        {exam.exam_name || `第${exam.index_number}期`}
-                      </span>
-                    }
-                  />
-                </Tooltip>
-              </li>
-            ))}
-          </ul>
-        )}
+        <div className="ant-picker-calendar-date-content" style={{ height: 'auto', minHeight: '60px' }}>
+          <div className="text-xs text-gray-400 text-right pr-2">{lunarDay}</div>
+          {exams.length > 0 && (
+            <ul className="mt-1 space-y-1 px-1">
+              {exams.map(exam => (
+                <li key={exam.id}>
+                  <Tooltip title={`${exam.exam_name || `第${exam.index_number}期`} - ${exam.total_score}分`}>
+                    <Badge 
+                      status={getScoreColor(exam.total_score || 0)} 
+                      text={
+                        <span 
+                          className="text-xs cursor-pointer hover:underline"
+                          onClick={() => navigate(`/exam/${exam.id}`)}
+                        >
+                          {exam.exam_name || `第${exam.index_number}期`}
+                        </span>
+                      }
+                    />
+                  </Tooltip>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
     );
   };
@@ -823,8 +825,8 @@ export default function Dashboard() {
     }
 
     return (
-      <div className="flex justify-between items-center px-4 py-3 bg-blue-50 rounded-t-lg">
-        <div className="flex gap-2">
+      <div className="flex justify-end items-center px-4 py-3 bg-gradient-to-r from-blue-50 to-blue-100 rounded-t-lg">
+        <div className="flex gap-2 items-center">
           <Select
             value={year}
             onChange={(newYear) => {
@@ -845,8 +847,6 @@ export default function Dashboard() {
           >
             {monthOptions}
           </Select>
-        </div>
-        <div className="flex gap-2">
           <Button
             type={type === 'month' ? 'primary' : 'default'}
             onClick={() => onTypeChange('month')}
