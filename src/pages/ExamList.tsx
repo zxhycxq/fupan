@@ -33,6 +33,8 @@ export default function ExamList() {
   const [notesModalContent, setNotesModalContent] = useState<string>('');
   const [editingRecordId, setEditingRecordId] = useState<string>('');
   const [isSaving, setIsSaving] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [form] = Form.useForm();
   const navigate = useNavigate();
 
@@ -514,7 +516,8 @@ export default function ExamList() {
               dataSource={examRecords}
               rowKey="id"
               pagination={{
-                defaultPageSize: 20,
+                current: currentPage,
+                pageSize: pageSize,
                 pageSizeOptions: ['10', '20', '30', '50'],
                 showSizeChanger: true,
                 showQuickJumper: true,
@@ -524,6 +527,10 @@ export default function ExamList() {
                   items_per_page: '条/页',
                   jump_to: '跳至',
                   page: '页',
+                },
+                onChange: (page, size) => {
+                  setCurrentPage(page);
+                  setPageSize(size);
                 },
               }}
               scroll={{ x: 1400 }}
