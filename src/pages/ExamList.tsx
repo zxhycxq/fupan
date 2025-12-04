@@ -513,7 +513,19 @@ export default function ExamList() {
               columns={columns}
               dataSource={examRecords}
               rowKey="id"
-              pagination={false}
+              pagination={{
+                defaultPageSize: 20,
+                pageSizeOptions: ['10', '20', '30', '50'],
+                showSizeChanger: true,
+                showQuickJumper: true,
+                showTotal: (total) => `共 ${total} 条记录`,
+                position: ['bottomRight'],
+                locale: {
+                  items_per_page: '条/页',
+                  jump_to: '跳至',
+                  page: '页',
+                },
+              }}
               scroll={{ x: 1400 }}
               components={{
                 body: {
