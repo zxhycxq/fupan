@@ -318,6 +318,41 @@ All colors MUST be HSL.
   white-space: nowrap;
 }
 
+/* 日历卡片背景 */
+.calendar-card .ant-card-body {
+  background: linear-gradient(to bottom, #e3f2fd 0%, #ffffff 100%);
+  padding: 0;
+}
+
+/* 日历头部样式 */
+.exam-calendar .ant-picker-calendar-header {
+  padding: 0 !important;
+}
+
+/* 日历单元格样式 */
+.exam-calendar .ant-picker-cell {
+  background: white;
+}
+
+.exam-calendar .ant-picker-cell:hover .ant-picker-cell-inner {
+  background: hsl(var(--primary) / 0.05);
+}
+
+/* 今天的日期高亮 */
+.exam-calendar .ant-picker-cell-today .ant-picker-cell-inner::before {
+  border-color: hsl(var(--primary));
+}
+
+/* 月视图单元格样式 */
+.exam-calendar .ant-picker-calendar-mode-month .ant-picker-cell {
+  height: 100px;
+}
+
+/* 年视图单元格样式 */
+.exam-calendar .ant-picker-calendar-mode-year .ant-picker-cell {
+  height: 120px;
+}
+
 @layer base {
   * {
     @apply border-border;

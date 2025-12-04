@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ReactECharts from 'echarts-for-react';
-import { Table, Card, Skeleton, Statistic, Row, Col, Button, message, Calendar, Badge, Tooltip } from 'antd';
+import { Table, Card, Skeleton, Statistic, Row, Col, Button, message, Calendar, Badge, Tooltip, Select } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import type { Dayjs } from 'dayjs';
 import { RiseOutlined, ClockCircleOutlined, AimOutlined, TrophyOutlined, DownloadOutlined } from '@ant-design/icons';
@@ -9,6 +9,7 @@ import { getAllExamRecords, getModuleAverageScores, getModuleTrendData, getModul
 import type { ExamRecord, UserSetting } from '@/types';
 import * as XLSX from 'xlsx';
 import dayjs from 'dayjs';
+import { Lunar, Solar } from 'lunar-typescript';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -696,6 +697,151 @@ export default function Dashboard() {
     );
   };
 
+  // 获取农历信息
+  const getLunarInfo = (date: Dayjs) => {
+    const solar = Solar.fromYmd(date.year(), date.month() + 1, date.date());
+    const lunar = solar.getLunar();
+    return lunar.getDayInChinese();
+  };
+
+  // 完整日期单元格渲染（包含农历）
+  const fullCellRender = (date: Dayjs) => {
+    const exams = getExamsForDate(date);
+    const lunarDay = getLunarInfo(date);
+    
+    return (
+      <div className="h-full p-1">
+        <div className="text-right">
+          <div className="text-sm">{date.date()}</div>
+          <div className="text-xs text-gray-400">{lunarDay}</div>
+        </div>
+        {exams.length > 0 && (
+          <ul className="mt-1 space-y-1">
+            {exams.map(exam => (
+              <li key={exam.id}>
+                <Tooltip title={`${exam.exam_name || `第${exam.index_number}期`} - ${exam.total_score}分`}>
+                  <Badge 
+                    status={getScoreColor(exam.total_score || 0)} 
+                    text={
+                      <span 
+                        className="text-xs cursor-pointer hover:underline"
+                        onClick={() => navigate(`/exam/${exam.id}`)}
+                      >
+                        {exam.exam_name || `第${exam.index_number}期`}
+                      </span>
+                    }
+                  />
+                </Tooltip>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    );
+  };
+
+  // 月单元格渲染
+  const monthCellRender = (date: Dayjs) => {
+    // 获取该月的所有考试
+    const monthExams = examRecords.filter(exam => {
+      if (!exam.exam_date) return false;
+      const examDate = dayjs(exam.exam_date);
+      return examDate.year() === date.year() && examDate.month() === date.month();
+    });
+
+    if (monthExams.length === 0) return null;
+
+    return (
+      <div className="p-2">
+        <ul className="space-y-1">
+          {monthExams.map(exam => (
+            <li key={exam.id}>
+              <Tooltip title={`${exam.exam_name || `第${exam.index_number}期`} - ${exam.total_score}分`}>
+                <Badge 
+                  status={getScoreColor(exam.total_score || 0)} 
+                  text={
+                    <span 
+                      className="text-xs cursor-pointer hover:underline"
+                      onClick={() => navigate(`/exam/${exam.id}`)}
+                    >
+                      {dayjs(exam.exam_date).format('MM-DD')} {exam.exam_name || `第${exam.index_number}期`}
+                    </span>
+                  }
+                />
+              </Tooltip>
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  };
+
+  // 自定义日历头部
+  const headerRender = ({ value, type, onChange, onTypeChange }: any) => {
+    const year = value.year();
+    const month = value.month();
+    const monthOptions = [];
+    
+    for (let i = 0; i < 12; i++) {
+      monthOptions.push(
+        <Select.Option key={i} value={i}>
+          {i + 1}月
+        </Select.Option>
+      );
+    }
+
+    const yearOptions = [];
+    const currentYear = dayjs().year();
+    for (let i = currentYear - 10; i <= currentYear + 10; i++) {
+      yearOptions.push(
+        <Select.Option key={i} value={i}>
+          {i}年
+        </Select.Option>
+      );
+    }
+
+    return (
+      <div className="flex justify-between items-center px-4 py-3 bg-blue-50 rounded-t-lg">
+        <div className="flex gap-2">
+          <Select
+            value={year}
+            onChange={(newYear) => {
+              const now = value.clone().year(newYear);
+              onChange(now);
+            }}
+            className="w-24"
+          >
+            {yearOptions}
+          </Select>
+          <Select
+            value={month}
+            onChange={(newMonth) => {
+              const now = value.clone().month(newMonth);
+              onChange(now);
+            }}
+            className="w-20"
+          >
+            {monthOptions}
+          </Select>
+        </div>
+        <div className="flex gap-2">
+          <Button
+            type={type === 'month' ? 'primary' : 'default'}
+            onClick={() => onTypeChange('month')}
+          >
+            月
+          </Button>
+          <Button
+            type={type === 'year' ? 'primary' : 'default'}
+            onClick={() => onTypeChange('year')}
+          >
+            年
+          </Button>
+        </div>
+      </div>
+    );
+  };
+
   // 导出为 Excel
   const handleExportExcel = () => {
     try {
@@ -893,9 +1039,12 @@ export default function Dashboard() {
                 <span><Badge status="error" /> 60分以下</span>
               </div>
             }
+            className="calendar-card"
           >
             <Calendar 
-              dateCellRender={dateCellRender}
+              fullCellRender={fullCellRender}
+              monthCellRender={monthCellRender}
+              headerRender={headerRender}
               className="exam-calendar"
             />
           </Card>
