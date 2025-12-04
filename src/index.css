@@ -338,6 +338,16 @@ All colors MUST be HSL.
   background: hsl(var(--primary) / 0.05);
 }
 
+/* 隐藏非当前月份的日期 */
+.exam-calendar .ant-picker-cell-disabled {
+  display: none;
+}
+
+/* 隐藏原始的日期数字，只显示自定义内容 */
+.exam-calendar .ant-picker-calendar-date-value {
+  display: none;
+}
+
 /* 今天的日期高亮 */
 .exam-calendar .ant-picker-cell-today .ant-picker-cell-inner::before {
   border-color: hsl(var(--primary));

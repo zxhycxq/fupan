@@ -718,34 +718,32 @@ export default function Dashboard() {
     const isWeekend = date.day() === 0 || date.day() === 6; // 0是周日，6是周六
     
     return (
-      <div className="ant-picker-cell-inner ant-picker-calendar-date">
-        <div className="ant-picker-calendar-date-value" style={{ textAlign: 'right', paddingRight: '8px' }}>
-          <span className={isWeekend ? 'text-red-500' : ''}>{date.date()}</span>
+      <div className="h-full flex flex-col">
+        <div className="text-right pr-2 pt-1">
+          <div className={`text-sm ${isWeekend ? 'text-red-500' : ''}`}>{date.date()}</div>
+          <div className="text-xs text-gray-400">{lunarDay}</div>
         </div>
-        <div className="ant-picker-calendar-date-content" style={{ height: 'auto', minHeight: '60px' }}>
-          <div className="text-xs text-gray-400 text-right pr-2">{lunarDay}</div>
-          {exams.length > 0 && (
-            <ul className="mt-1 space-y-1 px-1">
-              {exams.map(exam => (
-                <li key={exam.id}>
-                  <Tooltip title={`${exam.exam_name || `第${exam.index_number}期`} - ${exam.total_score}分`}>
-                    <Badge 
-                      status={getScoreColor(exam.total_score || 0)} 
-                      text={
-                        <span 
-                          className="text-xs cursor-pointer hover:underline"
-                          onClick={() => navigate(`/exam/${exam.id}`)}
-                        >
-                          {exam.exam_name || `第${exam.index_number}期`}
-                        </span>
-                      }
-                    />
-                  </Tooltip>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+        {exams.length > 0 && (
+          <ul className="mt-1 space-y-1 px-2 pb-1">
+            {exams.map(exam => (
+              <li key={exam.id}>
+                <Tooltip title={`${exam.exam_name || `第${exam.index_number}期`} - ${exam.total_score}分`}>
+                  <Badge 
+                    status={getScoreColor(exam.total_score || 0)} 
+                    text={
+                      <span 
+                        className="text-xs cursor-pointer hover:underline"
+                        onClick={() => navigate(`/exam/${exam.id}`)}
+                      >
+                        {exam.exam_name || `第${exam.index_number}期`}
+                      </span>
+                    }
+                  />
+                </Tooltip>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     );
   };
