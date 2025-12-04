@@ -580,30 +580,16 @@ export default function Dashboard() {
         key: `exam_${examNum}`,
         children: [
         {
-          title: '题目数',
-          key: `exam_${examNum}_questions`,
-          width: 80,
+          title: '题目数/答对数',
+          key: `exam_${examNum}_questions_correct`,
+          width: 120,
           align: 'center' as const,
           render: (_: any, record: TableDataType) => {
             const examData = record.exams.get(examNum);
             if (!examData) {
               return <span className="text-muted-foreground">-</span>;
             }
-            const content = examData.total_questions;
-            return record.key === 'total' ? <strong>{content}</strong> : content;
-          },
-        },
-        {
-          title: '答对数',
-          key: `exam_${examNum}_correct`,
-          width: 80,
-          align: 'center' as const,
-          render: (_: any, record: TableDataType) => {
-            const examData = record.exams.get(examNum);
-            if (!examData) {
-              return <span className="text-muted-foreground">-</span>;
-            }
-            const content = examData.correct_answers;
+            const content = `${examData.total_questions}/${examData.correct_answers}`;
             return record.key === 'total' ? <strong>{content}</strong> : content;
           },
         },
@@ -723,8 +709,7 @@ export default function Dashboard() {
         const examRecord = examRecords.find(r => r.index_number === examNum);
         const examName = examRecord?.exam_name || `第${examNum}期`;
         
-        headerRow[`${examName}_题目数`] = '题目数';
-        headerRow[`${examName}_答对数`] = '答对数';
+        headerRow[`${examName}_题目数/答对数`] = '题目数/答对数';
         headerRow[`${examName}_正确率`] = '正确率';
         headerRow[`${examName}_用时`] = '用时(分钟)';
       });
@@ -742,8 +727,7 @@ export default function Dashboard() {
           const examName = examRecord?.exam_name || `第${examNum}期`;
           
           if (examData) {
-            rowData[`${examName}_题目数`] = examData.total_questions;
-            rowData[`${examName}_答对数`] = examData.correct_answers;
+            rowData[`${examName}_题目数/答对数`] = `${examData.total_questions}/${examData.correct_answers}`;
             rowData[`${examName}_正确率`] = `${examData.accuracy.toFixed(1)}%`;
             
             // 只有大模块显示用时
@@ -753,8 +737,7 @@ export default function Dashboard() {
               rowData[`${examName}_用时`] = '-';
             }
           } else {
-            rowData[`${examName}_题目数`] = '-';
-            rowData[`${examName}_答对数`] = '-';
+            rowData[`${examName}_题目数/答对数`] = '-';
             rowData[`${examName}_正确率`] = '-';
             rowData[`${examName}_用时`] = '-';
           }
@@ -782,8 +765,7 @@ export default function Dashboard() {
       // 设置列宽
       const colWidths = [{ wch: 20 }]; // 模块名称列
       allExamNumbers.forEach(() => {
-        colWidths.push({ wch: 10 }); // 题目数
-        colWidths.push({ wch: 10 }); // 答对数
+        colWidths.push({ wch: 15 }); // 题目数/答对数
         colWidths.push({ wch: 12 }); // 正确率
         colWidths.push({ wch: 12 }); // 用时
       });
