@@ -4,6 +4,45 @@ import ReactECharts from 'echarts-for-react';
 import { supabase } from '@/db/supabase';
 import type { ExamRecord } from '@/types';
 
+// 子模块颜色配置 - 使用明显区分的颜色
+const SUB_MODULE_COLORS: Record<string, string> = {
+  // 常识判断
+  '地理国情': '#1890ff',
+  '法律常识': '#52c41a',
+  '经济常识': '#faad14',
+  '科技常识': '#f5222d',
+  '人文常识': '#722ed1',
+  
+  // 判断推理
+  '图形推理': '#13c2c2',
+  '定义判断': '#eb2f96',
+  '类比推理': '#fa8c16',
+  '逻辑判断': '#a0d911',
+  
+  // 数量关系
+  '数学运算': '#fadb14',
+  
+  // 言语理解与表达
+  '逻辑填空': '#2f54eb',
+  '片段阅读': '#52c41a',
+  '语句表达': '#fa541c',
+  
+  // 政治理论
+  '马克思主义': '#eb2f96',
+  '理论与政策': '#722ed1',
+  '时政热点': '#f5222d',
+  
+  // 资料分析
+  '文字资料': '#1890ff',
+  '综合资料': '#52c41a',
+  '两单计算': '#faad14',
+  '其期与现期': '#f5222d',
+  '增长率': '#722ed1',
+  '增长量': '#13c2c2',
+  '比重问题': '#eb2f96',
+  '平均数问题': '#fa8c16'
+};
+
 // 模块配置：定义一级模块和二级模块
 const MODULE_CONFIG = [
   {
@@ -73,13 +112,28 @@ export default function ModuleAnalysis() {
       const { data: moduleScores, error } = await supabase
         .from('module_scores')
         .select(`
-          *,
-          exam_records!inner(index_number, exam_name)
+          id,
+          module_name,
+          parent_module,
+          total_questions,
+          correct_answers,
+          accuracy_rate,
+          exam_record_id,
+          exam_records!inner(
+            id,
+            index_number,
+            exam_name
+          )
         `)
         .in('module_name', subModules)
         .order('exam_records(index_number)', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error('查询模块分数失败:', error);
+        throw error;
+      }
+
+      console.log('查询到的模块分数数据:', moduleScores);
 
       // 按考试期数分组
       const examMap = new Map<number, { exam_name?: string; modules: Map<string, number> }>();
@@ -93,11 +147,19 @@ export default function ModuleAnalysis() {
         }
         
         const examData = examMap.get(examNumber)!;
-        const accuracy = score.correct_count && score.total_count 
-          ? (score.correct_count / score.total_count) * 100 
-          : 0;
+        
+        // 使用accuracy_rate字段，如果没有则计算
+        let accuracy = 0;
+        if (score.accuracy_rate !== null && score.accuracy_rate !== undefined) {
+          accuracy = Number(score.accuracy_rate);
+        } else if (score.correct_answers && score.total_questions) {
+          accuracy = (score.correct_answers / score.total_questions) * 100;
+        }
+        
         examData.modules.set(score.module_name, accuracy);
       });
+
+      console.log('处理后的考试数据:', Array.from(examMap.entries()));
 
       // 转换为图表数据格式
       const examNumbers = Array.from(examMap.keys()).sort((a, b) => a - b);
@@ -110,6 +172,8 @@ export default function ModuleAnalysis() {
           return accuracy !== undefined ? Number(accuracy.toFixed(1)) : null;
         })
       }));
+
+      console.log('生成的图表数据:', { examNumbers, examNames, series });
 
       return { examNumbers, examNames, series };
     } catch (error) {
@@ -186,7 +250,7 @@ export default function ModuleAnalysis() {
           formatter: '{value}%'
         }
       },
-      series: series.map((s, index) => ({
+      series: series.map((s) => ({
         name: s.name,
         type: 'line',
         data: s.data,
@@ -197,36 +261,11 @@ export default function ModuleAnalysis() {
           width: 2
         },
         itemStyle: {
-          color: generateColor(color, index, series.length)
+          color: SUB_MODULE_COLORS[s.name] || color
         },
         connectNulls: false
       }))
     };
-  };
-
-  // 根据基础颜色生成渐变色
-  const generateColor = (baseColor: string, index: number, total: number) => {
-    // 简单的颜色变化逻辑
-    const colors = [
-      baseColor,
-      adjustColor(baseColor, 20),
-      adjustColor(baseColor, -20),
-      adjustColor(baseColor, 40),
-      adjustColor(baseColor, -40),
-      adjustColor(baseColor, 60),
-      adjustColor(baseColor, -60),
-      adjustColor(baseColor, 80)
-    ];
-    return colors[index % colors.length];
-  };
-
-  // 调整颜色亮度
-  const adjustColor = (color: string, amount: number) => {
-    const num = parseInt(color.replace('#', ''), 16);
-    const r = Math.min(255, Math.max(0, (num >> 16) + amount));
-    const g = Math.min(255, Math.max(0, ((num >> 8) & 0x00FF) + amount));
-    const b = Math.min(255, Math.max(0, (num & 0x0000FF) + amount));
-    return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
   };
 
   // 渲染模块图表
