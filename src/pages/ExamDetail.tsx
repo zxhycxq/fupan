@@ -593,7 +593,7 @@ export default function ExamDetail() {
           
           
             <div className="text-2xl font-bold">
-              {examDetail.time_used || '-'}
+              {examDetail.time_used ? Math.round(examDetail.time_used / 60) : '-'}
             </div>
             <p className="text-xs text-muted-foreground">分钟</p>
           </Card>

@@ -80,7 +80,7 @@ export default function ExamList() {
       index_number: record.index_number,
       exam_name: record.exam_name,
       total_score: record.total_score,
-      time_used: record.time_used,
+      time_used: record.time_used ? Math.round(record.time_used / 60) : null, // 将秒转换为分钟
       average_score: record.average_score,
       pass_rate: record.pass_rate,
       exam_date: record.exam_date ? dayjs(record.exam_date) : null,
@@ -141,7 +141,7 @@ export default function ExamList() {
 
       updates.index_number = values.index_number;
       updates.total_score = Math.round(values.total_score * 10) / 10;
-      updates.time_used = values.time_used || null;
+      updates.time_used = values.time_used ? values.time_used * 60 : null; // 将分钟转换为秒
       updates.average_score = values.average_score ? Math.round(values.average_score * 10) / 10 : null;
       updates.pass_rate = values.pass_rate ? Math.round(values.pass_rate * 10) / 10 : null;
       updates.exam_date = values.exam_date ? values.exam_date.format('YYYY-MM-DD') : null;
@@ -324,11 +324,13 @@ export default function ExamList() {
       render: (value: number | null) => {
         if (!value) return '-';
         
-        const isOvertime = value > 115;
+        // 数据库存储的是秒，需要转换为分钟
+        const minutes = Math.round(value / 60);
+        const isOvertime = minutes > 115;
         return (
           <Space size={4}>
             <span className={isOvertime ? 'text-red-600 font-semibold' : ''}>
-              {value}分钟
+              {minutes}分钟
             </span>
             {isOvertime && (
               <Tooltip title="超过115分钟可能来不及涂卡">

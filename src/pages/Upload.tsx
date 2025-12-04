@@ -14,7 +14,7 @@ interface FileWithPreview {
 export default function Upload() {
   const [examName, setExamName] = useState<string>('');
   const [indexNumber, setIndexNumber] = useState<number>(1);
-  const [timeUsedMinutes, setTimeUsedMinutes] = useState<number>(0);
+  const [timeUsedMinutes, setTimeUsedMinutes] = useState<number>(120); // 默认120分钟
   const [selectedFiles, setSelectedFiles] = useState<FileWithPreview[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
