@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Card, Input, InputNumber, Progress, message, Space } from 'antd';
+import { Button, Card, Input, InputNumber, Progress, message, Space, Spin } from 'antd';
 import { UploadOutlined, LoadingOutlined, CloseOutlined, DeleteOutlined } from '@ant-design/icons';
 import { fileToBase64, recognizeText, compressImage } from '@/services/imageRecognition';
 import { parseExamData } from '@/services/dataParser';
@@ -220,7 +220,32 @@ export default function Upload() {
   };
 
   return (
-    <div className="container mx-auto py-8 px-4">
+    <div className="container mx-auto py-8 px-4 relative">
+      {/* 上传中的全屏遮罩 */}
+      {isUploading && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4 shadow-2xl">
+            <div className="text-center">
+              <Spin size="large" />
+              <div className="mt-4 text-lg font-medium">{currentStep}</div>
+              <div className="mt-4">
+                <Progress 
+                  percent={Math.round(uploadProgress)} 
+                  status="active"
+                  strokeColor={{
+                    '0%': '#1890ff',
+                    '100%': '#52c41a',
+                  }}
+                />
+              </div>
+              <div className="mt-4 text-sm text-gray-500">
+                正在处理中，请勿关闭页面或刷新...
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Card 
         title="上传考试成绩"
         className="max-w-4xl mx-auto"
@@ -352,16 +377,6 @@ export default function Upload() {
               </div>
             )}
           </div>
-
-          {isUploading && (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span>{currentStep}</span>
-                <span>{Math.round(uploadProgress)}%</span>
-              </div>
-              <Progress percent={Math.round(uploadProgress)} status="active" />
-            </div>
-          )}
 
           <Button
             type="primary"
