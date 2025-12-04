@@ -495,7 +495,7 @@ export default function ExamDetail() {
                   className="flex items-center gap-1 text-primary hover:underline"
                 >
                   <LinkOutlined className="h-4 w-4" />
-                  <span>考试报告链接地址</span>
+                  <span>{examDetail.exam_name}考试报告链接地址</span>
                 </a>
                 <Button
                   type="text"
@@ -514,7 +514,7 @@ export default function ExamDetail() {
                 onClick={handleEditReportUrl}
               >
                 <LinkOutlined className="h-3 w-3 mr-1" />
-                添加考试报告链接地址
+                添加{examDetail.exam_name}考试报告链接地址
               </Button>
             )}
           </div>
