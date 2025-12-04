@@ -37,7 +37,12 @@ export function parseExamData(
   // 提取难度系数 - 增强匹配,支持右上角的"难度4.8"格式
   const difficultyMatch = ocrText.match(/难度[：:\s]*(\d+\.?\d*)/i) ||
                           ocrText.match(/难度(\d+\.?\d*)/i);
-  const difficulty = difficultyMatch ? parseFloat(difficultyMatch[1]) : undefined;
+  let difficulty = difficultyMatch ? parseFloat(difficultyMatch[1]) : undefined;
+  // 确保难度系数在 0-5 范围内
+  if (difficulty !== undefined && difficulty > 5) {
+    console.warn(`难度系数 ${difficulty} 超过最大值 5，将被限制为 5`);
+    difficulty = 5;
+  }
   console.log('提取难度:', difficulty, '匹配结果:', difficultyMatch?.[0]);
 
   // 提取已击败考生百分比 - 增强匹配,支持"73.3%"等格式
