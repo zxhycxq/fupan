@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Card, Row, Col, Skeleton } from 'antd';
+import { Card, Row, Col, Skeleton, FloatButton } from 'antd';
+import { VerticalAlignTopOutlined } from '@ant-design/icons';
 import ReactECharts from 'echarts-for-react';
 import { supabase } from '@/db/supabase';
 import type { ExamRecord } from '@/types';
@@ -207,15 +208,14 @@ export default function ModuleAnalysis() {
           const examName = examNames[examIndex] || `第${examNumbers[examIndex]}期`;
           let result = `<div style="font-weight: bold; margin-bottom: 8px;">${examName}</div>`;
           params.forEach((param: any) => {
-            if (param.value !== null) {
-              result += `
-                <div style="display: flex; align-items: center; margin: 4px 0;">
-                  <span style="display: inline-block; width: 10px; height: 10px; background-color: ${param.color}; border-radius: 50%; margin-right: 8px;"></span>
-                  <span style="flex: 1;">${param.seriesName}</span>
-                  <span style="font-weight: bold; margin-left: 12px;">${param.value}%</span>
-                </div>
-              `;
-            }
+            const value = param.value !== null && param.value !== undefined ? param.value : 0;
+            result += `
+              <div style="display: flex; align-items: center; margin: 4px 0;">
+                <span style="display: inline-block; width: 10px; height: 10px; background-color: ${param.color}; border-radius: 50%; margin-right: 8px;"></span>
+                <span style="flex: 1;">${param.seriesName}</span>
+                <span style="font-weight: bold; margin-left: 12px;">${value}%</span>
+              </div>
+            `;
           });
           return result;
         }
@@ -337,6 +337,17 @@ export default function ModuleAnalysis() {
           </Col>
         ))}
       </Row>
+
+      {/* 返回顶部按钮 */}
+      <FloatButton.BackTop
+        icon={<VerticalAlignTopOutlined />}
+        tooltip="返回顶部"
+        visibilityHeight={300}
+        style={{
+          right: 24,
+          bottom: 24,
+        }}
+      />
     </div>
   );
 }
