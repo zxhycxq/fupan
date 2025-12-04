@@ -704,15 +704,23 @@ export default function Dashboard() {
     return lunar.getDayInChinese();
   };
 
+  // 获取农历月份信息
+  const getLunarMonthInfo = (date: Dayjs) => {
+    const solar = Solar.fromYmd(date.year(), date.month() + 1, 1);
+    const lunar = solar.getLunar();
+    return lunar.getMonthInChinese() + '月';
+  };
+
   // 完整日期单元格渲染（包含农历）
   const fullCellRender = (date: Dayjs) => {
     const exams = getExamsForDate(date);
     const lunarDay = getLunarInfo(date);
+    const isWeekend = date.day() === 0 || date.day() === 6; // 0是周日，6是周六
     
     return (
-      <div className="h-full p-1">
+      <div className="h-full p-1 pr-2 border-b border-gray-100">
         <div className="text-right">
-          <div className="text-sm">{date.date()}</div>
+          <div className={`text-sm ${isWeekend ? 'text-red-500' : ''}`}>{date.date()}</div>
           <div className="text-xs text-gray-400">{lunarDay}</div>
         </div>
         {exams.length > 0 && (
@@ -742,6 +750,9 @@ export default function Dashboard() {
 
   // 月单元格渲染
   const monthCellRender = (date: Dayjs) => {
+    const month = date.month() + 1; // 月份从0开始，需要+1
+    const lunarMonth = getLunarMonthInfo(date);
+    
     // 获取该月的所有考试
     const monthExams = examRecords.filter(exam => {
       if (!exam.exam_date) return false;
@@ -749,29 +760,33 @@ export default function Dashboard() {
       return examDate.year() === date.year() && examDate.month() === date.month();
     });
 
-    if (monthExams.length === 0) return null;
-
     return (
-      <div className="p-2">
-        <ul className="space-y-1">
-          {monthExams.map(exam => (
-            <li key={exam.id}>
-              <Tooltip title={`${exam.exam_name || `第${exam.index_number}期`} - ${exam.total_score}分`}>
-                <Badge 
-                  status={getScoreColor(exam.total_score || 0)} 
-                  text={
-                    <span 
-                      className="text-xs cursor-pointer hover:underline"
-                      onClick={() => navigate(`/exam/${exam.id}`)}
-                    >
-                      {dayjs(exam.exam_date).format('MM-DD')} {exam.exam_name || `第${exam.index_number}期`}
-                    </span>
-                  }
-                />
-              </Tooltip>
-            </li>
-          ))}
-        </ul>
+      <div className="h-full p-2">
+        <div className="text-center mb-2">
+          <div className="text-base font-medium">{month}月</div>
+          <div className="text-xs text-gray-400">（{lunarMonth}）</div>
+        </div>
+        {monthExams.length > 0 && (
+          <ul className="space-y-1">
+            {monthExams.map(exam => (
+              <li key={exam.id}>
+                <Tooltip title={`${exam.exam_name || `第${exam.index_number}期`} - ${exam.total_score}分`}>
+                  <Badge 
+                    status={getScoreColor(exam.total_score || 0)} 
+                    text={
+                      <span 
+                        className="text-xs cursor-pointer hover:underline"
+                        onClick={() => navigate(`/exam/${exam.id}`)}
+                      >
+                        {dayjs(exam.exam_date).format('MM-DD')} {exam.exam_name || `第${exam.index_number}期`}
+                      </span>
+                    }
+                  />
+                </Tooltip>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     );
   };
