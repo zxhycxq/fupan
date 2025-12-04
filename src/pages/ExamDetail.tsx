@@ -326,25 +326,22 @@ export default function ExamDetail() {
       left: 'center',
     },
     tooltip: {
-      trigger: 'axis',
+      trigger: 'item',
       formatter: (params: any) => {
-        if (!params || params.length === 0) return '';
+        if (!params || !params.value) return '';
         
-        // params 是一个数组,包含所有系列在当前指标上的数据
-        const indicatorName = params[0].name; // 指标名称(模块名称)
+        const seriesName = params.seriesName; // '实际' 或 '目标'
+        const values = params.value; // 数组，包含所有指标的值
+        const color = seriesName === '实际' ? '#1890FF' : '#52C41A';
         
         let result = `<div style="padding: 8px;">`;
-        result += `<div style="font-weight: bold; margin-bottom: 8px;">${indicatorName}</div>`;
+        result += `<div style="font-weight: bold; margin-bottom: 8px;">${seriesName}</div>`;
         
-        params.forEach((param: any) => {
-          const seriesName = param.seriesName; // '我的' 或 '目标'
-          const value = param.value; // 该系列在当前指标上的值
-          const color = seriesName === '我的' ? '#FF9800' : '#F44336';
-          
+        mainModules.forEach((module, index) => {
           result += `
             <div style="display: flex; align-items: center; margin-bottom: 4px;">
               <span style="display: inline-block; width: 10px; height: 10px; background-color: ${color}; border-radius: 50%; margin-right: 6px;"></span>
-              <span>${seriesName}: ${value.toFixed(2)}%</span>
+              <span>${module.module_name}: ${values[index].toFixed(1)}%</span>
             </div>
           `;
         });
@@ -354,7 +351,7 @@ export default function ExamDetail() {
       },
     },
     legend: {
-      data: ['我的', '目标'],
+      data: ['实际', '目标'],
       bottom: 10,
     },
     radar: {
@@ -365,20 +362,20 @@ export default function ExamDetail() {
     },
     series: [
       {
-        name: '我的',
+        name: '实际',
         type: 'radar',
         data: [
           {
             value: mainModules.map(m => m.accuracy_rate || 0),
-            name: '我的',
+            name: '实际',
             areaStyle: {
-              color: 'rgba(255, 152, 0, 0.3)', // 橙色填充
+              color: 'rgba(24, 144, 255, 0.3)', // 蓝色填充
             },
             itemStyle: {
-              color: '#FF9800', // 橙色
+              color: '#1890FF', // 蓝色
             },
             lineStyle: {
-              color: '#FF9800',
+              color: '#1890FF',
               width: 2,
             },
           },
@@ -392,13 +389,13 @@ export default function ExamDetail() {
             value: targetValues,
             name: '目标',
             areaStyle: {
-              color: 'rgba(244, 67, 54, 0.1)', // 红色半透明填充
+              color: 'rgba(82, 196, 26, 0.1)', // 绿色半透明填充
             },
             itemStyle: {
-              color: '#F44336', // 红色
+              color: '#52C41A', // 绿色
             },
             lineStyle: {
-              color: '#F44336',
+              color: '#52C41A',
               width: 2,
               type: 'dashed', // 虚线
             },
@@ -419,6 +416,12 @@ export default function ExamDetail() {
       axisPointer: {
         type: 'shadow',
       },
+      formatter: (params: any) => {
+        if (!params || params.length === 0) return '';
+        const param = params[0];
+        const minutes = (param.value / 60).toFixed(1);
+        return `${param.name}<br/>用时: ${minutes}分钟`;
+      },
     },
     xAxis: {
       type: 'category',
@@ -430,7 +433,10 @@ export default function ExamDetail() {
     },
     yAxis: {
       type: 'value',
-      name: '用时(秒)',
+      name: '用时(分钟)',
+      axisLabel: {
+        formatter: (value: number) => (value / 60).toFixed(0),
+      },
     },
     series: [
       {
