@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Card, Input, InputNumber, Progress, message, Space, Spin } from 'antd';
-import { UploadOutlined, LoadingOutlined, CloseOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Button, Card, Input, InputNumber, Progress, message, Spin, Tabs } from 'antd';
+import { UploadOutlined, LoadingOutlined, CloseOutlined, DeleteOutlined, PictureOutlined, FormOutlined } from '@ant-design/icons';
 import { fileToBase64, recognizeText, compressImage } from '@/services/imageRecognition';
 import { parseExamData } from '@/services/dataParser';
 import { createExamRecord, createModuleScores, getNextIndexNumber, checkIndexNumberExists } from '@/db/api';
+import FormInputTab from '@/components/exam/FormInputTab';
 
 interface FileWithPreview {
   file: File;
@@ -12,9 +13,10 @@ interface FileWithPreview {
 }
 
 export default function Upload() {
+  const [activeTab, setActiveTab] = useState<string>('image');
   const [examName, setExamName] = useState<string>('');
   const [indexNumber, setIndexNumber] = useState<number>(1);
-  const [timeUsedMinutes, setTimeUsedMinutes] = useState<number>(120); // 默认120分钟
+  const [timeUsedMinutes, setTimeUsedMinutes] = useState<number>(120);
   const [selectedFiles, setSelectedFiles] = useState<FileWithPreview[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -250,9 +252,23 @@ export default function Upload() {
         title="上传考试成绩"
         className="max-w-4xl mx-auto"
       >
-        <div className="mb-4 text-gray-500">
-          上传考试成绩截图,系统将自动识别并分析数据。支持一次上传多张图片。
-        </div>
+        <Tabs
+          activeKey={activeTab}
+          onChange={setActiveTab}
+          items={[
+            {
+              key: 'image',
+              label: (
+                <span>
+                  <PictureOutlined />
+                  <span className="ml-2">成绩截图</span>
+                </span>
+              ),
+              children: (
+                <div>
+                  <div className="mb-4 text-gray-500">
+                    上传考试成绩截图,系统将自动识别并分析数据。支持一次上传多张图片。
+                  </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
@@ -393,6 +409,66 @@ export default function Upload() {
             }
           </Button>
         </form>
+                </div>
+              )
+            },
+            {
+              key: 'form',
+              label: (
+                <span>
+                  <FormOutlined />
+                  <span className="ml-2">表单录入</span>
+                </span>
+              ),
+              children: (
+                <div>
+                  <div className="mb-4 text-gray-500">
+                    手动填写各模块的成绩数据。展开对应模块填写题目数量、答对数量和用时。
+                  </div>
+                  
+                  <div className="mb-6 grid grid-cols-1 xl:grid-cols-2 gap-6">
+                    <div>
+                      <div className="mb-2 text-sm font-medium">考试名称 <span className="text-red-500">*</span></div>
+                      <Input
+                        value={examName}
+                        onChange={(e) => setExamName(e.target.value)}
+                        placeholder="请输入考试名称"
+                        maxLength={50}
+                        showCount
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <div className="mb-2 text-sm font-medium">索引号 <span className="text-red-500">*</span></div>
+                      <InputNumber
+                        min={1}
+                        value={indexNumber}
+                        onChange={(value) => setIndexNumber(value || 1)}
+                        placeholder="请输入索引号"
+                        style={{ width: '100%' }}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <FormInputTab
+                    examName={examName}
+                    indexNumber={indexNumber}
+                    onSubmitStart={() => {
+                      setIsUploading(true);
+                      setCurrentStep('正在保存数据...');
+                    }}
+                    onSubmitEnd={() => {
+                      setIsUploading(false);
+                      setCurrentStep('');
+                    }}
+                  />
+                </div>
+              )
+            }
+          ]}
+        />
       </Card>
     </div>
   );
