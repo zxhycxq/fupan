@@ -451,9 +451,10 @@ export default function ExamDetail() {
     xAxis: {
       type: 'category',
       data: mainModules.map(m => m.module_name),
-      axisdiv: {
+      axisLabel: {
         interval: 0,
-        rotate: 45,
+        rotate: 30,
+        fontSize: 12,
       },
     },
     yAxis: {
