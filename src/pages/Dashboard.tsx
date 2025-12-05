@@ -5,7 +5,7 @@ import { Table, Card, Skeleton, Statistic, Row, Col, Button, message, Calendar, 
 import type { ColumnsType } from 'antd/es/table';
 import type { Dayjs } from 'dayjs';
 import { RiseOutlined, ClockCircleOutlined, AimOutlined, TrophyOutlined, DownloadOutlined } from '@ant-design/icons';
-import { getAllExamRecords, getModuleAverageScores, getModuleTrendData, getModuleDetailedStats, getUserSettings } from '@/db/api';
+import { getAllExamRecords, getModuleAverageScores, getModuleTrendData, getModuleTimeTrendData, getModuleDetailedStats, getUserSettings } from '@/db/api';
 import type { ExamRecord, UserSetting } from '@/types';
 import * as XLSX from 'xlsx';
 import dayjs from 'dayjs';
@@ -18,6 +18,11 @@ export default function Dashboard() {
   const [moduleTrendData, setModuleTrendData] = useState<{
     exam_numbers: number[];
     exam_names?: string[]; // 添加考试名称数组
+    modules: { module_name: string; data: (number | null)[] }[];
+  }>({ exam_numbers: [], exam_names: [], modules: [] });
+  const [moduleTimeTrendData, setModuleTimeTrendData] = useState<{
+    exam_numbers: number[];
+    exam_names?: string[];
     modules: { module_name: string; data: (number | null)[] }[];
   }>({ exam_numbers: [], exam_names: [], modules: [] });
   const [moduleDetailedStats, setModuleDetailedStats] = useState<{
@@ -81,10 +86,11 @@ export default function Dashboard() {
   const loadData = async () => {
     try {
       setIsLoading(true);
-      const [records, avgScores, trendData, detailedStats, settings] = await Promise.all([
+      const [records, avgScores, trendData, timeTrendData, detailedStats, settings] = await Promise.all([
         getAllExamRecords(),
         getModuleAverageScores(),
         getModuleTrendData(),
+        getModuleTimeTrendData(),
         getModuleDetailedStats(),
         getUserSettings('default'),
       ]);
@@ -110,6 +116,7 @@ export default function Dashboard() {
       setExamRecords(records);
       setModuleAvgScores(avgScores);
       setModuleTrendData(trendData);
+      setModuleTimeTrendData(timeTrendData);
       setModuleDetailedStats(detailedStats);
       setUserSettings(settings);
     } catch (error) {
@@ -333,6 +340,94 @@ export default function Dashboard() {
       },
     },
     series: moduleTrendData.modules.map((module, index) => ({
+      name: module.module_name,
+      type: 'line',
+      data: module.data,
+      smooth: true,
+      connectNulls: true,
+      symbol: 'circle',
+      symbolSize: 6,
+      lineStyle: {
+        width: 2,
+      },
+      itemStyle: {
+        color: [
+          '#5470C6',
+          '#91CC75',
+          '#FAC858',
+          '#EE6666',
+          '#73C0DE',
+          '#3BA272',
+          '#FC8452',
+          '#9A60B4',
+        ][index % 8],
+      },
+    })),
+  };
+
+  // 模块用时趋势图配置
+  const moduleTimeTrendOption = {
+    title: {
+      text: '各模块用时趋势',
+      left: 'center',
+      textStyle: {
+        fontSize: isMobile ? 14 : 16,
+      },
+    },
+    tooltip: {
+      trigger: 'axis',
+      formatter: (params: any) => {
+        if (!params || params.length === 0) return '';
+        const examNumber = params[0].axisValue;
+        let result = `${examNumber}<br/>`;
+        params.forEach((param: any) => {
+          if (param.value !== null && param.value !== undefined) {
+            result += `${param.marker}${param.seriesName}: ${param.value}分钟<br/>`;
+          }
+        });
+        return result;
+      },
+    },
+    legend: {
+      data: moduleTimeTrendData.modules.map(m => m.module_name),
+      top: 30,
+      type: 'scroll',
+      textStyle: {
+        fontSize: isMobile ? 10 : 12,
+      },
+    },
+    grid: {
+      left: isMobile ? '8%' : '5%',
+      right: isMobile ? '8%' : '5%',
+      bottom: isMobile ? '8%' : '3%',
+      top: isMobile ? 70 : 80,
+      containLabel: true,
+    },
+    xAxis: {
+      type: 'category',
+      boundaryGap: ['5%', '5%'],
+      data: moduleTimeTrendData.exam_names || moduleTimeTrendData.exam_numbers.map(n => `第${n}次`),
+      name: '考试',
+      nameTextStyle: {
+        fontSize: isMobile ? 10 : 12,
+      },
+      axisLabel: {
+        fontSize: isMobile ? 10 : 12,
+      },
+    },
+    yAxis: {
+      type: 'value',
+      name: '用时(分钟)',
+      min: 0,
+      nameTextStyle: {
+        fontSize: isMobile ? 10 : 12,
+      },
+      axisLabel: {
+        fontSize: isMobile ? 10 : 12,
+        formatter: '{value}',
+      },
+    },
+    series: moduleTimeTrendData.modules.map((module, index) => ({
       name: module.module_name,
       type: 'line',
       data: module.data,
@@ -1088,14 +1183,27 @@ export default function Dashboard() {
           </Card>
         </Col>
 
-        {/* 模块趋势图独占一行 */}
+        {/* 模块正确率趋势图独占一行 */}
         <Col xs={24}>
           <Card
-            title="模块趋势"
+            title="各模块正确率趋势"
             extra={<span className="text-sm text-gray-500">查看各模块正确率变化</span>}
           >
             <ReactECharts 
               option={moduleTrendOption} 
+              style={{ height: isMobile ? '350px' : '450px' }} 
+            />
+          </Card>
+        </Col>
+
+        {/* 模块用时趋势图独占一行 */}
+        <Col xs={24}>
+          <Card
+            title="各模块用时趋势"
+            extra={<span className="text-sm text-gray-500">查看各模块用时变化</span>}
+          >
+            <ReactECharts 
+              option={moduleTimeTrendOption} 
               style={{ height: isMobile ? '350px' : '450px' }} 
             />
           </Card>

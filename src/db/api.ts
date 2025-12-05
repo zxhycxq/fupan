@@ -256,6 +256,70 @@ export async function getModuleTrendData(): Promise<{
   return { exam_numbers, exam_names, modules };
 }
 
+// 获取模块用时趋势数据
+export async function getModuleTimeTrendData(): Promise<{
+  exam_numbers: number[];
+  exam_names: string[];
+  modules: { module_name: string; data: (number | null)[] }[];
+}> {
+  // 获取所有考试记录
+  const { data: examRecords, error: examError } = await supabase
+    .from('exam_records')
+    .select('id, exam_number, exam_name, index_number')
+    .order('index_number', { ascending: true });
+
+  if (examError) {
+    console.error('获取考试记录失败:', examError);
+    throw examError;
+  }
+
+  if (!Array.isArray(examRecords) || examRecords.length === 0) {
+    return { exam_numbers: [], exam_names: [], modules: [] };
+  }
+
+  // 获取所有主模块的用时数据
+  const { data: moduleScores, error: moduleError } = await supabase
+    .from('module_scores')
+    .select('exam_record_id, module_name, time_used')
+    .is('parent_module', null)
+    .order('module_name', { ascending: true });
+
+  if (moduleError) {
+    console.error('获取模块用时失败:', moduleError);
+    throw moduleError;
+  }
+
+  if (!Array.isArray(moduleScores)) {
+    return { exam_numbers: [], exam_names: [], modules: [] };
+  }
+
+  // 构建数据结构
+  const exam_numbers = examRecords.map(r => r.exam_number);
+  const exam_names = examRecords.map(r => r.exam_name || `第${r.exam_number}期`);
+  const moduleMap = new Map<string, Map<string, number>>();
+
+  // 按模块名称和考试ID组织数据，将秒转换为分钟
+  for (const score of moduleScores) {
+    if (!moduleMap.has(score.module_name)) {
+      moduleMap.set(score.module_name, new Map());
+    }
+    // 将秒转换为分钟，保留1位小数
+    const timeInMinutes = score.time_used ? Math.round(score.time_used / 60 * 10) / 10 : 0;
+    moduleMap.get(score.module_name)?.set(score.exam_record_id, timeInMinutes);
+  }
+
+  // 转换为图表数据格式
+  const modules = Array.from(moduleMap.entries()).map(([module_name, timeMap]) => {
+    const data = examRecords.map(exam => {
+      const time = timeMap.get(exam.id);
+      return time !== undefined ? time : null;
+    });
+    return { module_name, data };
+  });
+
+  return { exam_numbers, exam_names, modules };
+}
+
 // 更新模块得分
 export async function updateModuleScore(
   id: string,
