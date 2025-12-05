@@ -553,3 +553,53 @@ export async function updateExamNotes(
   }
 }
 
+// 删除所有用户数据
+export async function deleteAllUserData(): Promise<void> {
+  // 删除所有模块成绩
+  const { error: scoresError } = await supabase
+    .from('module_scores')
+    .delete()
+    .neq('id', '00000000-0000-0000-0000-000000000000');
+
+  if (scoresError) {
+    console.error('删除模块成绩失败:', scoresError);
+    throw scoresError;
+  }
+
+  // 删除所有考试记录
+  const { error: recordsError } = await supabase
+    .from('exam_records')
+    .delete()
+    .neq('id', '00000000-0000-0000-0000-000000000000');
+
+  if (recordsError) {
+    console.error('删除考试记录失败:', recordsError);
+    throw recordsError;
+  }
+
+  // 删除所有用户设置
+  const { error: settingsError } = await supabase
+    .from('user_settings')
+    .delete()
+    .neq('id', '00000000-0000-0000-0000-000000000000');
+
+  if (settingsError) {
+    console.error('删除用户设置失败:', settingsError);
+    throw settingsError;
+  }
+
+  // 删除考试配置
+  const { error: configError } = await supabase
+    .from('exam_config')
+    .delete()
+    .neq('id', '00000000-0000-0000-0000-000000000000');
+
+  if (configError) {
+    console.error('删除考试配置失败:', configError);
+    throw configError;
+  }
+
+  // 清空localStorage
+  localStorage.clear();
+}
+
