@@ -65,6 +65,7 @@ export default function Dashboard() {
   const [examConfig, setExamConfig] = useState<{ exam_type?: string; exam_date?: string } | null>(null);
   const [countdown, setCountdown] = useState<{ days: number; hours: number; minutes: number } | null>(null);
   const [todayPoem, setTodayPoem] = useState<string>('');
+  const [calendarValue, setCalendarValue] = useState<Dayjs>(dayjs()); // 日历当前显示的月份
 
   // 安全地获取窗口宽度
   const getWindowWidth = () => {
@@ -1049,7 +1050,15 @@ export default function Dashboard() {
   // 统一单元格渲染（根据模式判断）
   const cellRender = (current: Dayjs, info: { originNode: React.ReactElement; today: Dayjs; type: string }) => {
     if (info.type === 'date') {
-      // 月视图 - 显示日期和考试
+      // 月视图 - 只显示当前月份的日期
+      // 如果日期不属于当前显示的月份，返回null（不显示）
+      const currentMonth = calendarValue.month();
+      const currentYear = calendarValue.year();
+      
+      if (current.month() !== currentMonth || current.year() !== currentYear) {
+        return null;
+      }
+      
       return fullCellRender(current);
     } else if (info.type === 'month') {
       // 年视图 - 显示月份
@@ -1128,6 +1137,7 @@ export default function Dashboard() {
             onChange={(newYear) => {
               const now = value.clone().year(newYear);
               onChange(now);
+              setCalendarValue(now); // 更新日历显示的月份
             }}
             className="w-24"
           >
@@ -1138,6 +1148,7 @@ export default function Dashboard() {
             onChange={(newMonth) => {
               const now = value.clone().month(newMonth);
               onChange(now);
+              setCalendarValue(now); // 更新日历显示的月份
             }}
             className="w-20"
           >
