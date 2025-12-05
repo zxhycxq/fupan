@@ -76,6 +76,7 @@ export default function ExamDetail() {
   const [editingModule, setEditingModule] = useState<ModuleScore | null>(null);
   const [editTime, setEditTime] = useState<string>('');
   const [isEditingNotes, setIsEditingNotes] = useState(false);
+  const [editingNoteType, setEditingNoteType] = useState<'improvements' | 'mistakes' | 'both'>('both'); // 新增：区分编辑类型
   const [improvements, setImprovements] = useState<string>('');
   const [mistakes, setMistakes] = useState<string>('');
   const [isEditingReportUrl, setIsEditingReportUrl] = useState(false);
@@ -162,8 +163,9 @@ export default function ExamDetail() {
   };
 
   // 打开备注编辑对话框
-  const handleEditNotes = () => {
+  const handleEditNotes = (type: 'improvements' | 'mistakes' | 'both' = 'both') => {
     if (!examDetail) return;
+    setEditingNoteType(type);
     setImprovements(examDetail.improvements || '');
     setMistakes(examDetail.mistakes || '');
     setIsEditingNotes(true);
@@ -533,7 +535,7 @@ export default function ExamDetail() {
                 type="text"
                 size="small"
                 className="h-6 w-6"
-                onClick={handleEditNotes}
+                onClick={() => handleEditNotes('improvements')}
               >
                 <EditOutlined className="h-3 w-3" />
               </Button>
@@ -558,7 +560,7 @@ export default function ExamDetail() {
                 type="text"
                 size="small"
                 className="h-6 w-6"
-                onClick={handleEditNotes}
+                onClick={() => handleEditNotes('mistakes')}
               >
                 <EditOutlined className="h-3 w-3" />
               </Button>
@@ -576,89 +578,83 @@ export default function ExamDetail() {
 
       {/* 统计卡片 */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 mb-8">
-        <Card>
-          
-            总分
-            <AimOutlined className="h-4 w-4 text-muted-foreground" />
-          
-          
-            <div className={`text-2xl font-bold ${
-              examDetail.total_score >= 80 ? 'text-green-600' :
-              examDetail.total_score >= 60 ? 'text-blue-600' :
-              'text-orange-600'
-            }`}>
-              {examDetail.total_score.toFixed(1)}
-            </div>
-            <p className="text-xs text-muted-foreground">满分100分</p>
-          </Card>
+        <Card className="exam-stat-card">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-base font-semibold text-gray-700 dark:text-gray-300">总分</span>
+            <AimOutlined className="text-lg text-gray-400" />
+          </div>
+          <div className={`text-3xl font-bold mb-1 ${
+            examDetail.total_score >= 80 ? 'text-green-600' :
+            examDetail.total_score >= 60 ? 'text-blue-600' :
+            'text-orange-600'
+          }`}>
+            {examDetail.total_score.toFixed(1)}
+          </div>
+          <p className="text-xs text-gray-500">满分100分</p>
+        </Card>
 
-        <Card>
-          
-            用时
-            <ClockCircleOutlined className="h-4 w-4 text-muted-foreground" />
-          
-          
-            <div className="text-2xl font-bold">
-              {examDetail.time_used ? Math.round(examDetail.time_used / 60) : '-'}
-            </div>
-            <p className="text-xs text-muted-foreground">分钟</p>
-          </Card>
+        <Card className="exam-stat-card">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-base font-semibold text-gray-700 dark:text-gray-300">用时</span>
+            <ClockCircleOutlined className="text-lg text-gray-400" />
+          </div>
+          <div className="text-3xl font-bold mb-1 text-gray-800 dark:text-gray-200">
+            {examDetail.time_used ? Math.round(examDetail.time_used / 60) : '-'}
+          </div>
+          <p className="text-xs text-gray-500">分钟</p>
+        </Card>
 
-        <Card>
-          
-            最高分
-            <RiseOutlined className="h-4 w-4 text-muted-foreground" />
-          
-          
-            <div className="text-2xl font-bold text-green-600">
-              {examDetail.max_score?.toFixed(1) || '-'}
-            </div>
-            <p className="text-xs text-muted-foreground">本期最高分</p>
-          </Card>
+        <Card className="exam-stat-card">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-base font-semibold text-gray-700 dark:text-gray-300">最高分</span>
+            <RiseOutlined className="text-lg text-gray-400" />
+          </div>
+          <div className="text-3xl font-bold mb-1 text-green-600">
+            {examDetail.max_score?.toFixed(1) || '-'}
+          </div>
+          <p className="text-xs text-gray-500">本期最高分</p>
+        </Card>
 
-        <Card>
-          
-            平均分
-            <RiseOutlined className="h-4 w-4 text-muted-foreground" />
-          
-          
-            <div className="text-2xl font-bold">
-              {examDetail.average_score?.toFixed(1) || '-'}
-            </div>
-            <p className="text-xs text-muted-foreground">考生平均分</p>
-          </Card>
+        <Card className="exam-stat-card">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-base font-semibold text-gray-700 dark:text-gray-300">平均分</span>
+            <RiseOutlined className="text-lg text-gray-400" />
+          </div>
+          <div className="text-3xl font-bold mb-1 text-gray-800 dark:text-gray-200">
+            {examDetail.average_score?.toFixed(1) || '-'}
+          </div>
+          <p className="text-xs text-gray-500">考生平均分</p>
+        </Card>
 
-        <Card>
-          
-            难度
-            <WarningOutlined className="h-4 w-4 text-muted-foreground" />
-          
-          
-            <div className={`text-2xl font-bold ${
-              (examDetail.difficulty || 0) >= 4 ? 'text-red-600' :
-              (examDetail.difficulty || 0) >= 3 ? 'text-orange-600' :
-              'text-green-600'
-            }`}>
-              {examDetail.difficulty?.toFixed(1) || '-'}
-            </div>
-            <p className="text-xs text-muted-foreground">难度系数(0-5)</p>
-          </Card>
+        <Card className="exam-stat-card">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-base font-semibold text-gray-700 dark:text-gray-300">难度</span>
+            <WarningOutlined className="text-lg text-gray-400" />
+          </div>
+          <div className={`text-3xl font-bold mb-1 ${
+            (examDetail.difficulty || 0) >= 4 ? 'text-red-600' :
+            (examDetail.difficulty || 0) >= 3 ? 'text-orange-600' :
+            'text-green-600'
+          }`}>
+            {examDetail.difficulty?.toFixed(1) || '-'}
+          </div>
+          <p className="text-xs text-gray-500">难度系数(0-5)</p>
+        </Card>
 
-        <Card>
-          
-            击败率
-            <RiseOutlined className="h-4 w-4 text-muted-foreground" />
-          
-          
-            <div className={`text-2xl font-bold ${
-              (examDetail.pass_rate || 0) >= 80 ? 'text-green-600' :
-              (examDetail.pass_rate || 0) >= 60 ? 'text-blue-600' :
-              'text-orange-600'
-            }`}>
-              {examDetail.pass_rate?.toFixed(1) || '-'}%
-            </div>
-            <p className="text-xs text-muted-foreground">已击败考生</p>
-          </Card>
+        <Card className="exam-stat-card">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-base font-semibold text-gray-700 dark:text-gray-300">击败率</span>
+            <RiseOutlined className="text-lg text-gray-400" />
+          </div>
+          <div className={`text-3xl font-bold mb-1 ${
+            (examDetail.pass_rate || 0) >= 80 ? 'text-green-600' :
+            (examDetail.pass_rate || 0) >= 60 ? 'text-blue-600' :
+            'text-orange-600'
+          }`}>
+            {examDetail.pass_rate?.toFixed(1) || '-'}%
+          </div>
+          <p className="text-xs text-gray-500">已击败考生</p>
+        </Card>
       </div>
 
       {/* 弱势模块提醒 */}
@@ -863,7 +859,11 @@ export default function ExamDetail() {
 
       {/* 编辑备注对话框 */}
       <Modal 
-        title="备注内容"
+        title={
+          editingNoteType === 'improvements' ? '编辑有进步的地方' :
+          editingNoteType === 'mistakes' ? '编辑出错的地方' :
+          '编辑备注'
+        }
         open={isEditingNotes} 
         onCancel={() => setIsEditingNotes(false)}
         onOk={handleSaveNotes}
@@ -874,40 +874,44 @@ export default function ExamDetail() {
       >
         <div className="space-y-4">
           {/* 有进步的地方 */}
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <RiseOutlined className="text-green-600" />
-              <span className="font-medium">有进步的地方</span>
+          {(editingNoteType === 'improvements' || editingNoteType === 'both') && (
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <RiseOutlined className="text-green-600" />
+                <span className="font-medium">有进步的地方</span>
+              </div>
+              <TextArea
+                value={improvements}
+                onChange={(e) => setImprovements(e.target.value)}
+                placeholder="记录本次考试中有进步的地方..."
+                rows={6}
+                maxLength={500}
+              />
+              <p className="text-xs text-gray-500 text-right mt-1">
+                {improvements.length}/500字
+              </p>
             </div>
-            <TextArea
-              value={improvements}
-              onChange={(e) => setImprovements(e.target.value)}
-              placeholder="记录本次考试中有进步的地方..."
-              rows={6}
-              maxLength={500}
-            />
-            <p className="text-xs text-gray-500 text-right mt-1">
-              {improvements.length}/500字
-            </p>
-          </div>
+          )}
 
           {/* 出错的地方 */}
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <WarningOutlined className="text-red-600" />
-              <span className="font-medium">出错的地方</span>
+          {(editingNoteType === 'mistakes' || editingNoteType === 'both') && (
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <WarningOutlined className="text-red-600" />
+                <span className="font-medium">出错的地方</span>
+              </div>
+              <TextArea
+                value={mistakes}
+                onChange={(e) => setMistakes(e.target.value)}
+                placeholder="记录本次考试中出错的地方..."
+                rows={6}
+                maxLength={500}
+              />
+              <p className="text-xs text-gray-500 text-right mt-1">
+                {mistakes.length}/500字
+              </p>
             </div>
-            <TextArea
-              value={mistakes}
-              onChange={(e) => setMistakes(e.target.value)}
-              placeholder="记录本次考试中出错的地方..."
-              rows={6}
-              maxLength={500}
-            />
-            <p className="text-xs text-gray-500 text-right mt-1">
-              {mistakes.length}/500字
-            </p>
-          </div>
+          )}
         </div>
       </Modal>
 
