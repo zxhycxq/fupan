@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Card, Row, Col, Skeleton, FloatButton } from 'antd';
-import { VerticalAlignTopOutlined } from '@ant-design/icons';
+import { Card, Row, Col, Skeleton } from 'antd';
 import ReactECharts from 'echarts-for-react';
 import { supabase } from '@/db/supabase';
 import type { ExamRecord } from '@/types';
@@ -337,17 +336,6 @@ export default function ModuleAnalysis() {
           </Col>
         ))}
       </Row>
-
-      {/* 返回顶部按钮 */}
-      <FloatButton.BackTop
-        icon={<VerticalAlignTopOutlined />}
-        tooltip="返回顶部"
-        visibilityHeight={300}
-        style={{
-          right: 24,
-          bottom: 24,
-        }}
-      />
     </div>
   );
 }

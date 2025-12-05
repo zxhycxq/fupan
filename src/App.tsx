@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { ConfigProvider, theme as antdTheme } from 'antd';
+import { ConfigProvider, theme as antdTheme, FloatButton } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
 import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
@@ -112,6 +112,16 @@ function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
+        
+        {/* 全局返回顶部按钮 */}
+        <FloatButton.BackTop
+          tooltip="返回顶部"
+          visibilityHeight={300}
+          style={{
+            right: 24,
+            bottom: 24,
+          }}
+        />
       </div>
     </ConfigProvider>
   );
