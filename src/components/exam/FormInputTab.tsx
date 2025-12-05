@@ -55,7 +55,13 @@ export default function FormInputTab({ examName, indexNumber, onSubmitStart, onS
         return;
       }
 
-      const formValues = form.getFieldsValue();
+      // 验证表单并获取所有字段值
+      const formValues = form.getFieldsValue(true);
+      
+      console.log('=== 表单提交 ===');
+      console.log('考试名称:', examName);
+      console.log('索引号:', indexNumber);
+      console.log('表单值:', formValues);
       
       const moduleScores: any[] = [];
       let totalScore = 0;
@@ -66,13 +72,15 @@ export default function FormInputTab({ examName, indexNumber, onSubmitStart, onS
           const key = `${parentModule.name}_${subModule}`;
           const data = formValues[key];
           
+          console.log(`检查模块 ${key}:`, data);
+          
           if (data && data.total_questions > 0) {
             const correctAnswers = data.correct_answers || 0;
             const totalQs = data.total_questions;
             const timeUsed = data.time_used || 0;
             const accuracyRate = totalQs > 0 ? (correctAnswers / totalQs) * 100 : 0;
 
-            moduleScores.push({
+            const moduleScore = {
               module_name: subModule,
               parent_module: parentModule.name,
               total_questions: totalQs,
@@ -81,13 +89,20 @@ export default function FormInputTab({ examName, indexNumber, onSubmitStart, onS
               unanswered: 0,
               accuracy_rate: Number(accuracyRate.toFixed(2)),
               time_used: timeUsed
-            });
+            };
+            
+            console.log('添加模块得分:', moduleScore);
+            moduleScores.push(moduleScore);
 
             totalScore += correctAnswers;
             totalTime += timeUsed;
           }
         });
       });
+
+      console.log('总共收集到', moduleScores.length, '个模块');
+      console.log('总分:', totalScore);
+      console.log('总用时:', totalTime);
 
       if (moduleScores.length === 0) {
         message.error('请至少填写一个模块的数据');
@@ -149,7 +164,6 @@ export default function FormInputTab({ examName, indexNumber, onSubmitStart, onS
                           <Form.Item
                             name={[fieldKey, 'total_questions']}
                             label="题目数量"
-                            initialValue={0}
                           >
                             <InputNumber
                               min={0}
@@ -162,7 +176,6 @@ export default function FormInputTab({ examName, indexNumber, onSubmitStart, onS
                           <Form.Item
                             name={[fieldKey, 'correct_answers']}
                             label="答对数量"
-                            initialValue={0}
                           >
                             <InputNumber
                               min={0}
@@ -175,7 +188,6 @@ export default function FormInputTab({ examName, indexNumber, onSubmitStart, onS
                           <Form.Item
                             name={[fieldKey, 'time_used']}
                             label="用时(秒)"
-                            initialValue={0}
                           >
                             <InputNumber
                               min={0}
