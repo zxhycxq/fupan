@@ -142,7 +142,7 @@ export default function ExamDetail() {
 
   // 保存时间修改
   const handleSaveTime = async (module: ModuleScore, newMinutes: string) => {
-    if (!examDetail) return;
+    if (!examDetail || !id) return;
 
     const minutes = parseFloat(newMinutes);
     if (isNaN(minutes) || minutes < 0) {
@@ -167,14 +167,27 @@ export default function ExamDetail() {
 
     try {
       setIsSaving(true);
+      
+      // 更新模块用时
       await updateModuleScore(module.id, { time_used: newTime });
+      
+      // 更新本地模块状态
+      const updatedModuleScores = examDetail.module_scores.map(m =>
+        m.id === module.id ? { ...m, time_used: newTime } : m
+      );
+      
+      // 计算所有模块的总用时（秒）
+      const totalTimeInSeconds = updatedModuleScores
+        .reduce((total, m) => total + (m.time_used || 0), 0);
+      
+      // 更新考试记录的总用时
+      await updateExamRecord(id, { time_used: totalTimeInSeconds });
       
       // 更新本地状态
       setExamDetail({
         ...examDetail,
-        module_scores: examDetail.module_scores.map(m =>
-          m.id === module.id ? { ...m, time_used: newTime } : m
-        ),
+        time_used: totalTimeInSeconds,
+        module_scores: updatedModuleScores,
       });
 
       message.success("用时更新成功");
