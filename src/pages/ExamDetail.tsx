@@ -78,6 +78,8 @@ export default function ExamDetail() {
   const [isLoading, setIsLoading] = useState(true);
   const [editingTimeModuleId, setEditingTimeModuleId] = useState<string | null>(null); // 正在编辑用时的模块ID
   const [editTime, setEditTime] = useState<string>(''); // 编辑中的用时值
+  const [editingField, setEditingField] = useState<{ moduleId: string; field: 'total' | 'correct' | 'wrong' } | null>(null); // 正在编辑的字段
+  const [editValue, setEditValue] = useState<string>(''); // 编辑中的值
   const [isEditingNotes, setIsEditingNotes] = useState(false);
   const [editingNoteType, setEditingNoteType] = useState<'improvements' | 'mistakes' | 'both'>('both'); // 新增：区分编辑类型
   const [improvements, setImprovements] = useState<string>('');
@@ -179,6 +181,89 @@ export default function ExamDetail() {
       setEditingTimeModuleId(null);
     } catch (error) {
       console.error('更新时间失败:', error);
+      message.error("更新失败，请重试");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // 开始编辑字段（总题数、答对、答错）
+  const handleEditField = (module: ModuleScore, field: 'total' | 'correct' | 'wrong') => {
+    setEditingField({ moduleId: module.id, field });
+    const value = field === 'total' ? module.total_questions : 
+                  field === 'correct' ? module.correct_answers : 
+                  module.wrong_answers;
+    setEditValue(value.toString());
+  };
+
+  // 保存字段修改
+  const handleSaveField = async (module: ModuleScore) => {
+    if (!examDetail || !editingField) return;
+
+    const value = parseInt(editValue);
+    if (isNaN(value) || value < 0) {
+      message.error("请输入有效的数字");
+      setEditingField(null);
+      return;
+    }
+
+    // 构建更新数据
+    const updateData: Partial<ModuleScore> = {};
+    if (editingField.field === 'total') {
+      updateData.total_questions = value;
+      // 验证总题数不能小于答对+答错
+      if (value < module.correct_answers + module.wrong_answers) {
+        message.error("总题数不能小于答对数和答错数之和");
+        setEditingField(null);
+        return;
+      }
+      // 自动计算未答题数
+      updateData.unanswered = value - module.correct_answers - module.wrong_answers;
+    } else if (editingField.field === 'correct') {
+      updateData.correct_answers = value;
+      // 验证答对数不能大于总题数
+      if (value + module.wrong_answers > module.total_questions) {
+        message.error("答对数和答错数之和不能大于总题数");
+        setEditingField(null);
+        return;
+      }
+      // 自动计算未答题数
+      updateData.unanswered = module.total_questions - value - module.wrong_answers;
+    } else if (editingField.field === 'wrong') {
+      updateData.wrong_answers = value;
+      // 验证答错数不能大于总题数
+      if (module.correct_answers + value > module.total_questions) {
+        message.error("答对数和答错数之和不能大于总题数");
+        setEditingField(null);
+        return;
+      }
+      // 自动计算未答题数
+      updateData.unanswered = module.total_questions - module.correct_answers - value;
+    }
+
+    // 重新计算正确率
+    if (updateData.total_questions !== undefined || updateData.correct_answers !== undefined) {
+      const totalQuestions = updateData.total_questions ?? module.total_questions;
+      const correctAnswers = updateData.correct_answers ?? module.correct_answers;
+      updateData.accuracy_rate = totalQuestions > 0 ? (correctAnswers / totalQuestions) * 100 : 0;
+    }
+
+    try {
+      setIsSaving(true);
+      await updateModuleScore(module.id, updateData);
+      
+      // 更新本地状态
+      setExamDetail({
+        ...examDetail,
+        module_scores: examDetail.module_scores.map(m =>
+          m.id === module.id ? { ...m, ...updateData } : m
+        ),
+      });
+
+      message.success("更新成功");
+      setEditingField(null);
+    } catch (error) {
+      console.error('更新失败:', error);
       message.error("更新失败，请重试");
     } finally {
       setIsSaving(false);
@@ -780,23 +865,143 @@ export default function ExamDetail() {
                     <div className="flex items-center gap-1">
                       <FileOutlined className="text-muted-foreground" />
                       <span className="text-muted-foreground">总题数:</span>
-                      <span className="ml-2 font-medium">{mainModule.total_questions}</span>
+                      {editingField?.moduleId === mainModule.id && editingField.field === 'total' ? (
+                        <Input
+                          type="number"
+                          min="0"
+                          step="1"
+                          value={editValue}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (value === '' || /^\d+$/.test(value)) {
+                              setEditValue(value);
+                            }
+                          }}
+                          onBlur={() => {
+                            if (editValue) {
+                              handleSaveField(mainModule);
+                            } else {
+                              setEditingField(null);
+                            }
+                          }}
+                          onPressEnter={() => {
+                            if (editValue) {
+                              handleSaveField(mainModule);
+                            }
+                          }}
+                          autoFocus
+                          className="ml-2 w-16 h-8 text-sm"
+                          disabled={isSaving}
+                        />
+                      ) : (
+                        <>
+                          <span className="ml-2 font-medium">{mainModule.total_questions}</span>
+                          <Button
+                            type="text"
+                            size="small"
+                            className="ml-1 h-6 w-6 p-0"
+                            onClick={() => handleEditField(mainModule, 'total')}
+                          >
+                            <EditOutlined className="h-3 w-3" />
+                          </Button>
+                        </>
+                      )}
                     </div>
                     <div className="flex items-center gap-1">
                       <CheckCircleOutlined className="text-green-600" />
                       <span className="text-muted-foreground">答对:</span>
-                      <span className={`ml-2 font-medium ${
-                        shouldHighlightRed(mainModule.module_name, mainModule.accuracy_rate) 
-                          ? 'text-red-600' 
-                          : 'text-green-600'
-                      }`}>
-                        {mainModule.correct_answers}
-                      </span>
+                      {editingField?.moduleId === mainModule.id && editingField.field === 'correct' ? (
+                        <Input
+                          type="number"
+                          min="0"
+                          step="1"
+                          value={editValue}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (value === '' || /^\d+$/.test(value)) {
+                              setEditValue(value);
+                            }
+                          }}
+                          onBlur={() => {
+                            if (editValue) {
+                              handleSaveField(mainModule);
+                            } else {
+                              setEditingField(null);
+                            }
+                          }}
+                          onPressEnter={() => {
+                            if (editValue) {
+                              handleSaveField(mainModule);
+                            }
+                          }}
+                          autoFocus
+                          className="ml-2 w-16 h-8 text-sm"
+                          disabled={isSaving}
+                        />
+                      ) : (
+                        <>
+                          <span className={`ml-2 font-medium ${
+                            shouldHighlightRed(mainModule.module_name, mainModule.accuracy_rate) 
+                              ? 'text-red-600' 
+                              : 'text-green-600'
+                          }`}>
+                            {mainModule.correct_answers}
+                          </span>
+                          <Button
+                            type="text"
+                            size="small"
+                            className="ml-1 h-6 w-6 p-0"
+                            onClick={() => handleEditField(mainModule, 'correct')}
+                          >
+                            <EditOutlined className="h-3 w-3" />
+                          </Button>
+                        </>
+                      )}
                     </div>
                     <div className="flex items-center gap-1">
                       <CloseCircleOutlined className="text-red-600" />
                       <span className="text-muted-foreground">答错:</span>
-                      <span className="ml-2 font-medium text-red-600">{mainModule.wrong_answers}</span>
+                      {editingField?.moduleId === mainModule.id && editingField.field === 'wrong' ? (
+                        <Input
+                          type="number"
+                          min="0"
+                          step="1"
+                          value={editValue}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (value === '' || /^\d+$/.test(value)) {
+                              setEditValue(value);
+                            }
+                          }}
+                          onBlur={() => {
+                            if (editValue) {
+                              handleSaveField(mainModule);
+                            } else {
+                              setEditingField(null);
+                            }
+                          }}
+                          onPressEnter={() => {
+                            if (editValue) {
+                              handleSaveField(mainModule);
+                            }
+                          }}
+                          autoFocus
+                          className="ml-2 w-16 h-8 text-sm"
+                          disabled={isSaving}
+                        />
+                      ) : (
+                        <>
+                          <span className="ml-2 font-medium text-red-600">{mainModule.wrong_answers}</span>
+                          <Button
+                            type="text"
+                            size="small"
+                            className="ml-1 h-6 w-6 p-0"
+                            onClick={() => handleEditField(mainModule, 'wrong')}
+                          >
+                            <EditOutlined className="h-3 w-3" />
+                          </Button>
+                        </>
+                      )}
                     </div>
                     <div className="flex items-center gap-1">
                       <ClockCircleOutlined className="text-muted-foreground" />
