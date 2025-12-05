@@ -717,6 +717,93 @@ export default function Dashboard() {
   // 将总计行添加到表格数据末尾
   const tableDataWithTotal = [...tableData, totalRow];
 
+  // 创建汇总统计行
+  const summaryRows: TableDataType[] = [
+    {
+      key: 'summary_time',
+      module_name: '总时长',
+      exams: new Map(
+        allExamNumbers.map(examNum => {
+          const examData = totalRow.exams.get(examNum);
+          return [examNum, {
+            exam_number: examNum,
+            total_questions: 0,
+            correct_answers: 0,
+            accuracy: 0,
+            time_used: examData?.time_used || 0,
+          }];
+        })
+      ),
+    },
+    {
+      key: 'summary_correct',
+      module_name: '总答对',
+      exams: new Map(
+        allExamNumbers.map(examNum => {
+          const examData = totalRow.exams.get(examNum);
+          return [examNum, {
+            exam_number: examNum,
+            total_questions: 0,
+            correct_answers: examData?.correct_answers || 0,
+            accuracy: 0,
+            time_used: 0,
+          }];
+        })
+      ),
+    },
+    {
+      key: 'summary_total',
+      module_name: '总题量',
+      exams: new Map(
+        allExamNumbers.map(examNum => {
+          const examData = totalRow.exams.get(examNum);
+          return [examNum, {
+            exam_number: examNum,
+            total_questions: examData?.total_questions || 0,
+            correct_answers: 0,
+            accuracy: 0,
+            time_used: 0,
+          }];
+        })
+      ),
+    },
+    {
+      key: 'summary_accuracy',
+      module_name: '总正确率',
+      exams: new Map(
+        allExamNumbers.map(examNum => {
+          const examData = totalRow.exams.get(examNum);
+          return [examNum, {
+            exam_number: examNum,
+            total_questions: 0,
+            correct_answers: 0,
+            accuracy: examData?.accuracy || 0,
+            time_used: 0,
+          }];
+        })
+      ),
+    },
+    {
+      key: 'summary_score',
+      module_name: '得分',
+      exams: new Map(
+        allExamNumbers.map(examNum => {
+          const exam = examRecords.find(r => r.index_number === examNum);
+          return [examNum, {
+            exam_number: examNum,
+            total_questions: 0,
+            correct_answers: 0,
+            accuracy: exam?.total_score || 0, // 使用accuracy字段存储得分
+            time_used: 0,
+          }];
+        })
+      ),
+    },
+  ];
+
+  // 将汇总统计行添加到表格数据
+  const tableDataWithSummary = [...tableDataWithTotal, ...summaryRows];
+
   // 定义表格列 - 使用分组表头
   const columns: ColumnsType<TableDataType> = [
     {
@@ -726,8 +813,13 @@ export default function Dashboard() {
       fixed: 'left',
       width: 150,
       render: (text: string, record: TableDataType) => {
+        // 总计行加粗
         if (record.key === 'total') {
           return <strong>{text}</strong>;
+        }
+        // 汇总统计行特殊样式
+        if (record.key?.startsWith('summary_')) {
+          return <strong className="text-blue-600 dark:text-blue-400">{text}</strong>;
         }
         return text;
       },
@@ -752,6 +844,21 @@ export default function Dashboard() {
             if (!examData) {
               return <span className="text-muted-foreground">-</span>;
             }
+            
+            // 汇总统计行特殊处理
+            if (record.key === 'summary_correct') {
+              // 总答对
+              return <strong className="text-blue-600 dark:text-blue-400">{examData.correct_answers}</strong>;
+            }
+            if (record.key === 'summary_total') {
+              // 总题量
+              return <strong className="text-blue-600 dark:text-blue-400">{examData.total_questions}</strong>;
+            }
+            if (record.key?.startsWith('summary_')) {
+              // 其他汇总行不显示
+              return <span className="text-muted-foreground">-</span>;
+            }
+            
             const content = `${examData.total_questions}/${examData.correct_answers}`;
             return record.key === 'total' ? <strong>{content}</strong> : content;
           },
@@ -764,6 +871,20 @@ export default function Dashboard() {
           render: (_: any, record: TableDataType) => {
             const examData = record.exams.get(examNum);
             if (!examData) {
+              return <span className="text-muted-foreground">-</span>;
+            }
+            
+            // 汇总统计行特殊处理
+            if (record.key === 'summary_accuracy') {
+              // 总正确率
+              return <strong className="text-blue-600 dark:text-blue-400">{examData.accuracy.toFixed(1)}%</strong>;
+            }
+            if (record.key === 'summary_score') {
+              // 得分（使用accuracy字段存储）
+              return <strong className="text-lg text-green-600 dark:text-green-400">{examData.accuracy.toFixed(2)}</strong>;
+            }
+            if (record.key?.startsWith('summary_')) {
+              // 其他汇总行不显示
               return <span className="text-muted-foreground">-</span>;
             }
             
@@ -795,6 +916,21 @@ export default function Dashboard() {
           width: 80,
           align: 'center' as const,
           render: (_: any, record: TableDataType) => {
+            // 汇总统计行特殊处理
+            if (record.key === 'summary_time') {
+              // 总时长
+              const examData = record.exams.get(examNum);
+              if (!examData) {
+                return <span className="text-muted-foreground">-</span>;
+              }
+              const minutes = (examData.time_used / 60).toFixed(1);
+              return <strong className="text-blue-600 dark:text-blue-400">{minutes}分</strong>;
+            }
+            if (record.key?.startsWith('summary_')) {
+              // 其他汇总行不显示
+              return <span className="text-muted-foreground">-</span>;
+            }
+            
             // 只显示大模块（没有children或者是总计行）的用时
             if (record.children && record.children.length > 0 && record.key !== 'total') {
               const examData = record.exams.get(examNum);
@@ -1373,7 +1509,7 @@ export default function Dashboard() {
         >
           <Table
             columns={columns}
-            dataSource={tableDataWithTotal}
+            dataSource={tableDataWithSummary}
             pagination={false}
             size="middle"
             bordered
@@ -1383,17 +1519,26 @@ export default function Dashboard() {
               if (record.key === 'total') {
                 return 'bg-muted/50';
               }
+              // 汇总统计行使用特殊样式
+              if (record.key?.startsWith('summary_')) {
+                // 得分行使用绿色背景
+                if (record.key === 'summary_score') {
+                  return 'bg-green-50 dark:bg-green-900/20';
+                }
+                // 其他汇总行使用蓝色背景
+                return 'bg-blue-50 dark:bg-blue-900/20';
+              }
               // 斑马线样式：偶数行使用浅色背景
               return index % 2 === 0 ? '' : 'bg-muted/30';
             }}
             expandable={{
               defaultExpandAllRows: false,
-              rowExpandable: (record) => record.key !== 'total' && (record.children?.length || 0) > 0,
+              rowExpandable: (record) => record.key !== 'total' && !record.key?.startsWith('summary_') && (record.children?.length || 0) > 0,
             }}
           />
           
-          {/* 汇总统计行 */}
-          <div className="mt-4 overflow-x-auto">
+          {/* 原来的独立汇总统计表格 - 保留注释以备后用 */}
+          {/* <div className="mt-4 overflow-x-auto">
             <table className="w-full border-collapse">
               <thead>
                 <tr className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20">
@@ -1412,7 +1557,6 @@ export default function Dashboard() {
                 </tr>
               </thead>
               <tbody>
-                {/* 总时长 */}
                 <tr className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
                   <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 font-medium text-gray-700 dark:text-gray-300">
                     总时长
@@ -1428,7 +1572,6 @@ export default function Dashboard() {
                   })}
                 </tr>
                 
-                {/* 总答对 */}
                 <tr className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
                   <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 font-medium text-gray-700 dark:text-gray-300">
                     总答对
@@ -1443,7 +1586,6 @@ export default function Dashboard() {
                   })}
                 </tr>
                 
-                {/* 总题量 */}
                 <tr className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
                   <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 font-medium text-gray-700 dark:text-gray-300">
                     总题量
@@ -1458,7 +1600,6 @@ export default function Dashboard() {
                   })}
                 </tr>
                 
-                {/* 总正确率 */}
                 <tr className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
                   <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 font-medium text-gray-700 dark:text-gray-300">
                     总正确率
@@ -1474,7 +1615,6 @@ export default function Dashboard() {
                   })}
                 </tr>
                 
-                {/* 得分 */}
                 <tr className="bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 hover:from-green-100 hover:to-green-200 dark:hover:from-green-900/30 dark:hover:to-green-800/30">
                   <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 font-semibold text-gray-700 dark:text-gray-300">
                     得分
@@ -1491,7 +1631,7 @@ export default function Dashboard() {
                 </tr>
               </tbody>
             </table>
-          </div>
+          </div> */}
         </Card>
       </div>
     </div>
