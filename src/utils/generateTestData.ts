@@ -28,7 +28,7 @@ const MODULE_CONFIG = {
     avgCorrectRate: 0.71,
   },
   '资料分析': {
-    subModules: ['文字资料', '综合资料', '两单计算', '其他与现期', '增长率', '增长量', '比重问题', '平均数问题'],
+    subModules: ['文字资料', '综合资料', '简单计算', '基期与现期', '增长率', '增长量', '比重问题', '平均数问题'],
     totalQuestions: 20,
     avgCorrectRate: 0.35,
   },

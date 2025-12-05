@@ -862,7 +862,7 @@ export default function ExamDetail() {
               );
 
               return (
-                <div key={mainModule.id} className="border rounded-lg p-4">
+                <div key={mainModule.id} className="border rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-semibold">{mainModule.module_name}</h3>
                     <Tag color={
