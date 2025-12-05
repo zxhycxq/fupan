@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Card, Button, InputNumber, Select, DatePicker, Space, message, Spin, Alert, Modal } from 'antd';
-import { SaveOutlined, ReloadOutlined, CalendarOutlined, BgColorsOutlined, DeleteOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
+import { Card, Button, InputNumber, Select, DatePicker, Space, message, Spin, Alert } from 'antd';
+import { SaveOutlined, ReloadOutlined, CalendarOutlined, BgColorsOutlined, AimOutlined } from '@ant-design/icons';
 import { useTheme, themes } from '@/hooks/use-theme';
-import { getUserSettings, batchUpsertUserSettings, getExamConfig, saveExamConfig, deleteAllUserData } from '@/db/api';
+import { getUserSettings, batchUpsertUserSettings, getExamConfig, saveExamConfig } from '@/db/api';
 import type { UserSetting } from '@/types';
 import dayjs from 'dayjs';
-import { useNavigate } from 'react-router-dom';
 
 // 6大模块
 const MAIN_MODULES = [
@@ -29,9 +28,7 @@ export default function Settings() {
   const [examDate, setExamDate] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
   const { theme, setTheme } = useTheme();
-  const navigate = useNavigate();
 
   // 加载设置
   useEffect(() => {
@@ -134,62 +131,6 @@ export default function Settings() {
     }));
   };
 
-  const handleDeleteAccount = () => {
-    Modal.confirm({
-      title: '删除所有数据',
-      icon: <ExclamationCircleOutlined />,
-      content: (
-        <div className="space-y-3">
-          <Alert
-            message="警告：此操作不可恢复！"
-            description={
-              <div className="space-y-2">
-                <p className="font-semibold">删除后将清空以下所有数据：</p>
-                <ul className="list-disc list-inside space-y-1">
-                  <li>所有考试记录</li>
-                  <li>所有模块成绩</li>
-                  <li>所有个人设置</li>
-                  <li>考试倒计时配置</li>
-                </ul>
-                <p className="text-red-600 font-semibold mt-3">
-                  ⚠️ 数据将从后台数据库中永久删除，无法恢复！
-                </p>
-                <p className="text-gray-600 mt-2">
-                  删除后即使使用相同的手机号或邮箱重新注册，也不会恢复任何数据。
-                </p>
-              </div>
-            }
-            type="error"
-            showIcon
-          />
-          <p className="text-base font-medium mt-4">
-            确定要删除所有数据吗？
-          </p>
-        </div>
-      ),
-      okText: '确认删除',
-      okType: 'danger',
-      cancelText: '取消',
-      width: 600,
-      onOk: async () => {
-        try {
-          setIsDeleting(true);
-          await deleteAllUserData();
-          message.success('所有数据已删除');
-          
-          // 延迟跳转，让用户看到成功消息
-          setTimeout(() => {
-            navigate('/');
-            window.location.reload();
-          }, 1000);
-        } catch (error) {
-          console.error('删除数据失败:', error);
-          message.error('删除数据失败，请重试');
-          setIsDeleting(false);
-        }
-      },
-    });
-  };
 
   if (isLoading) {
     return (
@@ -227,7 +168,10 @@ export default function Settings() {
           {/* 目标设置部分 */}
           <div>
             <div className="border-b pb-3 mb-4">
-              <h3 className="text-lg font-semibold">目标正确率设置</h3>
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <AimOutlined />
+                目标正确率设置
+              </h3>
               <p className="text-sm text-gray-500 mt-1">
                 设置各模块的目标正确率,用于在雷达图中对比实际表现
               </p>
@@ -416,64 +360,6 @@ export default function Settings() {
               type="info"
               showIcon
               className="mt-4"
-            />
-          </div>
-
-          {/* 危险区域 - 删除账户 */}
-          <div>
-            <div className="border-b border-red-200 pb-3 mb-4">
-              <h3 className="text-lg font-semibold text-red-600 flex items-center gap-2">
-                <DeleteOutlined />
-                危险区域
-              </h3>
-              <p className="text-sm text-gray-500 mt-1">
-                以下操作将永久删除您的所有数据，请谨慎操作
-              </p>
-            </div>
-
-            <Alert
-              message="⚠️ 删除所有数据"
-              description={
-                <div className="space-y-3">
-                  <p className="text-sm">
-                    点击下方按钮将<span className="font-semibold text-red-600">永久删除</span>以下所有数据：
-                  </p>
-                  <ul className="list-disc list-inside space-y-1 text-sm">
-                    <li>所有考试记录（包括成绩、用时等）</li>
-                    <li>所有模块得分详情</li>
-                    <li>所有个人设置和目标</li>
-                    <li>考试倒计时配置</li>
-                  </ul>
-                  <div className="bg-red-50 border border-red-200 rounded p-3 mt-3">
-                    <p className="text-sm text-red-700 font-semibold">
-                      🚨 重要提示：
-                    </p>
-                    <ul className="list-disc list-inside space-y-1 text-sm text-red-600 mt-2">
-                      <li>数据将从后台数据库中<span className="font-bold">永久删除</span></li>
-                      <li>删除后<span className="font-bold">无法恢复</span>任何数据</li>
-                      <li>即使使用相同的手机号或邮箱重新注册，也<span className="font-bold">不会恢复</span>任何历史数据</li>
-                      <li>删除前请确保已导出或备份重要数据</li>
-                    </ul>
-                  </div>
-                  
-                  <div className="mt-6 flex justify-center">
-                    <Button
-                      type="primary"
-                      danger
-                      size="large"
-                      icon={<DeleteOutlined />}
-                      onClick={handleDeleteAccount}
-                      loading={isDeleting}
-                      disabled={isDeleting}
-                      className="h-14 px-12 text-lg font-bold"
-                    >
-                      {isDeleting ? '删除中...' : '删除所有数据'}
-                    </Button>
-                  </div>
-                </div>
-              }
-              type="error"
-              showIcon
             />
           </div>
         </Space>

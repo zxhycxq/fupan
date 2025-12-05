@@ -4,6 +4,7 @@ import ExamList from './pages/ExamList';
 import ExamDetail from './pages/ExamDetail';
 import ModuleAnalysis from './pages/ModuleAnalysis';
 import Settings from './pages/Settings';
+import Profile from './pages/Profile';
 import type { ReactNode } from 'react';
 
 interface RouteConfig {
@@ -42,6 +43,12 @@ const routes: RouteConfig[] = [
     name: '设置',
     path: '/settings',
     element: <Settings />,
+    visible: true,
+  },
+  {
+    name: '个人中心',
+    path: '/profile',
+    element: <Profile />,
     visible: true,
   },
   {
