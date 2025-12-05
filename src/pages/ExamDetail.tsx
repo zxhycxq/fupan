@@ -26,7 +26,10 @@ import {
   FileTextOutlined, 
   LinkOutlined, 
   InfoCircleOutlined, 
-  RightOutlined 
+  RightOutlined,
+  FileOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined
 } from '@ant-design/icons';
 import { getExamRecordById, updateModuleScore, updateExamRecord, getUserSettings, updateExamNotes } from '@/db/api';
 import type { ExamRecordDetail, ModuleScore, UserSetting } from '@/types';
@@ -773,11 +776,13 @@ export default function ExamDetail() {
                   </div>
                   
                   <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
-                    <div>
+                    <div className="flex items-center gap-1">
+                      <FileOutlined className="text-muted-foreground" />
                       <span className="text-muted-foreground">总题数:</span>
                       <span className="ml-2 font-medium">{mainModule.total_questions}</span>
                     </div>
-                    <div>
+                    <div className="flex items-center gap-1">
+                      <CheckCircleOutlined className="text-green-600" />
                       <span className="text-muted-foreground">答对:</span>
                       <span className={`ml-2 font-medium ${
                         shouldHighlightRed(mainModule.module_name, mainModule.accuracy_rate) 
@@ -787,11 +792,13 @@ export default function ExamDetail() {
                         {mainModule.correct_answers}
                       </span>
                     </div>
-                    <div>
+                    <div className="flex items-center gap-1">
+                      <CloseCircleOutlined className="text-red-600" />
                       <span className="text-muted-foreground">答错:</span>
                       <span className="ml-2 font-medium text-red-600">{mainModule.wrong_answers}</span>
                     </div>
-                    <div className="flex items-center">
+                    <div className="flex items-center gap-1">
+                      <ClockCircleOutlined className="text-muted-foreground" />
                       <span className="text-muted-foreground">用时:</span>
                       {editingTimeModuleId === mainModule.id ? (
                         <div className="ml-2 flex items-center gap-2">
@@ -819,7 +826,7 @@ export default function ExamDetail() {
                               }
                             }}
                             autoFocus
-                            className="w-20 h-6 text-sm"
+                            className="w-20 h-8 text-sm"
                             suffix="分"
                             disabled={isSaving}
                           />
@@ -854,16 +861,30 @@ export default function ExamDetail() {
                             </Tag>
                           </div>
                           <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground ml-6">
-                            <div>总题数: {subModule.total_questions}</div>
-                            <div className={
+                            <div className="flex items-center gap-1">
+                              <FileOutlined className="text-muted-foreground" />
+                              <span>总题数: {subModule.total_questions}</span>
+                            </div>
+                            <div className={`flex items-center gap-1 ${
                               shouldHighlightRed(subModule.module_name, subModule.accuracy_rate)
                                 ? 'text-red-600 font-medium'
                                 : ''
-                            }>
-                              答对: {subModule.correct_answers}
+                            }`}>
+                              <CheckCircleOutlined className={
+                                shouldHighlightRed(subModule.module_name, subModule.accuracy_rate)
+                                  ? 'text-red-600'
+                                  : 'text-green-600'
+                              } />
+                              <span>答对: {subModule.correct_answers}</span>
                             </div>
-                            <div>答错: {subModule.wrong_answers}</div>
-                            <div>用时: {formatTime(subModule.time_used)}</div>
+                            <div className="flex items-center gap-1">
+                              <CloseCircleOutlined className="text-red-600" />
+                              <span>答错: {subModule.wrong_answers}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <ClockCircleOutlined className="text-muted-foreground" />
+                              <span>用时: {formatTime(subModule.time_used)}</span>
+                            </div>
                           </div>
                         </div>
                       ))}
