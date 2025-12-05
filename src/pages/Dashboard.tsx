@@ -148,10 +148,9 @@ export default function Dashboard() {
       setModuleDetailedStats(detailedStats);
       setUserSettings(settings);
       
-      // 设置考试配置
+      // 设置考试配置（倒计时会在useEffect中自动计算）
       if (config && config.exam_type && config.exam_date) {
         setExamConfig(config);
-        calculateCountdown(config.exam_date);
       }
       
       // 设置今日古诗词（基于日期）
@@ -185,14 +184,18 @@ export default function Dashboard() {
 
   // 定时更新倒计时
   useEffect(() => {
-    if (examConfig && examConfig.exam_date) {
+    if (examConfig?.exam_date) {
+      // 立即计算一次最新值
+      calculateCountdown(examConfig.exam_date);
+      
+      // 设置定时器每分钟更新
       const timer = setInterval(() => {
         calculateCountdown(examConfig.exam_date!);
       }, 60000); // 每分钟更新一次
 
       return () => clearInterval(timer);
     }
-  }, [examConfig]);
+  }, [examConfig?.exam_date]); // 依赖于exam_date而不是整个examConfig对象
 
   // 计算统计数据
   const stats = {
