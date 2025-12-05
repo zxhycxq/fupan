@@ -26,7 +26,6 @@ import {
   FileTextOutlined, 
   LinkOutlined, 
   InfoCircleOutlined, 
-  RightOutlined,
   FileOutlined,
   CheckCircleOutlined,
   CloseCircleOutlined
@@ -1064,15 +1063,12 @@ export default function ExamDetail() {
                       {subModules.map(subModule => (
                         <div key={subModule.id} className="bg-muted/50 rounded-md p-3 text-sm">
                           <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                              <RightOutlined className="h-4 w-4 text-muted-foreground" />
-                              <span className="font-medium">{subModule.module_name}</span>
-                            </div>
+                            <span className="font-medium">{subModule.module_name}</span>
                             <Tag className="text-xs">
                               {subModule.accuracy_rate?.toFixed(1)}%
                             </Tag>
                           </div>
-                          <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground ml-6">
+                          <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
                             <div className="flex items-center gap-1">
                               <FileOutlined className="text-muted-foreground" />
                               <span>总题数: {subModule.total_questions}</span>
