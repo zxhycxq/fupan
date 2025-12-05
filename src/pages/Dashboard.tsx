@@ -11,6 +11,7 @@ import * as XLSX from 'xlsx';
 import dayjs from 'dayjs';
 import dayOfYear from 'dayjs/plugin/dayOfYear';
 import { Lunar, Solar } from 'lunar-typescript';
+import { DASHBOARD_GRADIENTS, generateGradientStyle } from '@/config/gradients';
 
 // 扩展dayjs
 dayjs.extend(dayOfYear);
@@ -1363,54 +1364,66 @@ export default function Dashboard() {
       {/* 统计卡片 */}
       <Row gutter={[16, 16]} className="mb-8">
         <Col xs={24} sm={12} lg={6}>
-          <Card className="stat-card stat-card-primary">
+          <Card 
+            className="stat-card stat-card-primary" 
+            style={{ background: generateGradientStyle(DASHBOARD_GRADIENTS[0]) }}
+          >
             <Statistic
-              title={<span className="stat-title">考试次数</span>}
+              title={<span className="stat-title text-white">考试次数</span>}
               value={stats.totalExams}
               suffix="次"
-              prefix={<TrophyOutlined className="stat-icon" />}
-              valueStyle={{ color: 'inherit' }}
+              prefix={<TrophyOutlined className="stat-icon text-white" />}
+              valueStyle={{ color: 'white' }}
             />
-            <div className="text-xs opacity-80 mt-2">累计考试次数</div>
+            <div className="text-xs opacity-80 mt-2 text-white">累计考试次数</div>
           </Card>
         </Col>
 
         <Col xs={24} sm={12} lg={6}>
-          <Card className="stat-card stat-card-success">
+          <Card 
+            className="stat-card stat-card-success"
+            style={{ background: generateGradientStyle(DASHBOARD_GRADIENTS[1]) }}
+          >
             <Statistic
-              title={<span className="stat-title">平均分</span>}
+              title={<span className="stat-title text-white">平均分</span>}
               value={stats.averageScore}
               suffix="分"
-              prefix={<RiseOutlined className="stat-icon" />}
-              valueStyle={{ color: 'inherit' }}
+              prefix={<RiseOutlined className="stat-icon text-white" />}
+              valueStyle={{ color: 'white' }}
             />
-            <div className="text-xs opacity-80 mt-2">所有考试平均分</div>
+            <div className="text-xs opacity-80 mt-2 text-white">所有考试平均分</div>
           </Card>
         </Col>
 
         <Col xs={24} sm={12} lg={6}>
-          <Card className="stat-card stat-card-warning">
+          <Card 
+            className="stat-card stat-card-warning"
+            style={{ background: generateGradientStyle(DASHBOARD_GRADIENTS[2]) }}
+          >
             <Statistic
-              title={<span className="stat-title">最高分</span>}
+              title={<span className="stat-title text-white">最高分</span>}
               value={stats.highestScore}
               suffix="分"
-              prefix={<AimOutlined className="stat-icon" />}
-              valueStyle={{ color: 'inherit' }}
+              prefix={<AimOutlined className="stat-icon text-white" />}
+              valueStyle={{ color: 'white' }}
             />
-            <div className="text-xs opacity-80 mt-2">历史最高分数</div>
+            <div className="text-xs opacity-80 mt-2 text-white">历史最高分数</div>
           </Card>
         </Col>
 
         <Col xs={24} sm={12} lg={6}>
-          <Card className="stat-card stat-card-info">
+          <Card 
+            className="stat-card stat-card-info"
+            style={{ background: generateGradientStyle(DASHBOARD_GRADIENTS[3]) }}
+          >
             <Statistic
-              title={<span className="stat-title">平均用时</span>}
+              title={<span className="stat-title text-white">平均用时</span>}
               value={stats.averageTime}
               suffix="分钟"
-              prefix={<ClockCircleOutlined className="stat-icon" />}
-              valueStyle={{ color: 'inherit' }}
+              prefix={<ClockCircleOutlined className="stat-icon text-white" />}
+              valueStyle={{ color: 'white' }}
             />
-            <div className="text-xs opacity-80 mt-2">平均答题时长</div>
+            <div className="text-xs opacity-80 mt-2 text-white">平均答题时长</div>
           </Card>
         </Col>
       </Row>

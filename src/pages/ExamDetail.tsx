@@ -33,6 +33,7 @@ import {
 } from '@ant-design/icons';
 import { getExamRecordById, updateModuleScore, updateExamRecord, getUserSettings, updateExamNotes } from '@/db/api';
 import type { ExamRecordDetail, ModuleScore, UserSetting } from '@/types';
+import { EXAM_DETAIL_GRADIENTS, generateGradientStyle } from '@/config/gradients';
 
 const { TextArea } = Input;
 const { Title, Text } = Typography;
@@ -699,83 +700,75 @@ export default function ExamDetail() {
       </div>
 
       {/* 统计卡片 */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 mb-8">
-        <Card className="exam-stat-card">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 mb-8">
+        <Card 
+          className="exam-stat-card"
+          style={{ background: generateGradientStyle(EXAM_DETAIL_GRADIENTS[0]) }}
+        >
           <div className="flex items-center justify-between mb-2">
-            <span className="text-base font-semibold text-gray-700 dark:text-gray-300">总分</span>
-            <AimOutlined className="text-lg text-gray-400" />
+            <span className="text-base font-semibold text-white">总分</span>
+            <AimOutlined className="text-lg text-white opacity-80" />
           </div>
-          <div className={`text-3xl font-bold mb-1 ${
-            examDetail.total_score >= 80 ? 'text-green-600' :
-            examDetail.total_score >= 60 ? 'text-blue-600' :
-            'text-orange-600'
-          }`}>
+          <div className="text-3xl font-bold mb-1 text-white">
             {examDetail.total_score.toFixed(1)}
           </div>
-          <p className="text-xs text-gray-500">满分100分</p>
+          <p className="text-xs text-white opacity-80">满分100分</p>
         </Card>
 
-        <Card className="exam-stat-card">
+        <Card 
+          className="exam-stat-card"
+          style={{ background: generateGradientStyle(EXAM_DETAIL_GRADIENTS[1]) }}
+        >
           <div className="flex items-center justify-between mb-2">
-            <span className="text-base font-semibold text-gray-700 dark:text-gray-300">用时</span>
-            <ClockCircleOutlined className="text-lg text-gray-400" />
+            <span className="text-base font-semibold text-white">用时</span>
+            <ClockCircleOutlined className="text-lg text-white opacity-80" />
           </div>
-          <div className="text-3xl font-bold mb-1 text-gray-800 dark:text-gray-200">
+          <div className="text-3xl font-bold mb-1 text-white">
             {examDetail.time_used ? Math.round(examDetail.time_used / 60) : '-'}
           </div>
-          <p className="text-xs text-gray-500">分钟</p>
+          <p className="text-xs text-white opacity-80">分钟</p>
         </Card>
 
-        <Card className="exam-stat-card">
+        <Card 
+          className="exam-stat-card"
+          style={{ background: generateGradientStyle(EXAM_DETAIL_GRADIENTS[2]) }}
+        >
           <div className="flex items-center justify-between mb-2">
-            <span className="text-base font-semibold text-gray-700 dark:text-gray-300">最高分</span>
-            <RiseOutlined className="text-lg text-gray-400" />
+            <span className="text-base font-semibold text-white">平均分</span>
+            <RiseOutlined className="text-lg text-white opacity-80" />
           </div>
-          <div className="text-3xl font-bold mb-1 text-green-600">
-            {examDetail.max_score?.toFixed(1) || '-'}
-          </div>
-          <p className="text-xs text-gray-500">本期最高分</p>
-        </Card>
-
-        <Card className="exam-stat-card">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-base font-semibold text-gray-700 dark:text-gray-300">平均分</span>
-            <RiseOutlined className="text-lg text-gray-400" />
-          </div>
-          <div className="text-3xl font-bold mb-1 text-gray-800 dark:text-gray-200">
+          <div className="text-3xl font-bold mb-1 text-white">
             {examDetail.average_score?.toFixed(1) || '-'}
           </div>
-          <p className="text-xs text-gray-500">考生平均分</p>
+          <p className="text-xs text-white opacity-80">考生平均分</p>
         </Card>
 
-        <Card className="exam-stat-card">
+        <Card 
+          className="exam-stat-card"
+          style={{ background: generateGradientStyle(EXAM_DETAIL_GRADIENTS[3]) }}
+        >
           <div className="flex items-center justify-between mb-2">
-            <span className="text-base font-semibold text-gray-700 dark:text-gray-300">难度</span>
-            <WarningOutlined className="text-lg text-gray-400" />
+            <span className="text-base font-semibold text-white">难度</span>
+            <WarningOutlined className="text-lg text-white opacity-80" />
           </div>
-          <div className={`text-3xl font-bold mb-1 ${
-            (examDetail.difficulty || 0) >= 4 ? 'text-red-600' :
-            (examDetail.difficulty || 0) >= 3 ? 'text-orange-600' :
-            'text-green-600'
-          }`}>
+          <div className="text-3xl font-bold mb-1 text-white">
             {examDetail.difficulty?.toFixed(1) || '-'}
           </div>
-          <p className="text-xs text-gray-500">难度系数(0-5)</p>
+          <p className="text-xs text-white opacity-80">难度系数(0-5)</p>
         </Card>
 
-        <Card className="exam-stat-card">
+        <Card 
+          className="exam-stat-card"
+          style={{ background: generateGradientStyle(EXAM_DETAIL_GRADIENTS[4]) }}
+        >
           <div className="flex items-center justify-between mb-2">
-            <span className="text-base font-semibold text-gray-700 dark:text-gray-300">击败率</span>
-            <RiseOutlined className="text-lg text-gray-400" />
+            <span className="text-base font-semibold text-white">击败率</span>
+            <RiseOutlined className="text-lg text-white opacity-80" />
           </div>
-          <div className={`text-3xl font-bold mb-1 ${
-            (examDetail.pass_rate || 0) >= 80 ? 'text-green-600' :
-            (examDetail.pass_rate || 0) >= 60 ? 'text-blue-600' :
-            'text-orange-600'
-          }`}>
+          <div className="text-3xl font-bold mb-1 text-white">
             {examDetail.pass_rate?.toFixed(1) || '-'}%
           </div>
-          <p className="text-xs text-gray-500">已击败考生</p>
+          <p className="text-xs text-white opacity-80">已击败考生</p>
         </Card>
       </div>
 
