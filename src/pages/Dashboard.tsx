@@ -1391,6 +1391,107 @@ export default function Dashboard() {
               rowExpandable: (record) => record.key !== 'total' && (record.children?.length || 0) > 0,
             }}
           />
+          
+          {/* 汇总统计行 */}
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20">
+                  <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center font-semibold text-gray-700 dark:text-gray-300 min-w-[150px]">
+                    考试期数
+                  </th>
+                  {allExamNumbers.map(examNum => {
+                    const examInfo = examInfoMap.get(examNum);
+                    const examName = examInfo?.name || `第${examNum}期`;
+                    return (
+                      <th key={examNum} className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center font-semibold text-gray-700 dark:text-gray-300 min-w-[120px]">
+                        {examName}
+                      </th>
+                    );
+                  })}
+                </tr>
+              </thead>
+              <tbody>
+                {/* 总时长 */}
+                <tr className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                  <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 font-medium text-gray-700 dark:text-gray-300">
+                    总时长
+                  </td>
+                  {allExamNumbers.map(examNum => {
+                    const examData = totalRow.exams.get(examNum);
+                    const minutes = examData ? (examData.time_used / 60).toFixed(1) : '0.0';
+                    return (
+                      <td key={examNum} className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center text-gray-800 dark:text-gray-200">
+                        {minutes}分
+                      </td>
+                    );
+                  })}
+                </tr>
+                
+                {/* 总答对 */}
+                <tr className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                  <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 font-medium text-gray-700 dark:text-gray-300">
+                    总答对
+                  </td>
+                  {allExamNumbers.map(examNum => {
+                    const examData = totalRow.exams.get(examNum);
+                    return (
+                      <td key={examNum} className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center text-gray-800 dark:text-gray-200">
+                        {examData?.correct_answers || 0}
+                      </td>
+                    );
+                  })}
+                </tr>
+                
+                {/* 总题量 */}
+                <tr className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                  <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 font-medium text-gray-700 dark:text-gray-300">
+                    总题量
+                  </td>
+                  {allExamNumbers.map(examNum => {
+                    const examData = totalRow.exams.get(examNum);
+                    return (
+                      <td key={examNum} className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center text-gray-800 dark:text-gray-200">
+                        {examData?.total_questions || 0}
+                      </td>
+                    );
+                  })}
+                </tr>
+                
+                {/* 总正确率 */}
+                <tr className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                  <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 font-medium text-gray-700 dark:text-gray-300">
+                    总正确率
+                  </td>
+                  {allExamNumbers.map(examNum => {
+                    const examData = totalRow.exams.get(examNum);
+                    const accuracy = examData?.accuracy || 0;
+                    return (
+                      <td key={examNum} className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center text-gray-800 dark:text-gray-200">
+                        {accuracy.toFixed(1)}%
+                      </td>
+                    );
+                  })}
+                </tr>
+                
+                {/* 得分 */}
+                <tr className="bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 hover:from-green-100 hover:to-green-200 dark:hover:from-green-900/30 dark:hover:to-green-800/30">
+                  <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 font-semibold text-gray-700 dark:text-gray-300">
+                    得分
+                  </td>
+                  {allExamNumbers.map(examNum => {
+                    const exam = examRecords.find(r => r.index_number === examNum);
+                    const score = exam?.total_score || 0;
+                    return (
+                      <td key={examNum} className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center font-semibold text-lg text-green-600 dark:text-green-400">
+                        {score.toFixed(2)}
+                      </td>
+                    );
+                  })}
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </Card>
       </div>
     </div>
