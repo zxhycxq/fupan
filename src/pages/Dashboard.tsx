@@ -999,50 +999,54 @@ export default function Dashboard() {
       {/* 统计卡片 */}
       <Row gutter={[16, 16]} className="mb-8">
         <Col xs={24} sm={12} lg={6}>
-          <Card>
+          <Card className="stat-card stat-card-primary">
             <Statistic
-              title="考试次数"
+              title={<span className="stat-title">考试次数</span>}
               value={stats.totalExams}
               suffix="次"
-              prefix={<TrophyOutlined />}
+              prefix={<TrophyOutlined className="stat-icon" />}
+              valueStyle={{ color: 'inherit' }}
             />
-            <div className="text-xs text-gray-500 mt-2">累计考试次数</div>
+            <div className="text-xs opacity-80 mt-2">累计考试次数</div>
           </Card>
         </Col>
 
         <Col xs={24} sm={12} lg={6}>
-          <Card>
+          <Card className="stat-card stat-card-success">
             <Statistic
-              title="平均分"
+              title={<span className="stat-title">平均分</span>}
               value={stats.averageScore}
               suffix="分"
-              prefix={<RiseOutlined />}
+              prefix={<RiseOutlined className="stat-icon" />}
+              valueStyle={{ color: 'inherit' }}
             />
-            <div className="text-xs text-gray-500 mt-2">所有考试平均分</div>
+            <div className="text-xs opacity-80 mt-2">所有考试平均分</div>
           </Card>
         </Col>
 
         <Col xs={24} sm={12} lg={6}>
-          <Card>
+          <Card className="stat-card stat-card-warning">
             <Statistic
-              title="最高分"
+              title={<span className="stat-title">最高分</span>}
               value={stats.highestScore}
               suffix="分"
-              prefix={<AimOutlined />}
+              prefix={<AimOutlined className="stat-icon" />}
+              valueStyle={{ color: 'inherit' }}
             />
-            <div className="text-xs text-gray-500 mt-2">历史最高分数</div>
+            <div className="text-xs opacity-80 mt-2">历史最高分数</div>
           </Card>
         </Col>
 
         <Col xs={24} sm={12} lg={6}>
-          <Card>
+          <Card className="stat-card stat-card-info">
             <Statistic
-              title="平均用时"
+              title={<span className="stat-title">平均用时</span>}
               value={stats.averageTime}
               suffix="分钟"
-              prefix={<ClockCircleOutlined />}
+              prefix={<ClockCircleOutlined className="stat-icon" />}
+              valueStyle={{ color: 'inherit' }}
             />
-            <div className="text-xs text-gray-500 mt-2">平均答题时长</div>
+            <div className="text-xs opacity-80 mt-2">平均答题时长</div>
           </Card>
         </Col>
       </Row>

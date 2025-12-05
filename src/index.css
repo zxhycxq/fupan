@@ -372,3 +372,100 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+/* 统计卡片样式 */
+.stat-card {
+  position: relative;
+  overflow: hidden;
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 0.1;
+  transition: opacity 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.15);
+}
+
+.stat-card:hover::before {
+  opacity: 0.15;
+}
+
+/* 主题色卡片 - 蓝色渐变 */
+.stat-card-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.stat-card-primary::before {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 100%);
+}
+
+/* 成功色卡片 - 绿色渐变 */
+.stat-card-success {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+}
+
+.stat-card-success::before {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 100%);
+}
+
+/* 警告色卡片 - 橙色渐变 */
+.stat-card-warning {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  color: white;
+}
+
+.stat-card-warning::before {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 100%);
+}
+
+/* 信息色卡片 - 青色渐变 */
+.stat-card-info {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+  color: white;
+}
+
+.stat-card-info::before {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 100%);
+}
+
+/* 统计标题样式 */
+.stat-title {
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+  font-size: 14px;
+}
+
+/* 统计图标样式 */
+.stat-icon {
+  font-size: 24px;
+  opacity: 0.9;
+}
+
+/* 统计数值样式 */
+.stat-card .ant-statistic-content {
+  color: white;
+  font-weight: 600;
+}
+
+.stat-card .ant-statistic-content-value {
+  font-size: 32px;
+}
+
+.stat-card .ant-statistic-content-suffix {
+  font-size: 18px;
+  opacity: 0.9;
+}
+
