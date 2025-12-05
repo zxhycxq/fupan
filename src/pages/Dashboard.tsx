@@ -5,11 +5,34 @@ import { Table, Card, Skeleton, Statistic, Row, Col, Button, message, Calendar, 
 import type { ColumnsType } from 'antd/es/table';
 import type { Dayjs } from 'dayjs';
 import { RiseOutlined, ClockCircleOutlined, AimOutlined, TrophyOutlined, DownloadOutlined } from '@ant-design/icons';
-import { getAllExamRecords, getModuleAverageScores, getModuleTrendData, getModuleTimeTrendData, getModuleDetailedStats, getUserSettings } from '@/db/api';
+import { getAllExamRecords, getModuleAverageScores, getModuleTrendData, getModuleTimeTrendData, getModuleDetailedStats, getUserSettings, getExamConfig } from '@/db/api';
 import type { ExamRecord, UserSetting } from '@/types';
 import * as XLSX from 'xlsx';
 import dayjs from 'dayjs';
+import dayOfYear from 'dayjs/plugin/dayOfYear';
 import { Lunar, Solar } from 'lunar-typescript';
+
+// 扩展dayjs
+dayjs.extend(dayOfYear);
+
+// 励志古诗词数组
+const MOTIVATIONAL_POEMS = [
+  '长风破浪会有时，直挂云帆济沧海。',
+  '千淘万漉虽辛苦，吹尽狂沙始到金。',
+  '大鹏一日同风起，扶摇直上九万里。',
+  '千磨万击还坚劲，任尔东西南北风。',
+  '功崇惟志，业广于勤。',
+  '为有牺牲多壮志，敢教日月换新天。',
+  '少年负壮气，奋烈自有时。',
+  '苔花如米小，也学牡丹开。',
+  '空谈误国，实干兴邦。',
+  '自信人生二百年，会当水击三千里。',
+  '路漫漫其修远兮，吾将上下而求索。',
+  '不经一番寒彻骨，怎得梅花扑鼻香。',
+  '人生在勤，勤则不匮。',
+  '臣心一片磁针石，不指南方不肯休。',
+  '时人不识凌云木，直待凌云始道高。',
+];
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -39,6 +62,9 @@ export default function Dashboard() {
   const [userSettings, setUserSettings] = useState<UserSetting[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
+  const [examConfig, setExamConfig] = useState<{ exam_type?: string; exam_date?: string } | null>(null);
+  const [countdown, setCountdown] = useState<{ days: number; hours: number; minutes: number } | null>(null);
+  const [todayPoem, setTodayPoem] = useState<string>('');
 
   // 安全地获取窗口宽度
   const getWindowWidth = () => {
@@ -86,13 +112,14 @@ export default function Dashboard() {
   const loadData = async () => {
     try {
       setIsLoading(true);
-      const [records, avgScores, trendData, timeTrendData, detailedStats, settings] = await Promise.all([
+      const [records, avgScores, trendData, timeTrendData, detailedStats, settings, config] = await Promise.all([
         getAllExamRecords(),
         getModuleAverageScores(),
         getModuleTrendData(),
         getModuleTimeTrendData(),
         getModuleDetailedStats(),
         getUserSettings('default'),
+        getExamConfig(),
       ]);
       
       console.log('=== Dashboard 数据加载完成 ===');
@@ -119,12 +146,52 @@ export default function Dashboard() {
       setModuleTimeTrendData(timeTrendData);
       setModuleDetailedStats(detailedStats);
       setUserSettings(settings);
+      
+      // 设置考试配置
+      if (config && config.exam_type && config.exam_date) {
+        setExamConfig(config);
+        calculateCountdown(config.exam_date);
+      }
+      
+      // 设置今日古诗词（基于日期）
+      const dayOfYear = dayjs().dayOfYear();
+      const poemIndex = dayOfYear % MOTIVATIONAL_POEMS.length;
+      setTodayPoem(MOTIVATIONAL_POEMS[poemIndex]);
     } catch (error) {
       console.error('加载数据失败:', error);
     } finally {
       setIsLoading(false);
     }
   };
+
+  // 计算倒计时（精确到时、分）
+  const calculateCountdown = (examDate: string) => {
+    const now = new Date();
+    const exam = new Date(examDate);
+    exam.setHours(9, 0, 0, 0); // 假设考试时间为上午9点
+    
+    const diff = exam.getTime() - now.getTime();
+    
+    if (diff > 0) {
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      setCountdown({ days, hours, minutes });
+    } else {
+      setCountdown({ days: 0, hours: 0, minutes: 0 });
+    }
+  };
+
+  // 定时更新倒计时
+  useEffect(() => {
+    if (examConfig && examConfig.exam_date) {
+      const timer = setInterval(() => {
+        calculateCountdown(examConfig.exam_date!);
+      }, 60000); // 每分钟更新一次
+
+      return () => clearInterval(timer);
+    }
+  }, [examConfig]);
 
   // 计算统计数据
   const stats = {
@@ -1091,6 +1158,58 @@ export default function Dashboard() {
 
   return (
     <div className="container mx-auto py-8 px-4">
+      {/* 倒计时和加油站 */}
+      {examConfig && countdown && (
+        <Row gutter={[16, 16]} className="mb-6">
+          {/* 考试倒计时 */}
+          <Col xs={24} md={12}>
+            <Card className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-700">
+              <div className="flex items-center gap-4">
+                <div className="text-4xl">📅</div>
+                <div className="flex-1">
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                    {examConfig.exam_type}倒计时
+                  </div>
+                  <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                    {countdown.days > 0 ? (
+                      <>
+                        <span className="text-3xl">{countdown.days}</span> 天 
+                        <span className="text-xl ml-2">{countdown.hours}</span> 时 
+                        <span className="text-xl ml-1">{countdown.minutes}</span> 分
+                      </>
+                    ) : countdown.hours > 0 || countdown.minutes > 0 ? (
+                      <>
+                        <span className="text-3xl">{countdown.hours}</span> 时 
+                        <span className="text-xl ml-2">{countdown.minutes}</span> 分
+                      </>
+                    ) : (
+                      <span className="text-xl">考试进行中</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </Col>
+
+          {/* 加油站 */}
+          <Col xs={24} md={12}>
+            <Card className="bg-gradient-to-r from-orange-50 to-yellow-50 dark:from-orange-900/20 dark:to-yellow-800/20 border-orange-200 dark:border-orange-700">
+              <div className="flex items-center gap-4">
+                <div className="text-4xl">💪</div>
+                <div className="flex-1">
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                    今日加油站
+                  </div>
+                  <div className="text-base font-medium text-gray-800 dark:text-gray-200 leading-relaxed">
+                    {todayPoem}
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </Col>
+        </Row>
+      )}
+
       {/* 统计卡片 */}
       <Row gutter={[16, 16]} className="mb-8">
         <Col xs={24} sm={12} lg={6}>
