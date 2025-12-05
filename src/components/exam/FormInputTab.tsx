@@ -35,11 +35,12 @@ const MODULE_CONFIG = [
 interface FormInputTabProps {
   examName: string;
   indexNumber: number;
+  examType: string;
   onSubmitStart: () => void;
   onSubmitEnd: () => void;
 }
 
-export default function FormInputTab({ examName, indexNumber, onSubmitStart, onSubmitEnd }: FormInputTabProps) {
+export default function FormInputTab({ examName, indexNumber, examType, onSubmitStart, onSubmitEnd }: FormInputTabProps) {
   const [form] = Form.useForm();
   const navigate = useNavigate();
 
@@ -61,6 +62,7 @@ export default function FormInputTab({ examName, indexNumber, onSubmitStart, onS
       console.log('=== 表单提交 ===');
       console.log('考试名称:', examName);
       console.log('索引号:', indexNumber);
+      console.log('考试类型:', examType);
       console.log('表单值:', formValues);
       
       const moduleScores: any[] = [];
@@ -68,6 +70,36 @@ export default function FormInputTab({ examName, indexNumber, onSubmitStart, onS
       let totalTime = 0;
 
       MODULE_CONFIG.forEach(parentModule => {
+        // 先检查大模块总计
+        const parentKey = `${parentModule.name}_总计`;
+        const parentData = formValues[parentKey];
+        
+        if (parentData && parentData.total_questions > 0) {
+          const correctAnswers = parentData.correct_answers || 0;
+          const totalQs = parentData.total_questions;
+          const timeUsedMinutes = parentData.time_used || 0;
+          const timeUsedSeconds = timeUsedMinutes * 60; // 分钟转秒
+          const accuracyRate = totalQs > 0 ? (correctAnswers / totalQs) * 100 : 0;
+
+          const moduleScore = {
+            module_name: parentModule.name,
+            parent_module: null, // 大模块没有父模块
+            total_questions: totalQs,
+            correct_answers: correctAnswers,
+            wrong_answers: totalQs - correctAnswers,
+            unanswered: 0,
+            accuracy_rate: Number(accuracyRate.toFixed(2)),
+            time_used: timeUsedSeconds
+          };
+          
+          console.log('添加大模块得分:', moduleScore);
+          moduleScores.push(moduleScore);
+
+          totalScore += correctAnswers;
+          totalTime += timeUsedSeconds;
+        }
+        
+        // 再处理子模块
         parentModule.subModules.forEach(subModule => {
           const key = `${parentModule.name}_${subModule}`;
           const data = formValues[key];
@@ -77,7 +109,8 @@ export default function FormInputTab({ examName, indexNumber, onSubmitStart, onS
           if (data && data.total_questions > 0) {
             const correctAnswers = data.correct_answers || 0;
             const totalQs = data.total_questions;
-            const timeUsed = data.time_used || 0;
+            const timeUsedMinutes = data.time_used || 0;
+            const timeUsedSeconds = timeUsedMinutes * 60; // 分钟转秒
             const accuracyRate = totalQs > 0 ? (correctAnswers / totalQs) * 100 : 0;
 
             const moduleScore = {
@@ -88,21 +121,21 @@ export default function FormInputTab({ examName, indexNumber, onSubmitStart, onS
               wrong_answers: totalQs - correctAnswers,
               unanswered: 0,
               accuracy_rate: Number(accuracyRate.toFixed(2)),
-              time_used: timeUsed
+              time_used: timeUsedSeconds
             };
             
             console.log('添加模块得分:', moduleScore);
             moduleScores.push(moduleScore);
 
             totalScore += correctAnswers;
-            totalTime += timeUsed;
+            totalTime += timeUsedSeconds;
           }
         });
       });
 
       console.log('总共收集到', moduleScores.length, '个模块');
       console.log('总分:', totalScore);
-      console.log('总用时:', totalTime);
+      console.log('总用时(秒):', totalTime);
 
       if (moduleScores.length === 0) {
         message.error('请至少填写一个模块的数据');
@@ -141,7 +174,7 @@ export default function FormInputTab({ examName, indexNumber, onSubmitStart, onS
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <Form form={form} layout="vertical">
         <Collapse defaultActiveKey={[]} className="bg-white">
           {MODULE_CONFIG.map((parentModule) => (
@@ -153,17 +186,65 @@ export default function FormInputTab({ examName, indexNumber, onSubmitStart, onS
               } 
               key={parentModule.name}
             >
-              <div className="space-y-4">
+              <div className="space-y-3">
+                {/* 大模块总计 */}
+                <div className="bg-blue-50 p-3 rounded border-b-2 border-blue-200">
+                  <div className="font-medium mb-2 text-blue-700">总计</div>
+                  <Row gutter={12}>
+                    <Col span={8}>
+                      <Form.Item
+                        name={[`${parentModule.name}_总计`, 'total_questions']}
+                        label="题目数量"
+                        className="mb-0"
+                      >
+                        <InputNumber
+                          min={0}
+                          placeholder="题目数"
+                          style={{ width: '100%' }}
+                        />
+                      </Form.Item>
+                    </Col>
+                    <Col span={8}>
+                      <Form.Item
+                        name={[`${parentModule.name}_总计`, 'correct_answers']}
+                        label="答对数量"
+                        className="mb-0"
+                      >
+                        <InputNumber
+                          min={0}
+                          placeholder="答对数"
+                          style={{ width: '100%' }}
+                        />
+                      </Form.Item>
+                    </Col>
+                    <Col span={8}>
+                      <Form.Item
+                        name={[`${parentModule.name}_总计`, 'time_used']}
+                        label="用时(分钟)"
+                        className="mb-0"
+                      >
+                        <InputNumber
+                          min={0}
+                          placeholder="用时"
+                          style={{ width: '100%' }}
+                        />
+                      </Form.Item>
+                    </Col>
+                  </Row>
+                </div>
+
+                {/* 子模块 */}
                 {parentModule.subModules.map((subModule) => {
                   const fieldKey = `${parentModule.name}_${subModule}`;
                   return (
-                    <div key={subModule} className="border-b pb-4 last:border-b-0">
-                      <div className="font-medium mb-3 text-gray-700">{subModule}</div>
-                      <Row gutter={16}>
+                    <div key={subModule} className="border-b pb-3 last:border-b-0">
+                      <div className="font-medium mb-2 text-gray-700">{subModule}</div>
+                      <Row gutter={12}>
                         <Col span={8}>
                           <Form.Item
                             name={[fieldKey, 'total_questions']}
                             label="题目数量"
+                            className="mb-0"
                           >
                             <InputNumber
                               min={0}
@@ -176,6 +257,7 @@ export default function FormInputTab({ examName, indexNumber, onSubmitStart, onS
                           <Form.Item
                             name={[fieldKey, 'correct_answers']}
                             label="答对数量"
+                            className="mb-0"
                           >
                             <InputNumber
                               min={0}
@@ -187,7 +269,8 @@ export default function FormInputTab({ examName, indexNumber, onSubmitStart, onS
                         <Col span={8}>
                           <Form.Item
                             name={[fieldKey, 'time_used']}
-                            label="用时(秒)"
+                            label="用时(分钟)"
+                            className="mb-0"
                           >
                             <InputNumber
                               min={0}

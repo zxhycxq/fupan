@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Card, Input, InputNumber, Progress, message, Spin, Tabs } from 'antd';
+import { Button, Card, Input, InputNumber, Progress, message, Spin, Tabs, Select } from 'antd';
 import { UploadOutlined, LoadingOutlined, CloseOutlined, DeleteOutlined, PictureOutlined, FormOutlined } from '@ant-design/icons';
 import { fileToBase64, recognizeText, compressImage } from '@/services/imageRecognition';
 import { parseExamData } from '@/services/dataParser';
@@ -16,6 +16,7 @@ export default function Upload() {
   const [activeTab, setActiveTab] = useState<string>('image');
   const [examName, setExamName] = useState<string>('');
   const [indexNumber, setIndexNumber] = useState<number>(1);
+  const [examType, setExamType] = useState<string>('省考');
   const [timeUsedMinutes, setTimeUsedMinutes] = useState<number>(120);
   const [selectedFiles, setSelectedFiles] = useState<FileWithPreview[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -426,7 +427,7 @@ export default function Upload() {
                     手动填写各模块的成绩数据。展开对应模块填写题目数量、答对数量和用时。
                   </div>
                   
-                  <div className="mb-6 grid grid-cols-1 xl:grid-cols-2 gap-6">
+                  <div className="mb-4 grid grid-cols-1 xl:grid-cols-3 gap-4">
                     <div>
                       <div className="mb-2 text-sm font-medium">考试名称 <span className="text-red-500">*</span></div>
                       <Input
@@ -450,11 +451,25 @@ export default function Upload() {
                         required
                       />
                     </div>
+
+                    <div>
+                      <div className="mb-2 text-sm font-medium">考试类型</div>
+                      <Select
+                        value={examType}
+                        onChange={(value) => setExamType(value)}
+                        style={{ width: '100%' }}
+                        options={[
+                          { value: '省考', label: '省考' },
+                          { value: '国考', label: '国考' }
+                        ]}
+                      />
+                    </div>
                   </div>
 
                   <FormInputTab
                     examName={examName}
                     indexNumber={indexNumber}
+                    examType={examType}
                     onSubmitStart={() => {
                       setIsUploading(true);
                       setCurrentStep('正在保存数据...');
