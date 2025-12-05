@@ -73,8 +73,8 @@ export default function ExamDetail() {
   const [examDetail, setExamDetail] = useState<ExamRecordDetail | null>(null);
   const [userSettings, setUserSettings] = useState<UserSetting[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [editingModule, setEditingModule] = useState<ModuleScore | null>(null);
-  const [editTime, setEditTime] = useState<string>('');
+  const [editingTimeModuleId, setEditingTimeModuleId] = useState<string | null>(null); // 正在编辑用时的模块ID
+  const [editTime, setEditTime] = useState<string>(''); // 编辑中的用时值
   const [isEditingNotes, setIsEditingNotes] = useState(false);
   const [editingNoteType, setEditingNoteType] = useState<'improvements' | 'mistakes' | 'both'>('both'); // 新增：区分编辑类型
   const [improvements, setImprovements] = useState<string>('');
@@ -119,20 +119,41 @@ export default function ExamDetail() {
     }
   };
 
-  // 打开编辑对话框
+  // 开始编辑用时
   const handleEditTime = (module: ModuleScore) => {
-    setEditingModule(module);
+    setEditingTimeModuleId(module.id);
     // 将秒转为分钟显示
     setEditTime(secondsToMinutes(module.time_used || 0).toString());
   };
 
-  // 保存时间修改
-  const handleSaveTime = async () => {
-    if (!editingModule || !examDetail) return;
+  // 计算所有模块的总用时（分钟）
+  const calculateTotalTime = (excludeModuleId?: string): number => {
+    if (!examDetail) return 0;
+    
+    return examDetail.module_scores
+      .filter(m => m.id !== excludeModuleId && !m.parent_module) // 只计算大模块，排除正在编辑的模块
+      .reduce((total, m) => total + secondsToMinutes(m.time_used || 0), 0);
+  };
 
-    const minutes = parseFloat(editTime);
+  // 保存时间修改
+  const handleSaveTime = async (module: ModuleScore, newMinutes: string) => {
+    if (!examDetail) return;
+
+    const minutes = parseFloat(newMinutes);
     if (isNaN(minutes) || minutes < 0) {
-      message.success("错误");
+      message.error("请输入有效的分钟数");
+      setEditingTimeModuleId(null);
+      return;
+    }
+
+    // 计算其他模块的总用时
+    const otherModulesTime = calculateTotalTime(module.id);
+    const totalTime = otherModulesTime + minutes;
+
+    // 验证总时长不超过120分钟
+    if (totalTime > 120) {
+      message.error(`所有模块总用时不能超过120分钟，当前其他模块已用时${otherModulesTime.toFixed(1)}分钟`);
+      setEditingTimeModuleId(null);
       return;
     }
 
@@ -141,22 +162,21 @@ export default function ExamDetail() {
 
     try {
       setIsSaving(true);
-      await updateModuleScore(editingModule.id, { time_used: newTime });
+      await updateModuleScore(module.id, { time_used: newTime });
       
       // 更新本地状态
       setExamDetail({
         ...examDetail,
         module_scores: examDetail.module_scores.map(m =>
-          m.id === editingModule.id ? { ...m, time_used: newTime } : m
+          m.id === module.id ? { ...m, time_used: newTime } : m
         ),
       });
 
-      message.success("成功");
-      
-      setEditingModule(null);
+      message.success("用时更新成功");
+      setEditingTimeModuleId(null);
     } catch (error) {
       console.error('更新时间失败:', error);
-      message.success("错误");
+      message.error("更新失败，请重试");
     } finally {
       setIsSaving(false);
     }
@@ -773,15 +793,50 @@ export default function ExamDetail() {
                     </div>
                     <div className="flex items-center">
                       <span className="text-muted-foreground">用时:</span>
-                      <span className="ml-2 font-medium">{formatTime(mainModule.time_used)}</span>
-                      <Button
-                        type="text"
-                        size="small"
-                        className="ml-2 h-6 w-6 p-0"
-                        onClick={() => handleEditTime(mainModule)}
-                      >
-                        <EditOutlined className="h-3 w-3" />
-                      </Button>
+                      {editingTimeModuleId === mainModule.id ? (
+                        <div className="ml-2 flex items-center gap-2">
+                          <Input
+                            type="number"
+                            min="0"
+                            step="1"
+                            value={editTime}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              if (value === '' || /^\d+$/.test(value)) {
+                                setEditTime(value);
+                              }
+                            }}
+                            onBlur={() => {
+                              if (editTime) {
+                                handleSaveTime(mainModule, editTime);
+                              } else {
+                                setEditingTimeModuleId(null);
+                              }
+                            }}
+                            onPressEnter={() => {
+                              if (editTime) {
+                                handleSaveTime(mainModule, editTime);
+                              }
+                            }}
+                            autoFocus
+                            className="w-20 h-6 text-sm"
+                            suffix="分"
+                            disabled={isSaving}
+                          />
+                        </div>
+                      ) : (
+                        <>
+                          <span className="ml-2 font-medium">{formatTime(mainModule.time_used)}</span>
+                          <Button
+                            type="text"
+                            size="small"
+                            className="ml-2 h-6 w-6 p-0"
+                            onClick={() => handleEditTime(mainModule)}
+                          >
+                            <EditOutlined className="h-3 w-3" />
+                          </Button>
+                        </>
+                      )}
                     </div>
                   </div>
 
@@ -819,43 +874,6 @@ export default function ExamDetail() {
             })}
           </div>
         </Card>
-
-      {/* 时间编辑对话框 */}
-      <Modal 
-        title="用时(分钟)"
-        open={!!editingModule} 
-        onCancel={() => setEditingModule(null)}
-        onOk={handleSaveTime}
-        okText="确定"
-        cancelText="取消"
-        confirmLoading={isSaving}
-      >
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Input
-              type="number"
-              min="0"
-              step="1"
-              value={editTime}
-              onChange={(e) => {
-                // 只允许输入整数
-                const value = e.target.value;
-                if (value === '' || /^\d+$/.test(value)) {
-                  setEditTime(value);
-                }
-              }}
-              placeholder="请输入分钟数"
-              style={{ width: '120px' }}
-            />
-            <span className="text-gray-600">分钟</span>
-          </div>
-          {editTime && !isNaN(parseInt(editTime)) && (
-            <p className="text-sm text-gray-500">
-              = {parseInt(editTime)}分钟
-            </p>
-          )}
-        </div>
-      </Modal>
 
       {/* 编辑备注对话框 */}
       <Modal 
