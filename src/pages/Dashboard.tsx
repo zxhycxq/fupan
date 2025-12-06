@@ -844,13 +844,25 @@ export default function Dashboard() {
           key: `exam_${examNum}_questions_correct`,
           width: 120,
           align: 'center' as const,
+          onCell: (record: TableDataType) => {
+            // 汇总行合并3列
+            if (record.key?.startsWith('summary_')) {
+              return { colSpan: 3 };
+            }
+            return {};
+          },
           render: (_: any, record: TableDataType) => {
             const examData = record.exams.get(examNum);
             if (!examData) {
               return <span className="text-muted-foreground">-</span>;
             }
             
-            // 汇总统计行特殊处理
+            // 汇总统计行特殊处理 - 合并单元格后显示对应的汇总数据
+            if (record.key === 'summary_time') {
+              // 总时长
+              const minutes = (examData.time_used / 60).toFixed(1);
+              return <strong className="text-blue-600 dark:text-blue-400">{minutes}分</strong>;
+            }
             if (record.key === 'summary_correct') {
               // 总答对
               return <strong className="text-blue-600 dark:text-blue-400">{examData.correct_answers}</strong>;
@@ -859,9 +871,13 @@ export default function Dashboard() {
               // 总题量
               return <strong className="text-blue-600 dark:text-blue-400">{examData.total_questions}</strong>;
             }
-            if (record.key?.startsWith('summary_')) {
-              // 其他汇总行不显示
-              return <span className="text-muted-foreground">-</span>;
+            if (record.key === 'summary_accuracy') {
+              // 总正确率
+              return <strong className="text-blue-600 dark:text-blue-400">{examData.accuracy.toFixed(1)}%</strong>;
+            }
+            if (record.key === 'summary_score') {
+              // 得分
+              return <strong className="text-lg text-green-600 dark:text-green-400">{examData.accuracy.toFixed(2)}</strong>;
             }
             
             const content = `${examData.total_questions}/${examData.correct_answers}`;
@@ -873,23 +889,16 @@ export default function Dashboard() {
           key: `exam_${examNum}_accuracy`,
           width: 90,
           align: 'center' as const,
+          onCell: (record: TableDataType) => {
+            // 汇总行隐藏此列（已被第一列合并）
+            if (record.key?.startsWith('summary_')) {
+              return { colSpan: 0 };
+            }
+            return {};
+          },
           render: (_: any, record: TableDataType) => {
             const examData = record.exams.get(examNum);
             if (!examData) {
-              return <span className="text-muted-foreground">-</span>;
-            }
-            
-            // 汇总统计行特殊处理
-            if (record.key === 'summary_accuracy') {
-              // 总正确率
-              return <strong className="text-blue-600 dark:text-blue-400">{examData.accuracy.toFixed(1)}%</strong>;
-            }
-            if (record.key === 'summary_score') {
-              // 得分（使用accuracy字段存储）
-              return <strong className="text-lg text-green-600 dark:text-green-400">{examData.accuracy.toFixed(2)}</strong>;
-            }
-            if (record.key?.startsWith('summary_')) {
-              // 其他汇总行不显示
               return <span className="text-muted-foreground">-</span>;
             }
             
@@ -920,22 +929,14 @@ export default function Dashboard() {
           key: `exam_${examNum}_time`,
           width: 80,
           align: 'center' as const,
-          render: (_: any, record: TableDataType) => {
-            // 汇总统计行特殊处理
-            if (record.key === 'summary_time') {
-              // 总时长
-              const examData = record.exams.get(examNum);
-              if (!examData) {
-                return <span className="text-muted-foreground">-</span>;
-              }
-              const minutes = (examData.time_used / 60).toFixed(1);
-              return <strong className="text-blue-600 dark:text-blue-400">{minutes}分</strong>;
-            }
+          onCell: (record: TableDataType) => {
+            // 汇总行隐藏此列（已被第一列合并）
             if (record.key?.startsWith('summary_')) {
-              // 其他汇总行不显示
-              return <span className="text-muted-foreground">-</span>;
+              return { colSpan: 0 };
             }
-            
+            return {};
+          },
+          render: (_: any, record: TableDataType) => {
             // 只显示大模块（没有children或者是总计行）的用时
             if (record.children && record.children.length > 0 && record.key !== 'total') {
               const examData = record.exams.get(examNum);
