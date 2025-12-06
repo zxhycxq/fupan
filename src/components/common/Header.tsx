@@ -48,19 +48,6 @@ const Header: React.FC = () => {
                 成绩分析
               </span>
             </Link>
-
-            {/* 考试倒计时 - 桌面端 */}
-            {examConfig && daysLeft !== null && (
-              <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border border-blue-200">
-                <CalendarOutlined className="text-blue-600" />
-                <span className="text-sm font-medium text-blue-900">
-                  {examConfig.exam_type}
-                </span>
-                <span className="text-sm text-blue-700">
-                  {daysLeft > 0 ? `还有 ${daysLeft} 天` : daysLeft === 0 ? '今天考试' : '已过期'}
-                </span>
-              </div>
-            )}
           </div>
 
           {/* 桌面端导航 */}
@@ -98,19 +85,6 @@ const Header: React.FC = () => {
         {/* 移动端菜单 */}
         {mobileMenuOpen && (
           <div className="md:hidden py-4 space-y-2 border-t">
-            {/* 考试倒计时 - 移动端 */}
-            {examConfig && daysLeft !== null && (
-              <div className="flex items-center gap-2 px-3 py-2 mb-2 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border border-blue-200">
-                <CalendarOutlined className="text-blue-600" />
-                <span className="text-sm font-medium text-blue-900">
-                  {examConfig.exam_type}
-                </span>
-                <span className="text-sm text-blue-700">
-                  {daysLeft > 0 ? `还有 ${daysLeft} 天` : daysLeft === 0 ? '今天考试' : '已过期'}
-                </span>
-              </div>
-            )}
-            
             {navigation.map((item) => (
               <Link
                 key={item.path}

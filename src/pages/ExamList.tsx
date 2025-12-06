@@ -279,6 +279,16 @@ export default function ExamList() {
       render: () => <DragHandle />,
     },
     {
+      title: '序号',
+      key: 'row_number',
+      width: 70,
+      render: (_: any, __: any, index: number) => (
+        <span className="font-medium text-gray-600">
+          {(currentPage - 1) * pageSize + index + 1}
+        </span>
+      ),
+    },
+    {
       title: '索引',
       dataIndex: 'index_number',
       key: 'index_number',
