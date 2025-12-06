@@ -18,9 +18,25 @@ const MODULE_CONFIG = {
     avgCorrectRate: 0.77,
   },
   '数量关系': {
-    subModules: ['数学运算'],
-    totalQuestions: 10,
-    avgCorrectRate: 0.20,
+    subModules: [
+      '数学运算',
+      '工程问题',
+      '最值问题',
+      '牛吃草问题',
+      '周期问题',
+      '和差倍比问题',
+      '数列问题',
+      '行程问题',
+      '几何问题',
+      '容斥原理问题',
+      '排列组合问题',
+      '概率问题',
+      '经济利润问题',
+      '函数最值问题',
+      '钟表问题'
+    ],
+    totalQuestions: 15,
+    avgCorrectRate: 0.27,
   },
   '判断推理': {
     subModules: ['图形推理', '定义判断', '类比推理', '逻辑判断'],

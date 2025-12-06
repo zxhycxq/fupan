@@ -95,7 +95,23 @@ export function parseExamData(
     },
     {
       name: '数量关系',
-      children: ['数学运算'],
+      children: [
+        '数学运算',
+        '工程问题',
+        '最值问题',
+        '牛吃草问题',
+        '周期问题',
+        '和差倍比问题',
+        '数列问题',
+        '行程问题',
+        '几何问题',
+        '容斥原理问题',
+        '排列组合问题',
+        '概率问题',
+        '经济利润问题',
+        '函数最值问题',
+        '钟表问题'
+      ],
     },
     {
       name: '判断推理',
@@ -111,28 +127,63 @@ export function parseExamData(
   for (const module of moduleStructure) {
     console.log(`\n--- 解析模块: ${module.name} ---`);
     
-    // 查找大模块数据 - 使用更灵活的正则表达式
-    // 支持多种格式: "总题数20题" 或 "总题数:20" 或 "总题数 20"
-    const modulePattern = `${module.name}[\\s\\S]{0,200}?` + // 模块名称后最多200个字符
-      `(?:总题数|共计)[：:\\s]*?(\\d+)(?:题|道)?[\\s\\S]{0,50}?` + // 总题数
-      `(?:答对|正确)[：:\\s]*?(\\d+)(?:题|道)?[\\s\\S]{0,50}?` + // 答对数
-      `(?:正确率|准确率)[：:\\s]*?(\\d+)%[\\s\\S]{0,50}?` + // 正确率
-      `(?:用时|时间)[：:\\s]*?(\\d+)(?:秒|分)?`; // 用时
+    // 查找大模块数据 - 支持两种格式
+    // 格式1（网页版）: "总题数20题 答对15题 正确率75% 用时30秒"
+    // 格式2（手机端）: "共20道，答对15道，正确率75%，用时30秒"
     
-    const moduleRegex = new RegExp(modulePattern, 'i');
-    const moduleMatch = ocrText.match(moduleRegex);
+    // 先尝试手机端格式
+    const mobilePattern = `${module.name}[\\s\\S]{0,200}?` +
+      `共\\s*(\\d+)\\s*道[，,\\s]+` + // 共X道
+      `答对\\s*(\\d+)\\s*道[，,\\s]+` + // 答对Y道
+      `正确率\\s*(\\d+)%[，,\\s]+` + // 正确率Z%
+      `用时\\s*(\\d+)\\s*(?:分\\s*)?(\\d+)?\\s*秒`; // 用时W分X秒 或 用时W秒
+    
+    const mobileRegex = new RegExp(mobilePattern, 'i');
+    let moduleMatch = ocrText.match(mobileRegex);
+    let isMobileFormat = !!moduleMatch;
+    
+    // 如果手机端格式没匹配到，尝试网页版格式
+    if (!moduleMatch) {
+      const webPattern = `${module.name}[\\s\\S]{0,200}?` +
+        `(?:总题数|共计)[：:\\s]*?(\\d+)(?:题|道)?[\\s\\S]{0,50}?` +
+        `(?:答对|正确)[：:\\s]*?(\\d+)(?:题|道)?[\\s\\S]{0,50}?` +
+        `(?:正确率|准确率)[：:\\s]*?(\\d+)%[\\s\\S]{0,50}?` +
+        `(?:用时|时间)[：:\\s]*?(\\d+)(?:秒|分)?`;
+      
+      const webRegex = new RegExp(webPattern, 'i');
+      moduleMatch = ocrText.match(webRegex);
+    }
 
     if (moduleMatch) {
       console.log(`找到模块数据:`, moduleMatch[0].substring(0, 100));
       
-      const totalQuestions = parseInt(moduleMatch[1]);
-      const correctAnswers = parseInt(moduleMatch[2]);
-      const accuracyRate = parseInt(moduleMatch[3]);
-      let timeUsedSec = parseInt(moduleMatch[4]);
+      let totalQuestions, correctAnswers, accuracyRate, timeUsedSec;
       
-      // 检查用时单位
-      if (moduleMatch[0].includes('分')) {
-        timeUsedSec = timeUsedSec * 60;
+      if (isMobileFormat) {
+        // 手机端格式解析
+        totalQuestions = parseInt(moduleMatch[1]);
+        correctAnswers = parseInt(moduleMatch[2]);
+        accuracyRate = parseInt(moduleMatch[3]);
+        
+        // 处理用时：可能是"X分Y秒"或"X秒"
+        if (moduleMatch[5]) {
+          // 有分钟和秒
+          timeUsedSec = parseInt(moduleMatch[4]) * 60 + parseInt(moduleMatch[5]);
+        } else {
+          // 只有秒
+          timeUsedSec = parseInt(moduleMatch[4]);
+        }
+      } else {
+        // 网页版格式解析
+        totalQuestions = parseInt(moduleMatch[1]);
+        correctAnswers = parseInt(moduleMatch[2]);
+        accuracyRate = parseInt(moduleMatch[3]);
+        timeUsedSec = parseInt(moduleMatch[4]);
+        
+        // 检查用时单位
+        if (moduleMatch[0].includes('分')) {
+          timeUsedSec = timeUsedSec * 60;
+        }
       }
       
       // 计算答错数和未答数
@@ -159,26 +210,57 @@ export function parseExamData(
     for (const childName of module.children) {
       console.log(`  - 解析子模块: ${childName}`);
       
-      const childPattern = `${childName}[\\s\\S]{0,200}?` +
-        `(?:总题数|共计)[：:\\s]*?(\\d+)(?:题|道)?[\\s\\S]{0,50}?` +
-        `(?:答对|正确)[：:\\s]*?(\\d+)(?:题|道)?[\\s\\S]{0,50}?` +
-        `(?:正确率|准确率)[：:\\s]*?(\\d+)%[\\s\\S]{0,50}?` +
-        `(?:用时|时间)[：:\\s]*?(\\d+)(?:秒|分)?`;
+      // 先尝试手机端格式
+      const childMobilePattern = `${childName}[\\s\\S]{0,200}?` +
+        `共\\s*(\\d+)\\s*道[，,\\s]+` +
+        `答对\\s*(\\d+)\\s*道[，,\\s]+` +
+        `正确率\\s*(\\d+)%[，,\\s]+` +
+        `用时\\s*(\\d+)\\s*(?:分\\s*)?(\\d+)?\\s*秒`;
       
-      const childRegex = new RegExp(childPattern, 'i');
-      const childMatch = ocrText.match(childRegex);
+      const childMobileRegex = new RegExp(childMobilePattern, 'i');
+      let childMatch = ocrText.match(childMobileRegex);
+      let isChildMobileFormat = !!childMatch;
+      
+      // 如果手机端格式没匹配到，尝试网页版格式
+      if (!childMatch) {
+        const childWebPattern = `${childName}[\\s\\S]{0,200}?` +
+          `(?:总题数|共计)[：:\\s]*?(\\d+)(?:题|道)?[\\s\\S]{0,50}?` +
+          `(?:答对|正确)[：:\\s]*?(\\d+)(?:题|道)?[\\s\\S]{0,50}?` +
+          `(?:正确率|准确率)[：:\\s]*?(\\d+)%[\\s\\S]{0,50}?` +
+          `(?:用时|时间)[：:\\s]*?(\\d+)(?:秒|分)?`;
+        
+        const childWebRegex = new RegExp(childWebPattern, 'i');
+        childMatch = ocrText.match(childWebRegex);
+      }
 
       if (childMatch) {
         console.log(`  找到子模块数据:`, childMatch[0].substring(0, 80));
         
-        const totalQuestions = parseInt(childMatch[1]);
-        const correctAnswers = parseInt(childMatch[2]);
-        const accuracyRate = parseInt(childMatch[3]);
-        let timeUsedSec = parseInt(childMatch[4]);
+        let totalQuestions, correctAnswers, accuracyRate, timeUsedSec;
         
-        // 检查用时单位
-        if (childMatch[0].includes('分')) {
-          timeUsedSec = timeUsedSec * 60;
+        if (isChildMobileFormat) {
+          // 手机端格式解析
+          totalQuestions = parseInt(childMatch[1]);
+          correctAnswers = parseInt(childMatch[2]);
+          accuracyRate = parseInt(childMatch[3]);
+          
+          // 处理用时
+          if (childMatch[5]) {
+            timeUsedSec = parseInt(childMatch[4]) * 60 + parseInt(childMatch[5]);
+          } else {
+            timeUsedSec = parseInt(childMatch[4]);
+          }
+        } else {
+          // 网页版格式解析
+          totalQuestions = parseInt(childMatch[1]);
+          correctAnswers = parseInt(childMatch[2]);
+          accuracyRate = parseInt(childMatch[3]);
+          timeUsedSec = parseInt(childMatch[4]);
+          
+          // 检查用时单位
+          if (childMatch[0].includes('分')) {
+            timeUsedSec = timeUsedSec * 60;
+          }
         }
         
         // 如果总用时小于10分钟,子模块时间设为0
