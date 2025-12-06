@@ -602,19 +602,31 @@ export async function updateExamNotes(
   improvements: string, 
   mistakes: string
 ): Promise<void> {
-  const { error } = await supabase
+  console.log('更新备注 - ID:', id);
+  console.log('更新备注 - improvements:', improvements);
+  console.log('更新备注 - mistakes:', mistakes);
+  
+  const { data, error } = await supabase
     .from('exam_records')
     .update({ 
       improvements,
       mistakes,
       updated_at: new Date().toISOString()
     })
-    .eq('id', id);
+    .eq('id', id)
+    .select();
 
   if (error) {
-    console.error('更新备注失败:', error);
-    throw error;
+    console.error('更新备注失败 - 错误详情:', {
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+      code: error.code
+    });
+    throw new Error(`更新备注失败: ${error.message}`);
   }
+  
+  console.log('更新备注成功 - 返回数据:', data);
 }
 
 // 删除所有用户数据

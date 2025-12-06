@@ -249,7 +249,8 @@ export default function ExamList() {
       setNotesModalVisible(false);
     } catch (error) {
       console.error('保存备注失败:', error);
-      message.error('保存备注失败，请重试');
+      const errorMessage = error instanceof Error ? error.message : '保存备注失败，请重试';
+      message.error(errorMessage);
     } finally {
       setIsSaving(false);
     }
