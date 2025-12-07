@@ -4,7 +4,7 @@ import { Card, Button, Skeleton, Alert, Table, Modal, Rate, message, Space, Draw
 
 const { TextArea } = Input;
 import type { ColumnsType } from 'antd/es/table';
-import { getAllExamRecords, deleteExamRecord, updateExamRecord, updateExamRating, checkIndexNumberExists, updateExamNotes } from '@/db/api';
+import { getAllExamRecords, deleteExamRecord, updateExamRecord, updateExamRating, updateExamNotes } from '@/db/api';
 import type { ExamRecord } from '@/types';
 import { EyeOutlined, DeleteOutlined, PlusOutlined, EditOutlined, InfoCircleOutlined, MenuOutlined, RiseOutlined, WarningOutlined, ClockCircleOutlined } from '@ant-design/icons';
 import { SortableContainer, SortableElement, SortableHandle } from 'react-sortable-hoc';
@@ -79,7 +79,6 @@ export default function ExamList() {
   const openEditDrawer = (record: ExamRecord) => {
     setEditingRecord({ ...record });
     form.setFieldsValue({
-      index_number: record.index_number,
       exam_name: record.exam_name,
       total_score: record.total_score,
       time_used: record.time_used ? Math.round(record.time_used / 60) : null, // 将秒转换为分钟
@@ -128,20 +127,6 @@ export default function ExamList() {
       }
       updates.exam_name = values.exam_name.trim();
 
-      // 验证并更新索引号
-      if (values.index_number < 1) {
-        message.error('索引号必须大于 0');
-        return;
-      }
-
-      // 检查索引号是否已被使用
-      const exists = await checkIndexNumberExists(values.index_number, editingRecord.id);
-      if (exists) {
-        message.error('该索引号已被使用，请选择其他索引号');
-        return;
-      }
-
-      updates.index_number = values.index_number;
       updates.total_score = Math.round(values.total_score * 10) / 10;
       updates.time_used = values.time_used ? values.time_used * 60 : null; // 将分钟转换为秒
       updates.average_score = values.average_score ? Math.round(values.average_score * 10) / 10 : null;
@@ -182,15 +167,15 @@ export default function ExamList() {
   // 保存排序
   const handleSaveSort = async () => {
     try {
-      // 更新每条记录的 index_number
+      // 更新每条记录的 sort_order
       const updates = examRecords.map((record, index) => ({
         id: record.id,
-        index_number: index + 1,
+        sort_order: index + 1,
       }));
 
       // 批量更新
       for (const update of updates) {
-        await updateExamRecord(update.id, { index_number: update.index_number });
+        await updateExamRecord(update.id, { sort_order: update.sort_order });
       }
 
       message.success('排序已保存');
@@ -287,15 +272,6 @@ export default function ExamList() {
         <span className="font-medium text-gray-600">
           {(currentPage - 1) * pageSize + index + 1}
         </span>
-      ),
-    },
-    {
-      title: '索引',
-      dataIndex: 'index_number',
-      key: 'index_number',
-      width: 100,
-      render: (value: number) => (
-        <span className="font-medium text-gray-700">{value}</span>
       ),
     },
     {
@@ -577,21 +553,6 @@ export default function ExamList() {
           layout="vertical"
           autoComplete="off"
         >
-          <Form.Item
-            label="索引号"
-            name="index_number"
-            rules={[
-              { required: true, message: '请输入索引号' },
-              { type: 'number', min: 1, message: '索引号必须大于 0' },
-            ]}
-          >
-            <InputNumber
-              min={1}
-              style={{ width: '100%' }}
-              placeholder="请输入索引号"
-            />
-          </Form.Item>
-
           <Form.Item
             label="考试名称"
             name="exam_name"

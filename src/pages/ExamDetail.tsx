@@ -599,7 +599,7 @@ export default function ExamDetail() {
       <div className="mb-6">
         <h1 className="text-3xl font-bold mb-2">{examDetail.exam_name} - 详情</h1>
         <div className="text-gray-500">
-          索引号: {examDetail.index_number} | 创建时间: {new Date(examDetail.created_at).toLocaleString('zh-CN')}
+          排序: {examDetail.sort_order} | 创建时间: {new Date(examDetail.created_at).toLocaleString('zh-CN')}
         </div>
         <div className="flex flex-wrap items-center gap-4 text-muted-foreground">
           <div className="flex items-center gap-2">

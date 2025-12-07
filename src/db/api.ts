@@ -6,7 +6,7 @@ export async function getAllExamRecords(): Promise<ExamRecord[]> {
   const { data, error } = await supabase
     .from('exam_records')
     .select('*')
-    .order('index_number', { ascending: true });
+    .order('sort_order', { ascending: true });
 
   if (error) {
     console.error('获取考试记录失败:', error);
@@ -203,8 +203,8 @@ export async function getModuleTrendData(): Promise<{
   // 获取所有考试记录和模块得分
   const { data: examRecords, error: examError } = await supabase
     .from('exam_records')
-    .select('id, exam_number, exam_name, index_number')
-    .order('index_number', { ascending: true });
+    .select('id, exam_number, exam_name, sort_order')
+    .order('sort_order', { ascending: true });
 
   if (examError) {
     console.error('获取考试记录失败:', examError);
@@ -265,8 +265,8 @@ export async function getModuleTimeTrendData(): Promise<{
   // 获取所有考试记录
   const { data: examRecords, error: examError } = await supabase
     .from('exam_records')
-    .select('id, exam_number, exam_name, index_number')
-    .order('index_number', { ascending: true });
+    .select('id, exam_number, exam_name, sort_order')
+    .order('sort_order', { ascending: true });
 
   if (examError) {
     console.error('获取考试记录失败:', examError);
@@ -485,9 +485,9 @@ export async function getModuleDetailedStats(): Promise<{
       correct_answers,
       accuracy_rate,
       time_used,
-      exam_records!inner(index_number, exam_name, exam_date)
+      exam_records!inner(sort_order, exam_name, exam_date)
     `)
-    .order('exam_records(index_number)')
+    .order('exam_records(sort_order)')
     .order('parent_module', { nullsFirst: true })
     .order('module_name');
 
@@ -496,9 +496,9 @@ export async function getModuleDetailedStats(): Promise<{
     throw error;
   }
 
-  // 转换数据格式，使用 index_number 作为 exam_number
+  // 转换数据格式，使用 sort_order 作为 exam_number
   return (data || []).map(record => ({
-    exam_number: (record.exam_records as any).index_number,
+    exam_number: (record.exam_records as any).sort_order,
     exam_name: (record.exam_records as any).exam_name || '',
     exam_date: (record.exam_records as any).exam_date || null,
     module_name: record.module_name,
@@ -528,72 +528,21 @@ export async function updateExamRating(id: string, rating: number): Promise<void
   }
 }
 
-// 检查索引号是否已存在（排除指定ID）
-export async function checkIndexNumberExists(
-  indexNumber: number, 
-  excludeId?: string
-): Promise<boolean> {
-  let query = supabase
-    .from('exam_records')
-    .select('id')
-    .eq('index_number', indexNumber);
-
-  if (excludeId) {
-    query = query.neq('id', excludeId);
-  }
-
-  const { data, error } = await query.maybeSingle();
-
-  if (error) {
-    console.error('检查索引号失败:', error);
-    throw error;
-  }
-
-  return data !== null;
-}
-
-// 更新考试记录的索引号
-export async function updateExamIndexNumber(
-  id: string, 
-  indexNumber: number
-): Promise<void> {
-  // 验证索引号
-  if (indexNumber < 1) {
-    throw new Error('索引号必须大于 0');
-  }
-
-  // 检查索引号是否已被使用
-  const exists = await checkIndexNumberExists(indexNumber, id);
-  if (exists) {
-    throw new Error('该索引号已被使用，请选择其他索引号');
-  }
-
-  const { error } = await supabase
-    .from('exam_records')
-    .update({ index_number: indexNumber })
-    .eq('id', id);
-
-  if (error) {
-    console.error('更新索引号失败:', error);
-    throw error;
-  }
-}
-
-// 获取下一个可用的索引号
-export async function getNextIndexNumber(): Promise<number> {
+// 获取下一个可用的排序号
+export async function getNextSortOrder(): Promise<number> {
   const { data, error } = await supabase
     .from('exam_records')
-    .select('index_number')
-    .order('index_number', { ascending: false })
+    .select('sort_order')
+    .order('sort_order', { ascending: false })
     .limit(1)
     .maybeSingle();
 
   if (error) {
-    console.error('获取最大索引号失败:', error);
+    console.error('获取最大排序号失败:', error);
     throw error;
   }
 
-  return data ? data.index_number + 1 : 1;
+  return data ? data.sort_order + 1 : 1;
 }
 
 // 更新考试记录的备注（进步和错误）

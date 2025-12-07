@@ -4,7 +4,7 @@ import { Button, Card, Input, InputNumber, Progress, message, Spin, Tabs, Select
 import { UploadOutlined, LoadingOutlined, CloseOutlined, DeleteOutlined, PictureOutlined, FormOutlined } from '@ant-design/icons';
 import { fileToBase64, recognizeText, compressImage } from '@/services/imageRecognition';
 import { parseExamData } from '@/services/dataParser';
-import { createExamRecord, createModuleScores, getNextIndexNumber, checkIndexNumberExists } from '@/db/api';
+import { createExamRecord, createModuleScores, getNextSortOrder } from '@/db/api';
 import FormInputTab from '@/components/exam/FormInputTab';
 
 interface FileWithPreview {
@@ -15,7 +15,7 @@ interface FileWithPreview {
 export default function Upload() {
   const [activeTab, setActiveTab] = useState<string>('image');
   const [examName, setExamName] = useState<string>('');
-  const [indexNumber, setIndexNumber] = useState<number>(1);
+  const [sortOrder, setSortOrder] = useState<number>(1);
   const [examType, setExamType] = useState<string>('省考');
   const [timeUsedMinutes, setTimeUsedMinutes] = useState<number>(120);
   const [selectedFiles, setSelectedFiles] = useState<FileWithPreview[]>([]);
@@ -24,18 +24,18 @@ export default function Upload() {
   const [currentStep, setCurrentStep] = useState('');
   const navigate = useNavigate();
 
-  // 获取下一个可用的索引号
+  // 获取下一个可用的排序号
   useEffect(() => {
-    const fetchNextIndex = async () => {
+    const fetchNextSortOrder = async () => {
       try {
-        const nextIndex = await getNextIndexNumber();
-        setIndexNumber(nextIndex);
-        setExamName(`第${nextIndex}期`);
+        const nextSortOrder = await getNextSortOrder();
+        setSortOrder(nextSortOrder);
+        setExamName(`第${nextSortOrder}期`);
       } catch (error) {
-        console.error('获取下一个索引号失败:', error);
+        console.error('获取下一个排序号失败:', error);
       }
     };
-    fetchNextIndex();
+    fetchNextSortOrder();
   }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -85,24 +85,6 @@ export default function Upload() {
 
     if (!examName || examName.trim() === '') {
       message.error('请输入考试名称');
-      return;
-    }
-
-    if (!indexNumber || indexNumber < 1) {
-      message.error('请输入有效的索引号(必须大于0)');
-      return;
-    }
-
-    // 检查索引号是否已存在
-    try {
-      const exists = await checkIndexNumberExists(indexNumber);
-      if (exists) {
-        message.error('该索引号已被使用，请选择其他索引号');
-        return;
-      }
-    } catch (error) {
-      console.error('检查索引号失败:', error);
-      message.error('检查索引号失败，请重试');
       return;
     }
 
@@ -169,7 +151,7 @@ export default function Upload() {
       const timeUsedSeconds = timeUsedMinutes * 60;
       const { examRecord, moduleScores } = parseExamData(
         combinedText, 
-        indexNumber, // 使用 indexNumber 作为 exam_number 保持向后兼容
+        sortOrder, // 使用 sortOrder 作为 exam_number
         timeUsedSeconds
       );
 
@@ -177,11 +159,11 @@ export default function Upload() {
       console.log('解析到的模块数量:', moduleScores.length);
       console.log('模块列表:', moduleScores.map(m => `${m.parent_module ? m.parent_module + ' > ' : ''}${m.module_name}`).join(', '));
 
-      // 添加考试名称和索引号
-      const recordWithNameAndIndex = {
+      // 添加考试名称和排序号
+      const recordWithNameAndSortOrder = {
         ...examRecord,
         exam_name: examName,
-        index_number: indexNumber,
+        sort_order: sortOrder,
         rating: 0, // 默认星级为 0
       };
 
@@ -189,7 +171,7 @@ export default function Upload() {
       setCurrentStep('正在保存数据...');
       setUploadProgress(((selectedFiles.length + 2) / totalSteps) * 100);
       
-      const savedRecord = await createExamRecord(recordWithNameAndIndex);
+      const savedRecord = await createExamRecord(recordWithNameAndSortOrder);
       console.log('考试记录已保存, ID:', savedRecord.id);
 
       // 保存模块得分
@@ -285,21 +267,6 @@ export default function Upload() {
               />
               <div className="text-sm text-gray-500 mt-1">
                 例如：第1期、2024年国考模拟等
-              </div>
-            </div>
-
-            <div>
-              <div className="mb-2 text-sm font-medium">索引号 <span className="text-red-500">*</span></div>
-              <InputNumber
-                min={1}
-                value={indexNumber}
-                onChange={(value) => setIndexNumber(value || 1)}
-                placeholder="请输入索引号"
-                style={{ width: '100%' }}
-                required
-              />
-              <div className="text-sm text-gray-500 mt-1">
-                用于排序，不能重复，默认自动递增
               </div>
             </div>
 
@@ -441,18 +408,6 @@ export default function Upload() {
                     </div>
 
                     <div>
-                      <div className="mb-2 text-sm font-medium">索引号 <span className="text-red-500">*</span></div>
-                      <InputNumber
-                        min={1}
-                        value={indexNumber}
-                        onChange={(value) => setIndexNumber(value || 1)}
-                        placeholder="请输入索引号"
-                        style={{ width: '100%' }}
-                        required
-                      />
-                    </div>
-
-                    <div>
                       <div className="mb-2 text-sm font-medium">考试类型</div>
                       <Select
                         value={examType}
@@ -468,7 +423,7 @@ export default function Upload() {
 
                   <FormInputTab
                     examName={examName}
-                    indexNumber={indexNumber}
+                    sortOrder={sortOrder}
                     examType={examType}
                     onSubmitStart={() => {
                       setIsUploading(true);

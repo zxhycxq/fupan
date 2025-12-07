@@ -50,13 +50,13 @@ const MODULE_CONFIG = [
 
 interface FormInputTabProps {
   examName: string;
-  indexNumber: number;
+  sortOrder: number;
   examType: string;
   onSubmitStart: () => void;
   onSubmitEnd: () => void;
 }
 
-export default function FormInputTab({ examName, indexNumber, examType, onSubmitStart, onSubmitEnd }: FormInputTabProps) {
+export default function FormInputTab({ examName, sortOrder, examType, onSubmitStart, onSubmitEnd }: FormInputTabProps) {
   const [form] = Form.useForm();
   const navigate = useNavigate();
 
@@ -67,17 +67,12 @@ export default function FormInputTab({ examName, indexNumber, examType, onSubmit
         return;
       }
 
-      if (!indexNumber || indexNumber < 1) {
-        message.error('请输入有效的索引号(必须大于0)');
-        return;
-      }
-
       // 验证表单并获取所有字段值
       const formValues = form.getFieldsValue(true);
       
       console.log('=== 表单提交 ===');
       console.log('考试名称:', examName);
-      console.log('索引号:', indexNumber);
+      console.log('排序号:', sortOrder);
       console.log('考试类型:', examType);
       console.log('表单值:', formValues);
       
@@ -162,8 +157,8 @@ export default function FormInputTab({ examName, indexNumber, examType, onSubmit
 
       const examRecord = {
         exam_name: examName,
-        exam_number: indexNumber,
-        index_number: indexNumber,
+        exam_number: sortOrder,
+        sort_order: sortOrder,
         total_score: totalScore,
         time_used: totalTime,
         rating: 0

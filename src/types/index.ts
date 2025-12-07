@@ -10,7 +10,7 @@ export interface ExamRecord {
   id: string;
   exam_number: number; // 保留用于向后兼容
   exam_name: string; // 考试名称
-  index_number: number; // 索引项，用于排序
+  index_number?: number; // 索引项(已废弃，保留用于向后兼容)
   rating: number; // 星级评分，支持半星，范围 0-5
   total_score: number;
   max_score?: number;
@@ -25,7 +25,7 @@ export interface ExamRecord {
   mistakes?: string; // 出错的地方
   exam_date?: string; // 考试日期(YYYY-MM-DD格式)
   report_url?: string; // 考试报告链接地址
-  sort_order?: number; // 排序顺序
+  sort_order: number; // 排序顺序
   created_at: string;
   updated_at: string;
 }
@@ -88,7 +88,7 @@ export interface UploadFormData {
 export interface ChartData {
   exam_number: number;
   exam_name: string;
-  index_number: number;
+  sort_order: number;
   total_score: number;
   time_used?: number;
   created_at: string;

@@ -126,18 +126,18 @@ export default function Dashboard() {
       
       console.log('=== Dashboard 数据加载完成 ===');
       console.log('考试记录数量:', records.length);
-      console.log('考试记录列表:', records.map(r => `索引${r.index_number} - ${r.exam_name}`).join(', '));
+      console.log('考试记录列表:', records.map(r => `索引${r.sort_order} - ${r.exam_name}`).join(', '));
       
       console.log('\n模块详细统计数量:', detailedStats.length);
       const statsExamNumbers = Array.from(new Set(detailedStats.map(s => s.exam_number))).sort((a, b) => a - b);
       console.log('有模块数据的考试期数:', statsExamNumbers.join(', '));
       
-      const recordIndexNumbers = records.map(r => r.index_number).sort((a, b) => a - b);
+      const recordIndexNumbers = records.map(r => r.sort_order).sort((a, b) => a - b);
       const missingIndexNumbers = recordIndexNumbers.filter(idx => !statsExamNumbers.includes(idx));
       if (missingIndexNumbers.length > 0) {
         console.warn('⚠️ 警告：以下考试记录没有模块数据:', missingIndexNumbers.join(', '));
         missingIndexNumbers.forEach(idx => {
-          const record = records.find(r => r.index_number === idx);
+          const record = records.find(r => r.sort_order === idx);
           console.warn(`  - 索引${idx}: ${record?.exam_name}, 考试日期: ${record?.exam_date || '无'}`);
         });
       }
@@ -614,13 +614,13 @@ export default function Dashboard() {
   };
 
   // 获取所有考试期数（从考试记录中获取，确保包含所有记录）
-  const allExamNumbers = examRecords.map(r => r.index_number).sort((a, b) => a - b);
+  const allExamNumbers = examRecords.map(r => r.sort_order).sort((a, b) => a - b);
 
   // 创建考试信息映射（期数 -> {名称, 日期}）
   const examInfoMap = new Map<number, { name: string; date: string | null }>();
   examRecords.forEach(record => {
-    examInfoMap.set(record.index_number, {
-      name: record.exam_name || `第${record.index_number}期`,
+    examInfoMap.set(record.sort_order, {
+      name: record.exam_name || `第${record.sort_order}期`,
       date: record.exam_date,
     });
   });
@@ -793,7 +793,7 @@ export default function Dashboard() {
       module_name: '得分',
       exams: new Map(
         allExamNumbers.map(examNum => {
-          const exam = examRecords.find(r => r.index_number === examNum);
+          const exam = examRecords.find(r => r.sort_order === examNum);
           return [examNum, {
             exam_number: examNum,
             total_questions: 0,
@@ -982,7 +982,7 @@ export default function Dashboard() {
       <ul className="space-y-1">
         {exams.map(exam => (
           <li key={exam.id}>
-            <Tooltip title={`${exam.exam_name || `第${exam.index_number}期`} - ${exam.total_score}分`}>
+            <Tooltip title={`${exam.exam_name || `第${exam.sort_order}期`} - ${exam.total_score}分`}>
               <Badge 
                 status={getScoreColor(exam.total_score || 0)} 
                 text={
@@ -990,7 +990,7 @@ export default function Dashboard() {
                     className="text-xs cursor-pointer hover:underline"
                     onClick={() => navigate(`/exam/${exam.id}`)}
                   >
-                    {exam.exam_name || `第${exam.index_number}期`}
+                    {exam.exam_name || `第${exam.sort_order}期`}
                   </span>
                 }
               />
@@ -1031,7 +1031,7 @@ export default function Dashboard() {
           <ul className="mt-1 space-y-1 px-2 pb-1">
             {exams.map(exam => (
               <li key={exam.id}>
-                <Tooltip title={`${exam.exam_name || `第${exam.index_number}期`} - ${exam.total_score}分`}>
+                <Tooltip title={`${exam.exam_name || `第${exam.sort_order}期`} - ${exam.total_score}分`}>
                   <Badge 
                     status={getScoreColor(exam.total_score || 0)} 
                     text={
@@ -1039,7 +1039,7 @@ export default function Dashboard() {
                         className="text-xs cursor-pointer hover:underline"
                         onClick={() => navigate(`/exam/${exam.id}`)}
                       >
-                        {exam.exam_name || `第${exam.index_number}期`}
+                        {exam.exam_name || `第${exam.sort_order}期`}
                       </span>
                     }
                   />
@@ -1087,7 +1087,7 @@ export default function Dashboard() {
             <ul className="space-y-1">
               {monthExams.map(exam => (
                 <li key={exam.id}>
-                  <Tooltip title={`${exam.exam_name || `第${exam.index_number}期`} - ${exam.total_score}分`}>
+                  <Tooltip title={`${exam.exam_name || `第${exam.sort_order}期`} - ${exam.total_score}分`}>
                     <Badge 
                       status={getScoreColor(exam.total_score || 0)} 
                       text={
@@ -1095,7 +1095,7 @@ export default function Dashboard() {
                           className="text-xs cursor-pointer hover:underline"
                           onClick={() => navigate(`/exam/${exam.id}`)}
                         >
-                          {dayjs(exam.exam_date).format('MM-DD')} {exam.exam_name || `第${exam.index_number}期`}
+                          {dayjs(exam.exam_date).format('MM-DD')} {exam.exam_name || `第${exam.sort_order}期`}
                         </span>
                       }
                     />
@@ -1186,7 +1186,7 @@ export default function Dashboard() {
       const headerRow: any = { '模块名称': '模块名称' };
       allExamNumbers.forEach(examNum => {
         // 查找对应的考试记录获取考试名称
-        const examRecord = examRecords.find(r => r.index_number === examNum);
+        const examRecord = examRecords.find(r => r.sort_order === examNum);
         const examName = examRecord?.exam_name || `第${examNum}期`;
         
         headerRow[`${examName}_题目数/答对数`] = '题目数/答对数';
@@ -1203,7 +1203,7 @@ export default function Dashboard() {
         
         allExamNumbers.forEach(examNum => {
           const examData = record.exams.get(examNum);
-          const examRecord = examRecords.find(r => r.index_number === examNum);
+          const examRecord = examRecords.find(r => r.sort_order === examNum);
           const examName = examRecord?.exam_name || `第${examNum}期`;
           
           if (examData) {
@@ -1648,7 +1648,7 @@ export default function Dashboard() {
                     得分
                   </td>
                   {allExamNumbers.map(examNum => {
-                    const exam = examRecords.find(r => r.index_number === examNum);
+                    const exam = examRecords.find(r => r.sort_order === examNum);
                     const score = exam?.total_score || 0;
                     return (
                       <td key={examNum} className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center font-semibold text-lg text-green-600 dark:text-green-400">

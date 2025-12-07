@@ -93,7 +93,7 @@ export default function ModuleAnalysis() {
       const { data: exams, error: examsError } = await supabase
         .from('exam_records')
         .select('*')
-        .order('index_number', { ascending: true });
+        .order('sort_order', { ascending: true });
 
       if (examsError) throw examsError;
       
@@ -121,12 +121,12 @@ export default function ModuleAnalysis() {
           exam_record_id,
           exam_records!inner(
             id,
-            index_number,
+            sort_order,
             exam_name
           )
         `)
         .in('module_name', subModules)
-        .order('exam_records(index_number)', { ascending: true });
+        .order('exam_records(sort_order)', { ascending: true });
 
       if (error) {
         console.error('查询模块分数失败:', error);
@@ -139,7 +139,7 @@ export default function ModuleAnalysis() {
       const examMap = new Map<number, { exam_name?: string; modules: Map<string, number> }>();
       
       moduleScores?.forEach((score: any) => {
-        const examNumber = score.exam_records.index_number;
+        const examNumber = score.exam_records.sort_order;
         const examName = score.exam_records.exam_name;
         
         if (!examMap.has(examNumber)) {
