@@ -13,7 +13,8 @@ import {
   Row,
   Col,
   Space,
-  Typography
+  Typography,
+  Tabs
 } from 'antd';
 import { 
   ArrowLeftOutlined, 
@@ -90,6 +91,7 @@ export default function ExamDetail() {
   const [isEditingReportUrl, setIsEditingReportUrl] = useState(false);
   const [reportUrl, setReportUrl] = useState<string>('');
   const [isSaving, setIsSaving] = useState(false);
+  const [timeChartType, setTimeChartType] = useState<'pie' | 'bar'>('pie'); // 用时图表类型，默认饼图
   // 使用 antd message
   const navigate = useNavigate();
 
@@ -577,6 +579,69 @@ export default function ExamDetail() {
     ],
   };
 
+  // 模块用时饼图配置
+  const timeComparisonPieOption = {
+    title: {
+      text: '各模块用时对比',
+      left: 'center',
+    },
+    tooltip: {
+      trigger: 'item',
+      formatter: (params: any) => {
+        const minutes = (params.value / 60).toFixed(1);
+        const percent = params.percent.toFixed(1);
+        return `${params.marker}${params.name}<br/>用时: ${minutes}m<br/>占比: ${percent}%`;
+      },
+    },
+    legend: {
+      orient: 'vertical',
+      left: 'left',
+      top: 'middle',
+      textStyle: {
+        fontSize: 12,
+      },
+    },
+    series: [
+      {
+        name: '用时',
+        type: 'pie',
+        radius: ['40%', '70%'],
+        center: ['60%', '50%'],
+        avoidLabelOverlap: true,
+        itemStyle: {
+          borderRadius: 10,
+          borderColor: '#fff',
+          borderWidth: 2,
+        },
+        label: {
+          show: true,
+          formatter: (params: any) => {
+            const minutes = (params.value / 60).toFixed(1);
+            return `${params.name}\n${minutes}m (${params.percent.toFixed(1)}%)`;
+          },
+          fontSize: 12,
+        },
+        emphasis: {
+          label: {
+            show: true,
+            fontSize: 14,
+            fontWeight: 'bold',
+          },
+        },
+        labelLine: {
+          show: true,
+        },
+        data: mainModules
+          .map(m => ({
+            name: m.module_name,
+            value: m.time_used || 0,
+          }))
+          .filter(item => item.value > 0) // 过滤掉用时为0的模块
+          .sort((a, b) => b.value - a.value), // 按用时降序排列
+      },
+    ],
+  };
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('zh-CN', {
@@ -817,25 +882,45 @@ export default function ExamDetail() {
             )}
           </Card>
 
-        <Card>
-          
-            
-              <TitleWithTooltip 
-                title="各模块用时对比" 
-                tooltip="柱状图展示各模块的答题用时统计，帮助分析时间分配是否合理。用时过长可能表示该模块需要提高答题速度，用时过短则需要注意准确率。"
+        <Card
+          title={
+            <TitleWithTooltip 
+              title="各模块用时对比" 
+              tooltip="展示各模块的答题用时统计，帮助分析时间分配是否合理。饼图显示用时占比，柱状图显示具体用时。"
+            />
+          }
+          extra={
+            <Tabs
+              activeKey={timeChartType}
+              onChange={(key) => setTimeChartType(key as 'pie' | 'bar')}
+              items={[
+                { key: 'pie', label: '饼图' },
+                { key: 'bar', label: '柱状图' },
+              ]}
+              size="small"
+            />
+          }
+        >
+          {mainModules.length > 0 ? (
+            timeChartType === 'pie' ? (
+              <ReactECharts 
+                key="pie-chart"
+                option={timeComparisonPieOption} 
+                style={{ height: '400px' }} 
               />
-            
-            各模块答题用时统计
-          
-          
-            {mainModules.length > 0 ? (
-              <ReactECharts option={timeComparisonOption} style={{ height: '400px' }} />
             ) : (
-              <div className="flex items-center justify-center h-[400px] text-gray-500">
-                暂无数据
-              </div>
-            )}
-          </Card>
+              <ReactECharts 
+                key="bar-chart"
+                option={timeComparisonOption} 
+                style={{ height: '400px' }} 
+              />
+            )
+          ) : (
+            <div className="flex items-center justify-center h-[400px] text-gray-500">
+              暂无数据
+            </div>
+          )}
+        </Card>
       </div>
 
       {/* 模块详情表格 */}
