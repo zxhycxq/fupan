@@ -560,6 +560,7 @@ export default function Dashboard() {
     tooltip: {
       trigger: 'item',
       formatter: (params: any) => {
+        if (!params || params.value === undefined || params.value === null) return '';
         const minutes = params.value.toFixed(1);
         const percent = params.percent.toFixed(1);
         return `${params.marker}${params.name}<br/>用时: ${minutes}m<br/>占比: ${percent}%`;
