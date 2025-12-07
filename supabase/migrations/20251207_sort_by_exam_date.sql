@@ -5,7 +5,7 @@
 根据考试日期对现有的考试记录进行重新排序，更新sort_order字段。
 
 ## 排序规则
-1. 有考试日期的记录按日期降序排列（最新的在前面）
+1. 有考试日期的记录按日期升序排列（最早的在前面，最新的在后面）
 2. 没有考试日期的记录排在最后
 3. 日期相同的记录保持原有的sort_order顺序
 
@@ -24,7 +24,7 @@ SELECT
         WHEN exam_date IS NULL THEN 1 
         ELSE 0 
       END,
-      exam_date DESC NULLS LAST,
+      exam_date ASC NULLS LAST,
       sort_order ASC
   ) as new_sort_order
 FROM exam_records;

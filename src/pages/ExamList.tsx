@@ -471,7 +471,6 @@ export default function ExamList() {
                   <Button 
                     type="primary" 
                     onClick={handleSaveSort} 
-                    size="small"
                     loading={isSavingSort}
                     disabled={isSavingSort}
                   >
@@ -479,7 +478,6 @@ export default function ExamList() {
                   </Button>
                   <Button 
                     onClick={handleCancelSort} 
-                    size="small"
                     disabled={isSavingSort}
                   >
                     取消排序
@@ -490,7 +488,6 @@ export default function ExamList() {
                 type="primary"
                 icon={<PlusOutlined />}
                 onClick={() => navigate('/upload')}
-                size="small"
                 disabled={isSavingSort}
               >
                 上传新记录
