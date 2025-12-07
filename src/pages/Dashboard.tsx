@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ReactECharts from 'echarts-for-react';
-import { Table, Card, Skeleton, Statistic, Row, Col, Button, message, Calendar, Badge, Tooltip, Select, Tabs } from 'antd';
+import { Table, Card, Skeleton, Statistic, Row, Col, Button, message, Calendar, Badge, Tooltip, Select } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import type { Dayjs } from 'dayjs';
 import { RiseOutlined, ClockCircleOutlined, AimOutlined, TrophyOutlined, DownloadOutlined } from '@ant-design/icons';
@@ -69,7 +69,6 @@ export default function Dashboard() {
   const [countdown, setCountdown] = useState<{ days: number; hours: number; minutes: number } | null>(null);
   const [todayPoem, setTodayPoem] = useState<string>('');
   const [calendarValue, setCalendarValue] = useState<Dayjs>(dayjs()); // 日历当前显示的月份
-  const [timeChartType, setTimeChartType] = useState<'pie' | 'bar'>('pie'); // 用时图表类型，默认饼图
 
   // 安全地获取窗口宽度
   const getWindowWidth = () => {
@@ -546,86 +545,6 @@ export default function Dashboard() {
         ][index % 8],
       },
     })),
-  };
-
-  // 模块用时饼图配置
-  const moduleTimePieOption = {
-    title: {
-      text: '各模块用时对比',
-      left: 'center',
-      textStyle: {
-        fontSize: isMobile ? 14 : 16,
-      },
-    },
-    tooltip: {
-      trigger: 'item',
-      formatter: (params: any) => {
-        if (!params || params.value === undefined || params.value === null) return '';
-        const minutes = params.value.toFixed(1);
-        const percent = params.percent.toFixed(1);
-        return `${params.marker}${params.name}<br/>用时: ${minutes}m<br/>占比: ${percent}%`;
-      },
-    },
-    legend: {
-      orient: 'vertical',
-      left: 'left',
-      top: 'middle',
-      textStyle: {
-        fontSize: isMobile ? 10 : 12,
-      },
-    },
-    series: [
-      {
-        name: '用时',
-        type: 'pie',
-        radius: ['40%', '70%'],
-        center: ['60%', '50%'],
-        avoidLabelOverlap: true,
-        itemStyle: {
-          borderRadius: 10,
-          borderColor: '#fff',
-          borderWidth: 2,
-        },
-        label: {
-          show: true,
-          formatter: '{b}\n{d}%',
-          fontSize: isMobile ? 10 : 12,
-        },
-        emphasis: {
-          label: {
-            show: true,
-            fontSize: isMobile ? 12 : 14,
-            fontWeight: 'bold',
-          },
-        },
-        labelLine: {
-          show: true,
-        },
-        data: (() => {
-          // 计算每个模块的总用时
-          const moduleTimeMap = new Map<string, number>();
-          
-          moduleDetailedStats.forEach(stat => {
-            const moduleName = stat.parent_module || stat.module_name;
-            const timeInMinutes = stat.time_used / 60; // 转换为分钟
-            
-            if (moduleTimeMap.has(moduleName)) {
-              moduleTimeMap.set(moduleName, moduleTimeMap.get(moduleName)! + timeInMinutes);
-            } else {
-              moduleTimeMap.set(moduleName, timeInMinutes);
-            }
-          });
-          
-          // 转换为饼图数据格式
-          return Array.from(moduleTimeMap.entries())
-            .map(([name, value]) => ({
-              name,
-              value: Number(value.toFixed(1)),
-            }))
-            .sort((a, b) => b.value - a.value); // 按用时降序排列
-        })(),
-      },
-    ],
   };
 
   // 得分分布图配置
@@ -1673,33 +1592,16 @@ export default function Dashboard() {
           </Card>
         </Col>
 
-        {/* 模块用时图表（饼图/柱状图切换） */}
+        {/* 模块用时趋势图独占一行 */}
         <Col xs={24}>
           <Card
-            title="各模块用时对比"
-            extra={
-              <Tabs
-                activeKey={timeChartType}
-                onChange={(key) => setTimeChartType(key as 'pie' | 'bar')}
-                items={[
-                  { key: 'pie', label: '饼图' },
-                  { key: 'bar', label: '趋势图' },
-                ]}
-                size="small"
-              />
-            }
+            title="各模块用时趋势"
+            extra={<span className="text-sm text-gray-500">查看各模块用时变化</span>}
           >
-            {timeChartType === 'pie' ? (
-              <ReactECharts 
-                option={moduleTimePieOption} 
-                style={{ height: isMobile ? '350px' : '450px' }} 
-              />
-            ) : (
-              <ReactECharts 
-                option={moduleTimeTrendOption} 
-                style={{ height: isMobile ? '350px' : '450px' }} 
-              />
-            )}
+            <ReactECharts 
+              option={moduleTimeTrendOption} 
+              style={{ height: isMobile ? '350px' : '450px' }} 
+            />
           </Card>
         </Col>
 
