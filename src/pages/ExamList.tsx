@@ -33,6 +33,7 @@ export default function ExamList() {
   const [notesModalContent, setNotesModalContent] = useState<string>('');
   const [editingRecordId, setEditingRecordId] = useState<string>('');
   const [isSaving, setIsSaving] = useState(false);
+  const [isSavingSort, setIsSavingSort] = useState(false); // 新增：保存排序的loading状态
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [form] = Form.useForm();
@@ -167,6 +168,8 @@ export default function ExamList() {
   // 保存排序
   const handleSaveSort = async () => {
     try {
+      setIsSavingSort(true); // 开始保存，显示loading
+      
       // 更新每条记录的 sort_order
       const updates = examRecords.map((record, index) => ({
         id: record.id,
@@ -184,6 +187,8 @@ export default function ExamList() {
     } catch (error) {
       console.error('保存排序失败:', error);
       message.error('保存排序失败，请重试');
+    } finally {
+      setIsSavingSort(false); // 保存完成，隐藏loading
     }
   };
 
@@ -375,6 +380,7 @@ export default function ExamList() {
             onClick={() => handleShowNotes(record.id, 'improvements', record.improvements || '')}
             title="有进步的地方"
             className={record.improvements ? 'text-green-600' : 'text-gray-400'}
+            disabled={isSavingSort} // 保存排序时禁用备注
           />
           <Button
             type="text"
@@ -383,6 +389,7 @@ export default function ExamList() {
             onClick={() => handleShowNotes(record.id, 'mistakes', record.mistakes || '')}
             title="出错的地方"
             className={record.mistakes ? 'text-red-600' : 'text-gray-400'}
+            disabled={isSavingSort} // 保存排序时禁用备注
           />
         </Space>
       ),
@@ -397,6 +404,7 @@ export default function ExamList() {
           allowHalf
           value={value || 0}
           onChange={(rating) => handleRatingChange(record.id, rating)}
+          disabled={isSavingSort} // 保存排序时禁用星级修改
         />
       ),
     },
@@ -413,6 +421,7 @@ export default function ExamList() {
             icon={<EyeOutlined />}
             onClick={() => navigate(`/exam/${record.id}`)}
             title="查看详情"
+            disabled={isSavingSort} // 保存排序时禁用查看
           />
           <Button
             type="text"
@@ -420,6 +429,7 @@ export default function ExamList() {
             icon={<EditOutlined />}
             onClick={() => openEditDrawer(record)}
             title="编辑"
+            disabled={isSavingSort} // 保存排序时禁用编辑
           />
           <Button
             type="text"
@@ -428,6 +438,7 @@ export default function ExamList() {
             icon={<DeleteOutlined />}
             onClick={() => handleDelete(record.id, record.exam_name)}
             title="删除"
+            disabled={isSavingSort} // 保存排序时禁用删除
           />
         </Space>
       ),
@@ -457,10 +468,20 @@ export default function ExamList() {
             <div className="flex flex-wrap items-center gap-2">
               {hasUnsavedSort && (
                 <>
-                  <Button type="primary" onClick={handleSaveSort} size="small">
+                  <Button 
+                    type="primary" 
+                    onClick={handleSaveSort} 
+                    size="small"
+                    loading={isSavingSort}
+                    disabled={isSavingSort}
+                  >
                     保存排序
                   </Button>
-                  <Button onClick={handleCancelSort} size="small">
+                  <Button 
+                    onClick={handleCancelSort} 
+                    size="small"
+                    disabled={isSavingSort}
+                  >
                     取消排序
                   </Button>
                 </>
@@ -470,6 +491,7 @@ export default function ExamList() {
                 icon={<PlusOutlined />}
                 onClick={() => navigate('/upload')}
                 size="small"
+                disabled={isSavingSort}
               >
                 上传新记录
               </Button>
@@ -502,6 +524,7 @@ export default function ExamList() {
               columns={columns}
               dataSource={examRecords}
               rowKey="id"
+              className="select-none" // 添加禁止文字选中的CSS类
               pagination={{
                 current: currentPage,
                 pageSize: pageSize,
@@ -519,6 +542,7 @@ export default function ExamList() {
                   setCurrentPage(page);
                   setPageSize(size);
                 },
+                disabled: isSavingSort, // 保存排序时禁用分页
               }}
               scroll={{ x: 1400 }}
               components={{
