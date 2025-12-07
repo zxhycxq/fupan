@@ -234,7 +234,7 @@ export default function Dashboard() {
     grid: {
       left: isMobile ? '5%' : '3%',
       right: isMobile ? '5%' : '4%',
-      bottom: isMobile ? '8%' : '3%',
+      bottom: isMobile ? '15%' : '12%', // 增加底部空间以容纳旋转的标签
       top: isMobile ? 50 : 60,
       containLabel: true,
     },
@@ -247,7 +247,8 @@ export default function Dashboard() {
       }),
       axisLabel: {
         fontSize: isMobile ? 10 : 12,
-        rotate: isMobile ? 30 : 0, // 移动端旋转标签以节省空间
+        rotate: 45, // 始终旋转标签以完整显示
+        interval: 0, // 显示所有标签
       },
     },
     yAxis: {
@@ -389,7 +390,7 @@ export default function Dashboard() {
     grid: {
       left: isMobile ? '8%' : '5%',
       right: isMobile ? '8%' : '5%',
-      bottom: isMobile ? '8%' : '3%',
+      bottom: isMobile ? '15%' : '12%', // 增加底部空间以容纳旋转的标签
       top: isMobile ? 70 : 80,
       containLabel: true,
     },
@@ -408,7 +409,8 @@ export default function Dashboard() {
       },
       axisLabel: {
         fontSize: isMobile ? 10 : 12,
-        rotate: isMobile ? 30 : 0, // 移动端旋转标签
+        rotate: 45, // 始终旋转标签以完整显示
+        interval: 0, // 显示所有标签
       },
     },
     yAxis: {
@@ -484,7 +486,7 @@ export default function Dashboard() {
     grid: {
       left: isMobile ? '8%' : '5%',
       right: isMobile ? '8%' : '5%',
-      bottom: isMobile ? '8%' : '3%',
+      bottom: isMobile ? '15%' : '12%', // 增加底部空间以容纳旋转的标签
       top: isMobile ? 70 : 80,
       containLabel: true,
     },
@@ -503,7 +505,8 @@ export default function Dashboard() {
       },
       axisLabel: {
         fontSize: isMobile ? 10 : 12,
-        rotate: isMobile ? 30 : 0, // 移动端旋转标签
+        rotate: 45, // 始终旋转标签以完整显示
+        interval: 0, // 显示所有标签
       },
     },
     yAxis: {
