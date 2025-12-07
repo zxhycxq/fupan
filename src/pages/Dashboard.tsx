@@ -1458,10 +1458,10 @@ export default function Dashboard() {
       <Row gutter={[16, 16]} className="mb-8">
         {/* 左侧：平均分仪表盘 */}
         <Col xs={24} lg={8}>
-          <Card className="h-full flex items-center justify-center">
+          <Card className="h-full flex items-center justify-center p-2">
             <ReactECharts
               option={averageScoreGaugeOption}
-              style={{ height: isMobile ? '280px' : '320px', width: '100%' }}
+              style={{ height: isMobile ? '300px' : '360px', width: '100%' }}
               opts={{ renderer: 'svg' }}
             />
           </Card>
