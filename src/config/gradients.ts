@@ -85,12 +85,13 @@ export function generateGradientStyle(gradient: GradientColor, angle: number = 1
 /**
  * 为Dashboard页面的统计卡片预定义渐变色
  * 顺序：考试次数、平均分、最高分、平均用时
+ * 使用更柔和的颜色，与整体风格协调
  */
 export const DASHBOARD_GRADIENTS = [
-  GRADIENT_COLORS[0],  // 考试次数 - 紫色渐变
-  GRADIENT_COLORS[1],  // 平均分 - 橙红渐变
-  GRADIENT_COLORS[2],  // 最高分 - 蓝色渐变
-  GRADIENT_COLORS[3],  // 平均用时 - 黄橙渐变
+  { from: '#E8D5F2', to: '#C8A8E0' },  // 考试次数 - 淡紫色渐变
+  { from: '#FFD4C4', to: '#FFB8A0' },  // 平均分 - 淡橙色渐变
+  { from: '#C4DFFF', to: '#A0C8FF' },  // 最高分 - 淡蓝色渐变
+  { from: '#FFF4C4', to: '#FFE8A0' },  // 平均用时 - 淡黄色渐变
 ];
 
 /**

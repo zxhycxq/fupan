@@ -1457,18 +1457,18 @@ export default function Dashboard() {
       {/* 平均分仪表盘和统计卡片 */}
       <Row gutter={[16, 16]} className="mb-8">
         {/* 左侧：平均分仪表盘 */}
-        <Col xs={24} lg={12}>
-          <Card className="h-full">
+        <Col xs={24} lg={8}>
+          <Card className="h-full flex items-center justify-center">
             <ReactECharts
               option={averageScoreGaugeOption}
-              style={{ height: isMobile ? '300px' : '400px' }}
+              style={{ height: isMobile ? '280px' : '320px', width: '100%' }}
               opts={{ renderer: 'svg' }}
             />
           </Card>
         </Col>
 
         {/* 右侧：统计卡片（两行两列） */}
-        <Col xs={24} lg={12}>
+        <Col xs={24} lg={16}>
           <Row gutter={[16, 16]}>
             {/* 第一行 */}
             <Col xs={24} sm={12}>
@@ -1477,13 +1477,13 @@ export default function Dashboard() {
                 style={{ background: generateGradientStyle(DASHBOARD_GRADIENTS[0]) }}
               >
                 <Statistic
-                  title={<span className="stat-title text-white">考试次数</span>}
+                  title={<span className="stat-title text-gray-700 dark:text-gray-200">考试次数</span>}
                   value={stats.totalExams}
                   suffix="次"
-                  prefix={<TrophyOutlined className="stat-icon text-white" />}
-                  valueStyle={{ color: 'white' }}
+                  prefix={<TrophyOutlined className="stat-icon text-purple-600 dark:text-purple-300" />}
+                  valueStyle={{ color: '#374151' }}
                 />
-                <div className="text-xs opacity-80 mt-2 text-white">累计考试次数</div>
+                <div className="text-xs opacity-70 mt-2 text-gray-600 dark:text-gray-300">累计考试次数</div>
               </Card>
             </Col>
 
@@ -1493,13 +1493,13 @@ export default function Dashboard() {
                 style={{ background: generateGradientStyle(DASHBOARD_GRADIENTS[1]) }}
               >
                 <Statistic
-                  title={<span className="stat-title text-white">平均分</span>}
+                  title={<span className="stat-title text-gray-700 dark:text-gray-200">平均分</span>}
                   value={stats.averageScore}
                   suffix="分"
-                  prefix={<RiseOutlined className="stat-icon text-white" />}
-                  valueStyle={{ color: 'white' }}
+                  prefix={<RiseOutlined className="stat-icon text-orange-600 dark:text-orange-300" />}
+                  valueStyle={{ color: '#374151' }}
                 />
-                <div className="text-xs opacity-80 mt-2 text-white">所有考试平均分</div>
+                <div className="text-xs opacity-70 mt-2 text-gray-600 dark:text-gray-300">所有考试平均分</div>
               </Card>
             </Col>
 
@@ -1510,13 +1510,13 @@ export default function Dashboard() {
                 style={{ background: generateGradientStyle(DASHBOARD_GRADIENTS[2]) }}
               >
                 <Statistic
-                  title={<span className="stat-title text-white">最高分</span>}
+                  title={<span className="stat-title text-gray-700 dark:text-gray-200">最高分</span>}
                   value={stats.highestScore}
                   suffix="分"
-                  prefix={<AimOutlined className="stat-icon text-white" />}
-                  valueStyle={{ color: 'white' }}
+                  prefix={<AimOutlined className="stat-icon text-blue-600 dark:text-blue-300" />}
+                  valueStyle={{ color: '#374151' }}
                 />
-                <div className="text-xs opacity-80 mt-2 text-white">历史最高分数</div>
+                <div className="text-xs opacity-70 mt-2 text-gray-600 dark:text-gray-300">历史最高分数</div>
               </Card>
             </Col>
 
@@ -1526,13 +1526,13 @@ export default function Dashboard() {
                 style={{ background: generateGradientStyle(DASHBOARD_GRADIENTS[3]) }}
               >
                 <Statistic
-                  title={<span className="stat-title text-white">平均用时</span>}
+                  title={<span className="stat-title text-gray-700 dark:text-gray-200">平均用时</span>}
                   value={stats.averageTime}
                   suffix="分钟"
-                  prefix={<ClockCircleOutlined className="stat-icon text-white" />}
-                  valueStyle={{ color: 'white' }}
+                  prefix={<ClockCircleOutlined className="stat-icon text-yellow-600 dark:text-yellow-300" />}
+                  valueStyle={{ color: '#374151' }}
                 />
-                <div className="text-xs opacity-80 mt-2 text-white">平均答题时长</div>
+                <div className="text-xs opacity-70 mt-2 text-gray-600 dark:text-gray-300">平均答题时长</div>
               </Card>
             </Col>
           </Row>
