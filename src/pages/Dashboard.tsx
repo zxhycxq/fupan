@@ -657,21 +657,24 @@ export default function Dashboard() {
           }
         },
         axisLabel: {
-          color: 'inherit',
+          color: '#1f2937', // 深灰色
           distance: 25,
-          fontSize: isMobile ? 10 : 12
+          fontSize: isMobile ? 12 : 14,
+          fontWeight: 500
         },
         detail: {
           valueAnimation: true,
           formatter: '{value} 分',
-          color: 'inherit',
-          fontSize: isMobile ? 20 : 28,
+          color: '#1f2937', // 深灰色
+          fontSize: isMobile ? 24 : 32,
+          fontWeight: 600,
           offsetCenter: [0, '70%']
         },
         title: {
           offsetCenter: [0, '90%'],
-          fontSize: isMobile ? 12 : 14,
-          color: '#666'
+          fontSize: isMobile ? 14 : 16,
+          color: '#4b5563', // 中灰色
+          fontWeight: 500
         },
         data: [
           {
@@ -1469,11 +1472,11 @@ export default function Dashboard() {
 
         {/* 右侧：统计卡片（两行两列） */}
         <Col xs={24} lg={12}>
-          <Row gutter={[16, 16]}>
+          <Row gutter={[16, 16]} className="h-full">
             {/* 第一行 */}
             <Col xs={24} sm={12}>
               <Card 
-                className="stat-card stat-card-primary" 
+                className="stat-card stat-card-primary h-full" 
                 style={{ background: generateGradientStyle(DASHBOARD_GRADIENTS[0]) }}
               >
                 <Statistic
@@ -1489,7 +1492,7 @@ export default function Dashboard() {
 
             <Col xs={24} sm={12}>
               <Card 
-                className="stat-card stat-card-success"
+                className="stat-card stat-card-success h-full"
                 style={{ background: generateGradientStyle(DASHBOARD_GRADIENTS[1]) }}
               >
                 <Statistic
@@ -1506,7 +1509,7 @@ export default function Dashboard() {
             {/* 第二行 */}
             <Col xs={24} sm={12}>
               <Card 
-                className="stat-card stat-card-warning"
+                className="stat-card stat-card-warning h-full"
                 style={{ background: generateGradientStyle(DASHBOARD_GRADIENTS[2]) }}
               >
                 <Statistic
@@ -1522,7 +1525,7 @@ export default function Dashboard() {
 
             <Col xs={24} sm={12}>
               <Card 
-                className="stat-card stat-card-info"
+                className="stat-card stat-card-info h-full"
                 style={{ background: generateGradientStyle(DASHBOARD_GRADIENTS[3]) }}
               >
                 <Statistic
