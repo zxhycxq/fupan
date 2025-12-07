@@ -489,7 +489,7 @@ export default function Dashboard() {
     },
     yAxis: {
       type: 'value',
-      name: '用时(分钟)',
+      name: '用时(m)',
       min: 0,
       nameTextStyle: {
         fontSize: isMobile ? 10 : 12,
@@ -945,7 +945,7 @@ export default function Dashboard() {
               }
               // 将秒转换为分钟，保留1位小数
               const minutes = (examData.time_used / 60).toFixed(1);
-              const content = `${minutes}分`;
+              const content = `${minutes}m`;
               return record.key === 'total' ? <strong>{content}</strong> : content;
             }
             // 子模块不显示用时
@@ -1191,7 +1191,7 @@ export default function Dashboard() {
         
         headerRow[`${examName}_题目数/答对数`] = '题目数/答对数';
         headerRow[`${examName}_正确率`] = '正确率';
-        headerRow[`${examName}_用时`] = '用时(分钟)';
+        headerRow[`${examName}_用时`] = '用时(m)';
       });
       exportData.push(headerRow);
       

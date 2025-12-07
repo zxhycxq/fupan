@@ -305,13 +305,16 @@ export default function ExamList() {
     },
     {
       title: (
-        <Tooltip title="超过115分钟可能来不及涂卡">
+        <Space size={4}>
           <span>用时</span>
-        </Tooltip>
+          <Tooltip title="超过115分钟可能来不及涂卡，会显示为红色">
+            <InfoCircleOutlined className="text-gray-400 text-xs" />
+          </Tooltip>
+        </Space>
       ),
       dataIndex: 'time_used',
       key: 'time_used',
-      width: 70,
+      width: 90,
       render: (value: number | null) => {
         if (!value) return '-';
         
