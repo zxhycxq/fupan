@@ -332,7 +332,7 @@ export default function ExamList() {
       title: '平均分',
       dataIndex: 'average_score',
       key: 'average_score',
-      width: 70,
+      width: 85,
       render: (value: number | null) => (
         value ? value.toFixed(1) : '-'
       ),
@@ -341,7 +341,7 @@ export default function ExamList() {
       title: '击败率',
       dataIndex: 'pass_rate',
       key: 'pass_rate',
-      width: 70,
+      width: 85,
       render: (value: number | null) => (
         value ? `${value.toFixed(1)}%` : '-'
       ),

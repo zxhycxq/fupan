@@ -198,12 +198,13 @@ export async function getModuleAverageScores(): Promise<{ module_name: string; a
 export async function getModuleTrendData(): Promise<{
   exam_numbers: number[];
   exam_names: string[];
+  exam_dates: (string | null)[];
   modules: { module_name: string; data: (number | null)[] }[];
 }> {
   // 获取所有考试记录和模块得分
   const { data: examRecords, error: examError } = await supabase
     .from('exam_records')
-    .select('id, exam_number, exam_name, sort_order')
+    .select('id, exam_number, exam_name, exam_date, sort_order')
     .order('sort_order', { ascending: true });
 
   if (examError) {
@@ -212,7 +213,7 @@ export async function getModuleTrendData(): Promise<{
   }
 
   if (!Array.isArray(examRecords) || examRecords.length === 0) {
-    return { exam_numbers: [], exam_names: [], modules: [] };
+    return { exam_numbers: [], exam_names: [], exam_dates: [], modules: [] };
   }
 
   // 获取所有主模块得分
@@ -228,12 +229,13 @@ export async function getModuleTrendData(): Promise<{
   }
 
   if (!Array.isArray(moduleScores)) {
-    return { exam_numbers: [], exam_names: [], modules: [] };
+    return { exam_numbers: [], exam_names: [], exam_dates: [], modules: [] };
   }
 
   // 构建数据结构
   const exam_numbers = examRecords.map(r => r.exam_number);
   const exam_names = examRecords.map(r => r.exam_name || `第${r.exam_number}期`);
+  const exam_dates = examRecords.map(r => r.exam_date);
   const moduleMap = new Map<string, Map<string, number>>();
 
   // 按模块名称和考试ID组织数据
@@ -253,19 +255,20 @@ export async function getModuleTrendData(): Promise<{
     return { module_name, data };
   });
 
-  return { exam_numbers, exam_names, modules };
+  return { exam_numbers, exam_names, exam_dates, modules };
 }
 
 // 获取模块用时趋势数据
 export async function getModuleTimeTrendData(): Promise<{
   exam_numbers: number[];
   exam_names: string[];
+  exam_dates: (string | null)[];
   modules: { module_name: string; data: (number | null)[] }[];
 }> {
   // 获取所有考试记录
   const { data: examRecords, error: examError } = await supabase
     .from('exam_records')
-    .select('id, exam_number, exam_name, sort_order')
+    .select('id, exam_number, exam_name, exam_date, sort_order')
     .order('sort_order', { ascending: true });
 
   if (examError) {
@@ -274,7 +277,7 @@ export async function getModuleTimeTrendData(): Promise<{
   }
 
   if (!Array.isArray(examRecords) || examRecords.length === 0) {
-    return { exam_numbers: [], exam_names: [], modules: [] };
+    return { exam_numbers: [], exam_names: [], exam_dates: [], modules: [] };
   }
 
   // 获取所有主模块的用时数据
@@ -290,12 +293,13 @@ export async function getModuleTimeTrendData(): Promise<{
   }
 
   if (!Array.isArray(moduleScores)) {
-    return { exam_numbers: [], exam_names: [], modules: [] };
+    return { exam_numbers: [], exam_names: [], exam_dates: [], modules: [] };
   }
 
   // 构建数据结构
   const exam_numbers = examRecords.map(r => r.exam_number);
   const exam_names = examRecords.map(r => r.exam_name || `第${r.exam_number}期`);
+  const exam_dates = examRecords.map(r => r.exam_date);
   const moduleMap = new Map<string, Map<string, number>>();
 
   // 按模块名称和考试ID组织数据，将秒转换为分钟
@@ -317,7 +321,7 @@ export async function getModuleTimeTrendData(): Promise<{
     return { module_name, data };
   });
 
-  return { exam_numbers, exam_names, modules };
+  return { exam_numbers, exam_names, exam_dates, modules };
 }
 
 // 更新模块得分

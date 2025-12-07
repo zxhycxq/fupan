@@ -42,13 +42,15 @@ export default function Dashboard() {
   const [moduleTrendData, setModuleTrendData] = useState<{
     exam_numbers: number[];
     exam_names?: string[]; // 添加考试名称数组
+    exam_dates?: (string | null)[]; // 添加考试日期数组
     modules: { module_name: string; data: (number | null)[] }[];
-  }>({ exam_numbers: [], exam_names: [], modules: [] });
+  }>({ exam_numbers: [], exam_names: [], exam_dates: [], modules: [] });
   const [moduleTimeTrendData, setModuleTimeTrendData] = useState<{
     exam_numbers: number[];
     exam_names?: string[];
+    exam_dates?: (string | null)[];
     modules: { module_name: string; data: (number | null)[] }[];
-  }>({ exam_numbers: [], exam_names: [], modules: [] });
+  }>({ exam_numbers: [], exam_names: [], exam_dates: [], modules: [] });
   const [moduleDetailedStats, setModuleDetailedStats] = useState<{
     exam_number: number;
     exam_name: string;
@@ -238,9 +240,14 @@ export default function Dashboard() {
     },
     xAxis: {
       type: 'category',
-      data: examRecords.map(r => r.exam_name || `第${r.exam_number}期`),
+      data: examRecords.map(r => {
+        const date = r.exam_date || '';
+        const name = r.exam_name || `第${r.exam_number}期`;
+        return date ? `${date} ${name}` : name;
+      }),
       axisLabel: {
         fontSize: isMobile ? 10 : 12,
+        rotate: isMobile ? 30 : 0, // 移动端旋转标签以节省空间
       },
     },
     yAxis: {
@@ -389,13 +396,19 @@ export default function Dashboard() {
     xAxis: {
       type: 'category',
       boundaryGap: ['5%', '5%'], // 左右留间隙
-      data: moduleTrendData.exam_names || moduleTrendData.exam_numbers.map(n => `第${n}次`),
+      data: moduleTrendData.exam_dates && moduleTrendData.exam_names 
+        ? moduleTrendData.exam_dates.map((date, idx) => {
+            const name = moduleTrendData.exam_names?.[idx] || `第${moduleTrendData.exam_numbers[idx]}次`;
+            return date ? `${date} ${name}` : name;
+          })
+        : moduleTrendData.exam_numbers.map(n => `第${n}次`),
       name: '考试',
       nameTextStyle: {
         fontSize: isMobile ? 10 : 12,
       },
       axisLabel: {
         fontSize: isMobile ? 10 : 12,
+        rotate: isMobile ? 30 : 0, // 移动端旋转标签
       },
     },
     yAxis: {
@@ -478,13 +491,19 @@ export default function Dashboard() {
     xAxis: {
       type: 'category',
       boundaryGap: ['5%', '5%'],
-      data: moduleTimeTrendData.exam_names || moduleTimeTrendData.exam_numbers.map(n => `第${n}次`),
+      data: moduleTimeTrendData.exam_dates && moduleTimeTrendData.exam_names 
+        ? moduleTimeTrendData.exam_dates.map((date, idx) => {
+            const name = moduleTimeTrendData.exam_names?.[idx] || `第${moduleTimeTrendData.exam_numbers[idx]}次`;
+            return date ? `${date} ${name}` : name;
+          })
+        : moduleTimeTrendData.exam_numbers.map(n => `第${n}次`),
       name: '考试',
       nameTextStyle: {
         fontSize: isMobile ? 10 : 12,
       },
       axisLabel: {
         fontSize: isMobile ? 10 : 12,
+        rotate: isMobile ? 30 : 0, // 移动端旋转标签
       },
     },
     yAxis: {

@@ -122,7 +122,8 @@ export default function ModuleAnalysis() {
           exam_records!inner(
             id,
             sort_order,
-            exam_name
+            exam_name,
+            exam_date
           )
         `)
         .in('module_name', subModules)
@@ -136,14 +137,15 @@ export default function ModuleAnalysis() {
       console.log('查询到的模块分数数据:', moduleScores);
 
       // 按考试期数分组
-      const examMap = new Map<number, { exam_name?: string; modules: Map<string, number> }>();
+      const examMap = new Map<number, { exam_name?: string; exam_date?: string | null; modules: Map<string, number> }>();
       
       moduleScores?.forEach((score: any) => {
         const examNumber = score.exam_records.sort_order;
         const examName = score.exam_records.exam_name;
+        const examDate = score.exam_records.exam_date;
         
         if (!examMap.has(examNumber)) {
-          examMap.set(examNumber, { exam_name: examName, modules: new Map() });
+          examMap.set(examNumber, { exam_name: examName, exam_date: examDate, modules: new Map() });
         }
         
         const examData = examMap.get(examNumber)!;
@@ -164,6 +166,7 @@ export default function ModuleAnalysis() {
       // 转换为图表数据格式
       const examNumbers = Array.from(examMap.keys()).sort((a, b) => a - b);
       const examNames = examNumbers.map(num => examMap.get(num)?.exam_name || `第${num}期`);
+      const examDates = examNumbers.map(num => examMap.get(num)?.exam_date || null);
       
       const series = subModules.map(moduleName => ({
         name: moduleName,
@@ -173,12 +176,12 @@ export default function ModuleAnalysis() {
         })
       }));
 
-      console.log('生成的图表数据:', { examNumbers, examNames, series });
+      console.log('生成的图表数据:', { examNumbers, examNames, examDates, series });
 
-      return { examNumbers, examNames, series };
+      return { examNumbers, examNames, examDates, series };
     } catch (error) {
       console.error('获取模块趋势数据失败:', error);
-      return { examNumbers: [], examNames: [], series: [] };
+      return { examNumbers: [], examNames: [], examDates: [], series: [] };
     }
   };
 
@@ -188,6 +191,7 @@ export default function ModuleAnalysis() {
     color: string,
     examNumbers: number[], 
     examNames: string[],
+    examDates: (string | null)[],
     series: { name: string; data: (number | null)[] }[]
   ) => {
     return {
@@ -234,7 +238,10 @@ export default function ModuleAnalysis() {
       xAxis: {
         type: 'category',
         boundaryGap: false,
-        data: examNumbers.map(num => `第${num}期`),
+        data: examDates.map((date, idx) => {
+          const name = examNames[idx] || `第${examNumbers[idx]}期`;
+          return date ? `${date} ${name}` : name;
+        }),
         axisLabel: {
           rotate: 45,
           interval: 0
@@ -272,8 +279,9 @@ export default function ModuleAnalysis() {
     const [chartData, setChartData] = useState<{
       examNumbers: number[];
       examNames: string[];
+      examDates?: (string | null)[];
       series: { name: string; data: (number | null)[] }[];
-    }>({ examNumbers: [], examNames: [], series: [] });
+    }>({ examNumbers: [], examNames: [], examDates: [], series: [] });
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -305,6 +313,7 @@ export default function ModuleAnalysis() {
           config.color,
           chartData.examNumbers,
           chartData.examNames,
+          chartData.examDates || [],
           chartData.series
         )}
         style={{ height: '400px' }}
