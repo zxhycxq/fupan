@@ -613,6 +613,76 @@ export default function Dashboard() {
     ],
   };
 
+  // 平均分仪表盘配置
+  const averageScoreGaugeOption = {
+    series: [
+      {
+        type: 'gauge',
+        startAngle: 180,
+        endAngle: 0,
+        min: 0,
+        max: 100,
+        splitNumber: 10,
+        axisLine: {
+          lineStyle: {
+            width: 20,
+            color: [
+              [0.6, '#5DADE2'], // 0-60分：蓝色
+              [0.8, '#48C9B0'], // 60-80分：青色
+              [1, '#EC7063']    // 80-100分：红色
+            ]
+          }
+        },
+        pointer: {
+          itemStyle: {
+            color: 'auto'
+          },
+          width: 5,
+          length: '70%'
+        },
+        axisTick: {
+          distance: -20,
+          length: 8,
+          lineStyle: {
+            color: '#fff',
+            width: 2
+          }
+        },
+        splitLine: {
+          distance: -20,
+          length: 15,
+          lineStyle: {
+            color: '#fff',
+            width: 3
+          }
+        },
+        axisLabel: {
+          color: 'inherit',
+          distance: 25,
+          fontSize: isMobile ? 10 : 12
+        },
+        detail: {
+          valueAnimation: true,
+          formatter: '{value} 分',
+          color: 'inherit',
+          fontSize: isMobile ? 20 : 28,
+          offsetCenter: [0, '70%']
+        },
+        title: {
+          offsetCenter: [0, '90%'],
+          fontSize: isMobile ? 12 : 14,
+          color: '#666'
+        },
+        data: [
+          {
+            value: stats.averageScore,
+            name: '平均分'
+          }
+        ]
+      }
+    ]
+  };
+
   // 准备表格数据
   interface ExamData {
     exam_number: number;
@@ -1384,70 +1454,88 @@ export default function Dashboard() {
         </Row>
       )}
 
-      {/* 统计卡片 */}
+      {/* 平均分仪表盘和统计卡片 */}
       <Row gutter={[16, 16]} className="mb-8">
-        <Col xs={24} sm={12} lg={6}>
-          <Card 
-            className="stat-card stat-card-primary" 
-            style={{ background: generateGradientStyle(DASHBOARD_GRADIENTS[0]) }}
-          >
-            <Statistic
-              title={<span className="stat-title text-white">考试次数</span>}
-              value={stats.totalExams}
-              suffix="次"
-              prefix={<TrophyOutlined className="stat-icon text-white" />}
-              valueStyle={{ color: 'white' }}
+        {/* 左侧：平均分仪表盘 */}
+        <Col xs={24} lg={12}>
+          <Card className="h-full">
+            <ReactECharts
+              option={averageScoreGaugeOption}
+              style={{ height: isMobile ? '300px' : '400px' }}
+              opts={{ renderer: 'svg' }}
             />
-            <div className="text-xs opacity-80 mt-2 text-white">累计考试次数</div>
           </Card>
         </Col>
 
-        <Col xs={24} sm={12} lg={6}>
-          <Card 
-            className="stat-card stat-card-success"
-            style={{ background: generateGradientStyle(DASHBOARD_GRADIENTS[1]) }}
-          >
-            <Statistic
-              title={<span className="stat-title text-white">平均分</span>}
-              value={stats.averageScore}
-              suffix="分"
-              prefix={<RiseOutlined className="stat-icon text-white" />}
-              valueStyle={{ color: 'white' }}
-            />
-            <div className="text-xs opacity-80 mt-2 text-white">所有考试平均分</div>
-          </Card>
-        </Col>
+        {/* 右侧：统计卡片（两行两列） */}
+        <Col xs={24} lg={12}>
+          <Row gutter={[16, 16]}>
+            {/* 第一行 */}
+            <Col xs={24} sm={12}>
+              <Card 
+                className="stat-card stat-card-primary" 
+                style={{ background: generateGradientStyle(DASHBOARD_GRADIENTS[0]) }}
+              >
+                <Statistic
+                  title={<span className="stat-title text-white">考试次数</span>}
+                  value={stats.totalExams}
+                  suffix="次"
+                  prefix={<TrophyOutlined className="stat-icon text-white" />}
+                  valueStyle={{ color: 'white' }}
+                />
+                <div className="text-xs opacity-80 mt-2 text-white">累计考试次数</div>
+              </Card>
+            </Col>
 
-        <Col xs={24} sm={12} lg={6}>
-          <Card 
-            className="stat-card stat-card-warning"
-            style={{ background: generateGradientStyle(DASHBOARD_GRADIENTS[2]) }}
-          >
-            <Statistic
-              title={<span className="stat-title text-white">最高分</span>}
-              value={stats.highestScore}
-              suffix="分"
-              prefix={<AimOutlined className="stat-icon text-white" />}
-              valueStyle={{ color: 'white' }}
-            />
-            <div className="text-xs opacity-80 mt-2 text-white">历史最高分数</div>
-          </Card>
-        </Col>
+            <Col xs={24} sm={12}>
+              <Card 
+                className="stat-card stat-card-success"
+                style={{ background: generateGradientStyle(DASHBOARD_GRADIENTS[1]) }}
+              >
+                <Statistic
+                  title={<span className="stat-title text-white">平均分</span>}
+                  value={stats.averageScore}
+                  suffix="分"
+                  prefix={<RiseOutlined className="stat-icon text-white" />}
+                  valueStyle={{ color: 'white' }}
+                />
+                <div className="text-xs opacity-80 mt-2 text-white">所有考试平均分</div>
+              </Card>
+            </Col>
 
-        <Col xs={24} sm={12} lg={6}>
-          <Card 
-            className="stat-card stat-card-info"
-            style={{ background: generateGradientStyle(DASHBOARD_GRADIENTS[3]) }}
-          >
-            <Statistic
-              title={<span className="stat-title text-white">平均用时</span>}
-              value={stats.averageTime}
-              suffix="分钟"
-              prefix={<ClockCircleOutlined className="stat-icon text-white" />}
-              valueStyle={{ color: 'white' }}
-            />
-            <div className="text-xs opacity-80 mt-2 text-white">平均答题时长</div>
-          </Card>
+            {/* 第二行 */}
+            <Col xs={24} sm={12}>
+              <Card 
+                className="stat-card stat-card-warning"
+                style={{ background: generateGradientStyle(DASHBOARD_GRADIENTS[2]) }}
+              >
+                <Statistic
+                  title={<span className="stat-title text-white">最高分</span>}
+                  value={stats.highestScore}
+                  suffix="分"
+                  prefix={<AimOutlined className="stat-icon text-white" />}
+                  valueStyle={{ color: 'white' }}
+                />
+                <div className="text-xs opacity-80 mt-2 text-white">历史最高分数</div>
+              </Card>
+            </Col>
+
+            <Col xs={24} sm={12}>
+              <Card 
+                className="stat-card stat-card-info"
+                style={{ background: generateGradientStyle(DASHBOARD_GRADIENTS[3]) }}
+              >
+                <Statistic
+                  title={<span className="stat-title text-white">平均用时</span>}
+                  value={stats.averageTime}
+                  suffix="分钟"
+                  prefix={<ClockCircleOutlined className="stat-icon text-white" />}
+                  valueStyle={{ color: 'white' }}
+                />
+                <div className="text-xs opacity-80 mt-2 text-white">平均答题时长</div>
+              </Card>
+            </Col>
+          </Row>
         </Col>
       </Row>
 
