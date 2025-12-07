@@ -55,10 +55,13 @@ function TitleWithTooltip({ title, tooltip }: { title: string; tooltip: string }
 
 // 格式化时间：秒转为"X分Y秒"
 function formatTime(seconds?: number): string {
-  if (!seconds) return '0分0秒';
+  if (!seconds) return '0m';
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = seconds % 60;
-  return `${minutes}分${remainingSeconds}秒`;
+  if (remainingSeconds === 0) {
+    return `${minutes}m`;
+  }
+  return `${minutes}.${remainingSeconds}m`;
 }
 
 // 分钟转秒
@@ -543,7 +546,7 @@ export default function ExamDetail() {
         if (!params || params.length === 0) return '';
         const param = params[0];
         const minutes = (param.value / 60).toFixed(1);
-        return `${param.name}<br/>用时: ${minutes}分钟`;
+        return `${param.name}<br/>用时: ${minutes}m`;
       },
     },
     xAxis: {
@@ -557,7 +560,7 @@ export default function ExamDetail() {
     },
     yAxis: {
       type: 'value',
-      name: '用时(分钟)',
+      name: '用时(m)',
       axisLabel: {
         formatter: (value: number) => (value / 60).toFixed(0),
       },
@@ -725,7 +728,7 @@ export default function ExamDetail() {
           <div className="text-3xl font-bold mb-1 text-white">
             {examDetail.time_used ? Math.round(examDetail.time_used / 60) : '-'}
           </div>
-          <p className="text-xs text-white opacity-80">分钟</p>
+          <p className="text-xs text-white opacity-80">m</p>
         </Card>
 
         <Card 
@@ -1038,7 +1041,7 @@ export default function ExamDetail() {
                             }}
                             autoFocus
                             className="w-20 h-8 text-sm"
-                            suffix="分"
+                            suffix="m"
                             disabled={isSaving}
                           />
                         </div>

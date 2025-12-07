@@ -292,7 +292,7 @@ export default function ExamList() {
       title: '总分',
       dataIndex: 'total_score',
       key: 'total_score',
-      width: 90,
+      width: 70,
       render: (value: number) => (
         <span
           className={`font-semibold ${
@@ -305,16 +305,13 @@ export default function ExamList() {
     },
     {
       title: (
-        <Space size={4}>
+        <Tooltip title="超过115分钟可能来不及涂卡">
           <span>用时</span>
-          <Tooltip title="超过115分钟可能来不及涂卡">
-            <InfoCircleOutlined className="text-gray-400 text-xs" />
-          </Tooltip>
-        </Space>
+        </Tooltip>
       ),
       dataIndex: 'time_used',
       key: 'time_used',
-      width: 140,
+      width: 70,
       render: (value: number | null) => {
         if (!value) return '-';
         
@@ -322,16 +319,9 @@ export default function ExamList() {
         const minutes = Math.round(value / 60);
         const isOvertime = minutes > 115;
         return (
-          <Space size={4}>
-            <span className={isOvertime ? 'text-red-600 font-semibold' : ''}>
-              {minutes}分钟
-            </span>
-            {isOvertime && (
-              <Tooltip title="超过115分钟可能来不及涂卡">
-                <ClockCircleOutlined className="text-red-600" />
-              </Tooltip>
-            )}
-          </Space>
+          <span className={isOvertime ? 'text-red-600 font-semibold' : ''}>
+            {minutes}m
+          </span>
         );
       },
     },
@@ -339,7 +329,7 @@ export default function ExamList() {
       title: '平均分',
       dataIndex: 'average_score',
       key: 'average_score',
-      width: 90,
+      width: 70,
       render: (value: number | null) => (
         value ? value.toFixed(1) : '-'
       ),
@@ -348,7 +338,7 @@ export default function ExamList() {
       title: '击败率',
       dataIndex: 'pass_rate',
       key: 'pass_rate',
-      width: 90,
+      width: 70,
       render: (value: number | null) => (
         value ? `${value.toFixed(1)}%` : '-'
       ),
