@@ -306,9 +306,24 @@ export default function ExamList() {
       dataIndex: 'exam_name',
       key: 'exam_name',
       width: 200,
-      render: (value: string) => (
-        <span className="font-medium">{value}</span>
-      ),
+      render: (value: string, record: ExamRecord) => {
+        // 如果有报告链接，显示为可点击的链接
+        if (record.report_url && record.report_url.trim()) {
+          return (
+            <a 
+              href={record.report_url} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="font-medium text-primary hover:text-primary/80 hover:underline"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {value}
+            </a>
+          );
+        }
+        // 否则显示普通文本
+        return <span className="font-medium">{value}</span>;
+      },
     },
     {
       title: '总分',
@@ -698,7 +713,7 @@ export default function ExamList() {
         okText="确定"
         cancelText="取消"
         confirmLoading={isSaving}
-        width={800}
+        width={window.innerWidth >= 1366 ? 1000 : 800}
       >
         <div>
           <WangEditor

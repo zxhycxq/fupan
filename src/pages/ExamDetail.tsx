@@ -731,19 +731,9 @@ export default function ExamDetail() {
         <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* 有进步的地方 */}
           <div className="p-3 bg-green-50 dark:bg-green-950/20 rounded-md border border-green-200 dark:border-green-800">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <RiseOutlined className="h-4 w-4 text-green-600 dark:text-green-400" />
-                <span className="text-sm font-medium text-green-700 dark:text-green-300">有进步的地方</span>
-              </div>
-              <Button
-                type="text"
-                size="small"
-                className="h-6 w-6"
-                onClick={() => handleEditNotes('improvements')}
-              >
-                <EditOutlined className="h-3 w-3" />
-              </Button>
+            <div className="flex items-center gap-2 mb-2">
+              <RiseOutlined className="h-4 w-4 text-green-600 dark:text-green-400" />
+              <span className="text-sm font-medium text-green-700 dark:text-green-300">有进步的地方</span>
             </div>
             {examDetail.improvements ? (
               <div 
@@ -757,19 +747,9 @@ export default function ExamDetail() {
 
           {/* 出错的地方 */}
           <div className="p-3 bg-red-50 dark:bg-red-950/20 rounded-md border border-red-200 dark:border-red-800">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <WarningOutlined className="h-4 w-4 text-red-600 dark:text-red-400" />
-                <span className="text-sm font-medium text-red-700 dark:text-red-300">出错的地方</span>
-              </div>
-              <Button
-                type="text"
-                size="small"
-                className="h-6 w-6"
-                onClick={() => handleEditNotes('mistakes')}
-              >
-                <EditOutlined className="h-3 w-3" />
-              </Button>
+            <div className="flex items-center gap-2 mb-2">
+              <WarningOutlined className="h-4 w-4 text-red-600 dark:text-red-400" />
+              <span className="text-sm font-medium text-red-700 dark:text-red-300">出错的地方</span>
             </div>
             {examDetail.mistakes ? (
               <div 
@@ -1222,7 +1202,7 @@ export default function ExamDetail() {
         okText="确定"
         cancelText="取消"
         confirmLoading={isSaving}
-        width={900}
+        width={window.innerWidth >= 1366 ? 1100 : 900}
       >
         <div className="space-y-4">
           {/* 有进步的地方 */}
