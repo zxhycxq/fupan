@@ -230,42 +230,79 @@ export default function ExamList() {
   };
 
   // 保存备注
-  // 导出文本
+  // 导出Word文档
   const handleExportText = () => {
     if (!editorRef.current) {
       message.error('编辑器未初始化');
       return;
     }
 
+    const html = editorRef.current.getHtml();
     const text = editorRef.current.getText();
     if (!text || text.trim() === '') {
       message.warning('内容为空，无法导出');
       return;
     }
 
-    // 创建Blob对象
-    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-    
-    // 创建下载链接
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    
-    // 获取当前记录的考试名称作为文件名
-    const currentRecord = examRecords.find(r => r.id === editingRecordId);
-    const examName = currentRecord?.exam_name || '考试记录';
-    const typeText = notesModalType === 'improvements' ? '进步' : '错误';
-    link.download = `${examName}-${typeText}.txt`;
-    
-    // 触发下载
-    document.body.appendChild(link);
-    link.click();
-    
-    // 清理
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    
-    message.success('导出成功');
+    try {
+      // 获取当前记录的考试名称作为文件名
+      const currentRecord = examRecords.find(r => r.id === editingRecordId);
+      const examName = currentRecord?.exam_name || '考试记录';
+      const typeText = notesModalType === 'improvements' ? '进步' : '错误';
+      
+      // 创建完整的HTML文档，添加Word可以识别的XML命名空间
+      const fullHtml = `
+        <!DOCTYPE html>
+        <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+        <head>
+          <meta charset="UTF-8">
+          <title>${examName}-${typeText}</title>
+          <style>
+            body {
+              font-family: "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
+              font-size: 14px;
+              line-height: 1.6;
+              padding: 20px;
+            }
+            p {
+              margin: 0.5em 0;
+            }
+            ul, ol {
+              margin: 0.5em 0;
+              padding-left: 2em;
+            }
+          </style>
+        </head>
+        <body>
+          ${html}
+        </body>
+        </html>
+      `;
+      
+      // 创建Blob对象，使用application/msword类型
+      const blob = new Blob(['\ufeff', fullHtml], { 
+        type: 'application/msword;charset=utf-8' 
+      });
+      
+      // 创建下载链接
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${examName}-${typeText}.doc`;
+      
+      // 触发下载
+      document.body.appendChild(link);
+      link.click();
+      
+      // 清理
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      message.success('导出成功');
+    } catch (error) {
+      console.error('导出Word失败:', error);
+      message.error('导出失败，请重试');
+    }
   };
 
   const handleSaveNotes = async () => {
@@ -757,7 +794,7 @@ export default function ExamList() {
             onClick={handleExportText}
             style={{ float: 'left' }}
           >
-            导出文本
+            导出Word
           </Button>,
           <Button key="cancel" onClick={() => setNotesModalVisible(false)}>
             取消

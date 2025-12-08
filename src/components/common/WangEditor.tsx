@@ -13,6 +13,7 @@ interface WangEditorProps {
 
 export interface WangEditorRef {
   getText: () => string;
+  getHtml: () => string;
 }
 
 const WangEditor = forwardRef<WangEditorRef, WangEditorProps>(({ 
@@ -30,6 +31,10 @@ const WangEditor = forwardRef<WangEditorRef, WangEditorProps>(({
     getText: () => {
       if (!editor) return '';
       return editor.getText();
+    },
+    getHtml: () => {
+      if (!editor) return '';
+      return editor.getHtml();
     }
   }));
 
