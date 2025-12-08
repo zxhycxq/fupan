@@ -362,42 +362,38 @@ All colors MUST be HSL.
   border-color: hsl(var(--primary));
 }
 
-/* 月视图单元格样式 - 固定高度，内容超出时滚动 */
+/* 月视图单元格样式 - 同一行高度一致，由内容最多的单元格决定 */
 .exam-calendar .ant-picker-calendar-mode-month .ant-picker-cell {
-  height: 100px;
+  min-height: 100px;
+  height: auto;
   vertical-align: top;
 }
 
 .exam-calendar .ant-picker-calendar-mode-month .ant-picker-cell-inner {
-  height: 100px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
+  min-height: 100px;
+  height: 100%;
+  display: block;
 }
 
 .exam-calendar .ant-picker-calendar-mode-month .ant-picker-calendar-date-content {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
+  min-height: 60px;
 }
 
-/* 年视图单元格样式 - 固定高度，内容超出时滚动 */
+/* 年视图单元格样式 - 同一行高度一致，由内容最多的单元格决定 */
 .exam-calendar .ant-picker-calendar-mode-year .ant-picker-cell {
-  height: 120px;
+  min-height: 120px;
+  height: auto;
   vertical-align: top;
 }
 
 .exam-calendar .ant-picker-calendar-mode-year .ant-picker-cell-inner {
-  height: 120px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
+  min-height: 120px;
+  height: 100%;
+  display: block;
 }
 
 .exam-calendar .ant-picker-calendar-mode-year .ant-picker-calendar-date-content {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
+  min-height: 80px;
 }
 
 @layer base {
