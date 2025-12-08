@@ -26,6 +26,7 @@ const SortableBody = SortableContainer((props: any) => <tbody {...props} />);
 export default function ExamList() {
   const [examRecords, setExamRecords] = useState<ExamRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [editingRecord, setEditingRecord] = useState<Partial<ExamRecord> | null>(null);
   const [hasUnsavedSort, setHasUnsavedSort] = useState(false);
@@ -69,6 +70,7 @@ export default function ExamList() {
   const loadExamRecords = async () => {
     try {
       setIsLoading(true);
+      setLoadError(null); // 清除之前的错误
       const records = await getAllExamRecords();
       setExamRecords(records);
       if (records.length === 0) {
@@ -76,7 +78,9 @@ export default function ExamList() {
       }
     } catch (error) {
       console.error('加载考试记录失败:', error);
-      message.error('加载考试记录失败，请刷新页面重试');
+      const errorMessage = '加载考试记录失败。可能是网络问题或浏览器扩展（如广告拦截器）阻止了请求。请尝试：\n1. 禁用广告拦截器\n2. 刷新页面重试\n3. 检查网络连接';
+      setLoadError(errorMessage);
+      message.error('加载考试记录失败，请查看页面提示');
       // 即使失败也设置空数组，避免页面崩溃
       setExamRecords([]);
     } finally {
@@ -567,6 +571,34 @@ export default function ExamList() {
             <Skeleton active />
             <Skeleton active />
           </div>
+        </Card>
+      </div>
+    );
+  }
+
+  // 显示错误状态
+  if (loadError) {
+    return (
+      <div className="container mx-auto py-4 px-2 xl:py-8 xl:px-4">
+        <Card>
+          <Alert
+            message="加载失败"
+            description={
+              <div className="space-y-4">
+                <div className="whitespace-pre-line">{loadError}</div>
+                <div className="flex gap-2">
+                  <Button type="primary" onClick={loadExamRecords}>
+                    重新加载
+                  </Button>
+                  <Button onClick={() => navigate('/upload')}>
+                    上传新记录
+                  </Button>
+                </div>
+              </div>
+            }
+            type="error"
+            showIcon
+          />
         </Card>
       </div>
     );

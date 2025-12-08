@@ -5,6 +5,7 @@ import zhCN from 'antd/locale/zh_CN';
 import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
 import Header from '@/components/common/Header';
+import ErrorBoundary from '@/components/common/ErrorBoundary';
 import routes from './routes';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -98,31 +99,33 @@ function App() {
       locale={zhCN}
       theme={antdThemeConfig}
     >
-      <div className="flex flex-col min-h-screen bg-gray-50">
-        <Header />
-        <main className="flex-grow">
-          <Routes>
-            {routes.map((route, index) => (
-              <Route
-                key={index}
-                path={route.path}
-                element={route.element}
-              />
-            ))}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </main>
-        
-        {/* 全局返回顶部按钮 */}
-        <FloatButton.BackTop
-          tooltip="返回顶部"
-          visibilityHeight={300}
-          style={{
-            right: 24,
-            bottom: 24,
-          }}
-        />
-      </div>
+      <ErrorBoundary>
+        <div className="flex flex-col min-h-screen bg-gray-50">
+          <Header />
+          <main className="flex-grow">
+            <Routes>
+              {routes.map((route, index) => (
+                <Route
+                  key={index}
+                  path={route.path}
+                  element={route.element}
+                />
+              ))}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </main>
+          
+          {/* 全局返回顶部按钮 */}
+          <FloatButton.BackTop
+            tooltip="返回顶部"
+            visibilityHeight={300}
+            style={{
+              right: 24,
+              bottom: 24,
+            }}
+          />
+        </div>
+      </ErrorBoundary>
     </ConfigProvider>
   );
 }
