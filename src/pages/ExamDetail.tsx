@@ -766,7 +766,7 @@ export default function ExamDetail() {
       {/* 统计卡片 */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 mb-8">
         <Card 
-          className="exam-stat-card"
+          className="exam-stat-card shadow-lg hover:shadow-xl transition-shadow duration-300"
           style={{ background: generateGradientStyle(EXAM_DETAIL_GRADIENTS[0]) }}
         >
           <div className="flex items-center justify-between mb-2">
@@ -780,7 +780,7 @@ export default function ExamDetail() {
         </Card>
 
         <Card 
-          className="exam-stat-card"
+          className="exam-stat-card shadow-lg hover:shadow-xl transition-shadow duration-300"
           style={{ background: generateGradientStyle(EXAM_DETAIL_GRADIENTS[1]) }}
         >
           <div className="flex items-center justify-between mb-2">
@@ -794,7 +794,7 @@ export default function ExamDetail() {
         </Card>
 
         <Card 
-          className="exam-stat-card"
+          className="exam-stat-card shadow-lg hover:shadow-xl transition-shadow duration-300"
           style={{ background: generateGradientStyle(EXAM_DETAIL_GRADIENTS[2]) }}
         >
           <div className="flex items-center justify-between mb-2">
@@ -808,7 +808,7 @@ export default function ExamDetail() {
         </Card>
 
         <Card 
-          className="exam-stat-card"
+          className="exam-stat-card shadow-lg hover:shadow-xl transition-shadow duration-300"
           style={{ background: generateGradientStyle(EXAM_DETAIL_GRADIENTS[3]) }}
         >
           <div className="flex items-center justify-between mb-2">
@@ -822,7 +822,7 @@ export default function ExamDetail() {
         </Card>
 
         <Card 
-          className="exam-stat-card"
+          className="exam-stat-card shadow-lg hover:shadow-xl transition-shadow duration-300"
           style={{ background: generateGradientStyle(EXAM_DETAIL_GRADIENTS[4]) }}
         >
           <div className="flex items-center justify-between mb-2">
@@ -838,7 +838,7 @@ export default function ExamDetail() {
 
       {/* 弱势模块提醒 */}
       {weakModules.length > 0 && (
-        <Card className="mb-8 border-orange-200 bg-orange-50">
+        <Card className="mb-8 border-orange-200 bg-orange-50 shadow-md">
           
             
               <WarningOutlined className="mr-2 h-5 w-5" />
@@ -859,7 +859,7 @@ export default function ExamDetail() {
 
       {/* 图表 */}
       <div className="grid gap-6 md:grid-cols-2 mb-8">
-        <Card>
+        <Card className="shadow-md hover:shadow-lg transition-shadow duration-300">
           
             
               <TitleWithTooltip 
@@ -880,6 +880,7 @@ export default function ExamDetail() {
           </Card>
 
         <Card
+          className="shadow-md hover:shadow-lg transition-shadow duration-300"
           title={
             <TitleWithTooltip 
               title="各模块用时对比" 
@@ -921,7 +922,7 @@ export default function ExamDetail() {
       </div>
 
       {/* 模块详情表格 */}
-      <Card>
+      <Card className="shadow-md">
         
           
             <TitleWithTooltip 
