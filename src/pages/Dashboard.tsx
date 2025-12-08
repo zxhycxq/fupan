@@ -1054,11 +1054,21 @@ export default function Dashboard() {
 
   // 获取某一天的考试记录
   const getExamsForDate = (date: Dayjs) => {
-    return examRecords.filter(record => {
+    const filtered = examRecords.filter(record => {
       if (!record.exam_date) return false;
       const examDate = dayjs(record.exam_date);
       return examDate.isSame(date, 'day');
     });
+    
+    // 去重：使用Map按id去重，保留第一个出现的记录
+    const uniqueMap = new Map();
+    filtered.forEach(record => {
+      if (!uniqueMap.has(record.id)) {
+        uniqueMap.set(record.id, record);
+      }
+    });
+    
+    return Array.from(uniqueMap.values());
   };
 
   // 根据分数获取颜色
@@ -1166,11 +1176,20 @@ export default function Dashboard() {
       const lunarMonth = getLunarMonthInfo(current);
       
       // 获取该月的所有考试
-      const monthExams = examRecords.filter(exam => {
+      const filtered = examRecords.filter(exam => {
         if (!exam.exam_date) return false;
         const examDate = dayjs(exam.exam_date);
         return examDate.year() === current.year() && examDate.month() === current.month();
       });
+      
+      // 去重：使用Map按id去重
+      const uniqueMap = new Map();
+      filtered.forEach(exam => {
+        if (!uniqueMap.has(exam.id)) {
+          uniqueMap.set(exam.id, exam);
+        }
+      });
+      const monthExams = Array.from(uniqueMap.values());
 
       return (
         <div className="h-full p-2">
