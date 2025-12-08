@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import ReactECharts from 'echarts-for-react';
 import { 
   Card, 
@@ -94,6 +94,7 @@ export default function ExamDetail() {
   const [timeChartType, setTimeChartType] = useState<'pie' | 'bar'>('pie'); // 用时图表类型，默认饼图
   // 使用 antd message
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
     if (id) {
@@ -657,7 +658,20 @@ export default function ExamDetail() {
     <div className="container mx-auto py-8 px-4">
       <Button
         type="text"
-        onClick={() => navigate('/exams')}
+        onClick={() => {
+          // 检查是否从列表页跳转过来
+          const from = searchParams.get('from');
+          const page = searchParams.get('page');
+          const pageSize = searchParams.get('pageSize');
+          
+          if (from === 'list' && page) {
+            // 返回到列表页的指定页码
+            navigate(`/exams?page=${page}${pageSize ? `&pageSize=${pageSize}` : ''}`);
+          } else {
+            // 默认返回列表页第一页
+            navigate('/exams');
+          }
+        }}
         className="mb-6"
       >
         <ArrowLeftOutlined className="mr-2 h-4 w-4" />

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, Button, Skeleton, Alert, Table, Modal, Rate, message, Space, Drawer, Form, Input, InputNumber, DatePicker, Tooltip } from 'antd';
 
 const { TextArea } = Input;
@@ -38,6 +38,27 @@ export default function ExamList() {
   const [pageSize, setPageSize] = useState(10);
   const [form] = Form.useForm();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  // 从URL参数读取页码
+  useEffect(() => {
+    const pageParam = searchParams.get('page');
+    const pageSizeParam = searchParams.get('pageSize');
+    
+    if (pageParam) {
+      const page = parseInt(pageParam, 10);
+      if (!isNaN(page) && page > 0) {
+        setCurrentPage(page);
+      }
+    }
+    
+    if (pageSizeParam) {
+      const size = parseInt(pageSizeParam, 10);
+      if (!isNaN(size) && size > 0) {
+        setPageSize(size);
+      }
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     loadExamRecords();
@@ -412,7 +433,7 @@ export default function ExamList() {
             type="text"
             size="small"
             icon={<EyeOutlined />}
-            onClick={() => navigate(`/exam/${record.id}`)}
+            onClick={() => navigate(`/exam/${record.id}?from=list&page=${currentPage}&pageSize=${pageSize}`)}
             title="查看详情"
             disabled={isSavingSort} // 保存排序时禁用查看
           />
