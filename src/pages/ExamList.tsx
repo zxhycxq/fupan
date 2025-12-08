@@ -6,7 +6,7 @@ const { TextArea } = Input;
 import type { ColumnsType } from 'antd/es/table';
 import { getAllExamRecords, deleteExamRecord, updateExamRecord, updateExamRating, updateExamNotes } from '@/db/api';
 import type { ExamRecord } from '@/types';
-import { EyeOutlined, DeleteOutlined, PlusOutlined, EditOutlined, InfoCircleOutlined, MenuOutlined, RiseOutlined, WarningOutlined, ClockCircleOutlined } from '@ant-design/icons';
+import { EyeOutlined, DeleteOutlined, PlusOutlined, EditOutlined, InfoCircleOutlined, MenuOutlined, RiseOutlined, WarningOutlined, ClockCircleOutlined, LinkOutlined } from '@ant-design/icons';
 import { SortableContainer, SortableElement, SortableHandle } from 'react-sortable-hoc';
 import { arrayMoveImmutable } from 'array-move';
 import dayjs from 'dayjs';
@@ -314,10 +314,12 @@ export default function ExamList() {
               href={record.report_url} 
               target="_blank" 
               rel="noopener noreferrer"
-              className="font-medium text-primary hover:text-primary/80 hover:underline"
+              className="font-medium inline-flex items-center gap-1"
+              style={{ color: '#1890ff' }}
               onClick={(e) => e.stopPropagation()}
             >
-              {value}
+              <span>{value}</span>
+              <LinkOutlined style={{ fontSize: '12px' }} />
             </a>
           );
         }
