@@ -3,17 +3,23 @@ import type { ExamRecord, ModuleScore, ExamRecordDetail, UserSetting } from '@/t
 
 // 获取所有考试记录
 export async function getAllExamRecords(): Promise<ExamRecord[]> {
-  const { data, error } = await supabase
-    .from('exam_records')
-    .select('*')
-    .order('sort_order', { ascending: true });
+  try {
+    const { data, error } = await supabase
+      .from('exam_records')
+      .select('*')
+      .order('sort_order', { ascending: true });
 
-  if (error) {
-    console.error('获取考试记录失败:', error);
-    throw error;
+    if (error) {
+      console.error('获取考试记录失败:', error);
+      throw error;
+    }
+
+    return Array.isArray(data) ? data : [];
+  } catch (error) {
+    console.error('获取考试记录异常:', error);
+    // 返回空数组而不是抛出错误，避免页面崩溃
+    return [];
   }
-
-  return Array.isArray(data) ? data : [];
 }
 
 // 根据ID获取考试记录详情

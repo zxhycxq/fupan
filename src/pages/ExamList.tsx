@@ -71,9 +71,14 @@ export default function ExamList() {
       setIsLoading(true);
       const records = await getAllExamRecords();
       setExamRecords(records);
+      if (records.length === 0) {
+        console.warn('未获取到考试记录数据');
+      }
     } catch (error) {
       console.error('加载考试记录失败:', error);
-      message.error('加载考试记录失败');
+      message.error('加载考试记录失败，请刷新页面重试');
+      // 即使失败也设置空数组，避免页面崩溃
+      setExamRecords([]);
     } finally {
       setIsLoading(false);
     }
