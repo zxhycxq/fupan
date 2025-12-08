@@ -529,3 +529,58 @@ All colors MUST be HSL.
               linear-gradient(135deg, rgba(99, 102, 241, 0.5) 0%, rgba(236, 72, 153, 0.5) 100%) border-box;
 }
 
+/* WangEditor 样式 */
+.w-e-text-container {
+  background-color: hsl(var(--background)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+.w-e-text-container p {
+  margin: 0.5em 0;
+}
+
+.w-e-text-container ul,
+.w-e-text-container ol {
+  margin: 0.5em 0;
+  padding-left: 1.5em;
+}
+
+.w-e-text-container li {
+  margin: 0.25em 0;
+}
+
+/* 富文本内容显示样式 */
+.prose {
+  max-width: none;
+}
+
+.prose p {
+  margin: 0.5em 0;
+}
+
+.prose ul,
+.prose ol {
+  margin: 0.5em 0;
+  padding-left: 1.5em;
+}
+
+.prose li {
+  margin: 0.25em 0;
+}
+
+.prose strong {
+  font-weight: 600;
+}
+
+.prose em {
+  font-style: italic;
+}
+
+.prose u {
+  text-decoration: underline;
+}
+
+.prose s {
+  text-decoration: line-through;
+}
+

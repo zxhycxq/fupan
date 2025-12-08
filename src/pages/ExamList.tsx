@@ -10,6 +10,7 @@ import { EyeOutlined, DeleteOutlined, PlusOutlined, EditOutlined, InfoCircleOutl
 import { SortableContainer, SortableElement, SortableHandle } from 'react-sortable-hoc';
 import { arrayMoveImmutable } from 'array-move';
 import dayjs from 'dayjs';
+import WangEditor from '@/components/common/WangEditor';
 
 // 拖拽手柄
 const DragHandle = SortableHandle(() => (
@@ -697,19 +698,16 @@ export default function ExamList() {
         okText="确定"
         cancelText="取消"
         confirmLoading={isSaving}
-        width={600}
+        width={800}
       >
         <div>
-          <TextArea
+          <WangEditor
             value={notesModalContent}
-            onChange={(e) => setNotesModalContent(e.target.value)}
+            onChange={(html) => setNotesModalContent(html)}
             placeholder={notesModalType === 'improvements' ? '记录本次考试中有进步的地方...' : '记录本次考试中出错的地方...'}
-            rows={8}
-            maxLength={500}
+            maxLength={5000}
+            height={400}
           />
-          <p className="text-xs text-gray-500 text-right mt-1">
-            {notesModalContent.length}/500字
-          </p>
         </div>
       </Modal>
     </div>

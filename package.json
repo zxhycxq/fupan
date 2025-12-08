@@ -38,6 +38,8 @@
     "@radix-ui/react-tooltip": "^1.2.8",
     "@supabase/supabase-js": "^2.76.1",
     "@types/react-sortable-hoc": "^0.7.1",
+    "@wangeditor/editor": "^5.1.23",
+    "@wangeditor/editor-for-react": "^1.0.6",
     "antd": "^6.0.0",
     "array-move": "^4.0.0",
     "axios": "^1.13.1",

@@ -34,6 +34,7 @@ import {
 import { getExamRecordById, updateModuleScore, updateExamRecord, getUserSettings, updateExamNotes } from '@/db/api';
 import type { ExamRecordDetail, ModuleScore, UserSetting } from '@/types';
 import { EXAM_DETAIL_GRADIENTS, generateGradientStyle } from '@/config/gradients';
+import WangEditor from '@/components/common/WangEditor';
 
 const { TextArea } = Input;
 const { Title, Text } = Typography;
@@ -745,9 +746,10 @@ export default function ExamDetail() {
               </Button>
             </div>
             {examDetail.improvements ? (
-              <p className="text-sm whitespace-pre-wrap break-words text-gray-700 dark:text-gray-300">
-                {examDetail.improvements}
-              </p>
+              <div 
+                className="text-sm break-words text-gray-700 dark:text-gray-300 prose prose-sm max-w-none"
+                dangerouslySetInnerHTML={{ __html: examDetail.improvements }}
+              />
             ) : (
               <p className="text-sm text-muted-foreground">暂无内容</p>
             )}
@@ -770,9 +772,10 @@ export default function ExamDetail() {
               </Button>
             </div>
             {examDetail.mistakes ? (
-              <p className="text-sm whitespace-pre-wrap break-words text-gray-700 dark:text-gray-300">
-                {examDetail.mistakes}
-              </p>
+              <div 
+                className="text-sm break-words text-gray-700 dark:text-gray-300 prose prose-sm max-w-none"
+                dangerouslySetInnerHTML={{ __html: examDetail.mistakes }}
+              />
             ) : (
               <p className="text-sm text-muted-foreground">暂无内容</p>
             )}
@@ -1219,7 +1222,7 @@ export default function ExamDetail() {
         okText="确定"
         cancelText="取消"
         confirmLoading={isSaving}
-        width={600}
+        width={900}
       >
         <div className="space-y-4">
           {/* 有进步的地方 */}
@@ -1229,16 +1232,13 @@ export default function ExamDetail() {
                 <RiseOutlined className="text-green-600" />
                 <span className="font-medium">有进步的地方</span>
               </div>
-              <TextArea
+              <WangEditor
                 value={improvements}
-                onChange={(e) => setImprovements(e.target.value)}
+                onChange={(html) => setImprovements(html)}
                 placeholder="记录本次考试中有进步的地方..."
-                rows={6}
-                maxLength={500}
+                maxLength={5000}
+                height={300}
               />
-              <p className="text-xs text-gray-500 text-right mt-1">
-                {improvements.length}/500字
-              </p>
             </div>
           )}
 
@@ -1249,16 +1249,13 @@ export default function ExamDetail() {
                 <WarningOutlined className="text-red-600" />
                 <span className="font-medium">出错的地方</span>
               </div>
-              <TextArea
+              <WangEditor
                 value={mistakes}
-                onChange={(e) => setMistakes(e.target.value)}
+                onChange={(html) => setMistakes(html)}
                 placeholder="记录本次考试中出错的地方..."
-                rows={6}
-                maxLength={500}
+                maxLength={5000}
+                height={300}
               />
-              <p className="text-xs text-gray-500 text-right mt-1">
-                {mistakes.length}/500字
-              </p>
             </div>
           )}
         </div>
