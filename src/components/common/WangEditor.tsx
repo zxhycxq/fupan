@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useImperativeHandle, forwardRef } from 'react';
 import { Editor, Toolbar } from '@wangeditor/editor-for-react';
 import { IDomEditor, IEditorConfig, IToolbarConfig } from '@wangeditor/editor';
 import '@wangeditor/editor/dist/css/style.css';
@@ -11,15 +11,27 @@ interface WangEditorProps {
   height?: number;
 }
 
-export default function WangEditor({ 
+export interface WangEditorRef {
+  getText: () => string;
+}
+
+const WangEditor = forwardRef<WangEditorRef, WangEditorProps>(({ 
   value = '', 
   onChange, 
   placeholder = '请输入内容...',
   maxLength = 500,
   height = 300
-}: WangEditorProps) {
+}, ref) => {
   const [editor, setEditor] = useState<IDomEditor | null>(null);
   const [html, setHtml] = useState(value);
+
+  // 暴露方法给父组件
+  useImperativeHandle(ref, () => ({
+    getText: () => {
+      if (!editor) return '';
+      return editor.getText();
+    }
+  }));
 
   // 工具栏配置
   const toolbarConfig: Partial<IToolbarConfig> = {
@@ -94,4 +106,8 @@ export default function WangEditor({
       />
     </div>
   );
-}
+});
+
+WangEditor.displayName = 'WangEditor';
+
+export default WangEditor;

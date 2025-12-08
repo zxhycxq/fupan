@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, Button, Skeleton, Alert, Table, Modal, Rate, message, Space, Drawer, Form, Input, InputNumber, DatePicker, Tooltip } from 'antd';
 
@@ -6,11 +6,11 @@ const { TextArea } = Input;
 import type { ColumnsType } from 'antd/es/table';
 import { getAllExamRecords, deleteExamRecord, updateExamRecord, updateExamRating, updateExamNotes } from '@/db/api';
 import type { ExamRecord } from '@/types';
-import { EyeOutlined, DeleteOutlined, PlusOutlined, EditOutlined, InfoCircleOutlined, MenuOutlined, RiseOutlined, WarningOutlined, ClockCircleOutlined, LinkOutlined } from '@ant-design/icons';
+import { EyeOutlined, DeleteOutlined, PlusOutlined, EditOutlined, InfoCircleOutlined, MenuOutlined, RiseOutlined, WarningOutlined, ClockCircleOutlined, LinkOutlined, DownloadOutlined } from '@ant-design/icons';
 import { SortableContainer, SortableElement, SortableHandle } from 'react-sortable-hoc';
 import { arrayMoveImmutable } from 'array-move';
 import dayjs from 'dayjs';
-import WangEditor from '@/components/common/WangEditor';
+import WangEditor, { type WangEditorRef } from '@/components/common/WangEditor';
 
 // 拖拽手柄
 const DragHandle = SortableHandle(() => (
@@ -38,6 +38,7 @@ export default function ExamList() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [form] = Form.useForm();
+  const editorRef = useRef<WangEditorRef>(null);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -229,6 +230,44 @@ export default function ExamList() {
   };
 
   // 保存备注
+  // 导出文本
+  const handleExportText = () => {
+    if (!editorRef.current) {
+      message.error('编辑器未初始化');
+      return;
+    }
+
+    const text = editorRef.current.getText();
+    if (!text || text.trim() === '') {
+      message.warning('内容为空，无法导出');
+      return;
+    }
+
+    // 创建Blob对象
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    
+    // 创建下载链接
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    
+    // 获取当前记录的考试名称作为文件名
+    const currentRecord = examRecords.find(r => r.id === editingRecordId);
+    const examName = currentRecord?.exam_name || '考试记录';
+    const typeText = notesModalType === 'improvements' ? '进步' : '错误';
+    link.download = `${examName}-${typeText}.txt`;
+    
+    // 触发下载
+    document.body.appendChild(link);
+    link.click();
+    
+    // 清理
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    message.success('导出成功');
+  };
+
   const handleSaveNotes = async () => {
     try {
       setIsSaving(true);
@@ -711,14 +750,32 @@ export default function ExamList() {
         }
         open={notesModalVisible}
         onCancel={() => setNotesModalVisible(false)}
-        onOk={handleSaveNotes}
-        okText="确定"
-        cancelText="取消"
-        confirmLoading={isSaving}
+        footer={[
+          <Button 
+            key="export" 
+            icon={<DownloadOutlined />}
+            onClick={handleExportText}
+            style={{ float: 'left' }}
+          >
+            导出文本
+          </Button>,
+          <Button key="cancel" onClick={() => setNotesModalVisible(false)}>
+            取消
+          </Button>,
+          <Button 
+            key="submit" 
+            type="primary" 
+            loading={isSaving}
+            onClick={handleSaveNotes}
+          >
+            确定
+          </Button>,
+        ]}
         width={window.innerWidth >= 1366 ? 1000 : 800}
       >
         <div>
           <WangEditor
+            ref={editorRef}
             value={notesModalContent}
             onChange={(html) => setNotesModalContent(html)}
             placeholder={notesModalType === 'improvements' ? '记录本次考试中有进步的地方...' : '记录本次考试中出错的地方...'}
