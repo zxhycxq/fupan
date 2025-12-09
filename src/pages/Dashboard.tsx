@@ -4,7 +4,7 @@ import ReactECharts from 'echarts-for-react';
 import { Table, Card, Skeleton, Statistic, Row, Col, Button, message, Calendar, Badge, Tooltip, Select } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import type { Dayjs } from 'dayjs';
-import { RiseOutlined, ClockCircleOutlined, AimOutlined, TrophyOutlined, DownloadOutlined } from '@ant-design/icons';
+import { RiseOutlined, ClockCircleOutlined, AimOutlined, TrophyOutlined, DownloadOutlined, CalendarOutlined, FileTextOutlined } from '@ant-design/icons';
 import { getAllExamRecords, getModuleAverageScores, getModuleTrendData, getModuleTimeTrendData, getModuleDetailedStats, getUserSettings, getExamConfig } from '@/db/api';
 import type { ExamRecord, UserSetting } from '@/types';
 import * as XLSX from 'xlsx';
@@ -201,6 +201,66 @@ export default function Dashboard() {
   }, [examConfig?.exam_date]); // 依赖于exam_date而不是整个examConfig对象
 
   // 计算统计数据
+  // 计算练习天数
+  const calculatePracticeDays = () => {
+    if (examRecords.length === 0) return 0;
+    
+    // 找到最早的考试日期
+    const earliestDate = examRecords
+      .filter(r => r.exam_date)
+      .map(r => new Date(r.exam_date!))
+      .sort((a, b) => a.getTime() - b.getTime())[0];
+    
+    if (!earliestDate) return 0;
+    
+    const today = new Date();
+    const diffTime = Math.abs(today.getTime() - earliestDate.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    return diffDays;
+  };
+
+  // 计算累计做题时长（返回天数和小时数）
+  const calculateTotalTime = () => {
+    if (examRecords.length === 0) return { days: 0, hours: 0 };
+    
+    const totalSeconds = examRecords
+      .filter(r => r.time_used)
+      .reduce((sum, r) => sum + (r.time_used || 0), 0);
+    
+    const totalHours = Math.floor(totalSeconds / 3600);
+    const days = Math.floor(totalHours / 24);
+    const hours = totalHours % 24;
+    
+    return { days, hours };
+  };
+
+  // 计算做题数量
+  const calculateTotalQuestions = () => {
+    if (moduleDetailedStats.length === 0) return 0;
+    
+    // 按考试编号分组，每个考试只计算一次
+    const examGroups = moduleDetailedStats.reduce((acc, stat) => {
+      if (!acc[stat.exam_number]) {
+        acc[stat.exam_number] = [];
+      }
+      acc[stat.exam_number].push(stat);
+      return acc;
+    }, {} as Record<number, typeof moduleDetailedStats>);
+    
+    // 计算每个考试的总题数
+    const totalQuestions = Object.values(examGroups).reduce((sum, examStats) => {
+      const examTotal = examStats.reduce((examSum, stat) => examSum + stat.total_questions, 0);
+      return sum + examTotal;
+    }, 0);
+    
+    return totalQuestions;
+  };
+
+  const totalTime = calculateTotalTime();
+  const practiceDays = calculatePracticeDays();
+  const totalQuestions = calculateTotalQuestions();
+
   const stats = {
     totalExams: examRecords.length,
     averageScore: examRecords.length > 0
@@ -209,9 +269,9 @@ export default function Dashboard() {
     highestScore: examRecords.length > 0
       ? Math.max(...examRecords.map(r => r.total_score)).toFixed(2)
       : '0',
-    averageTime: examRecords.length > 0 && examRecords.some(r => r.time_used)
-      ? Math.round(examRecords.filter(r => r.time_used).reduce((sum, r) => sum + (r.time_used || 0), 0) / examRecords.filter(r => r.time_used).length)
-      : 0,
+    totalTime: totalTime,
+    practiceDays: practiceDays,
+    totalQuestions: totalQuestions,
   };
 
   // 总分趋势图配置
@@ -1512,11 +1572,11 @@ export default function Dashboard() {
           </Card>
         </Col>
 
-        {/* 右侧：统计卡片（两行两列） */}
+        {/* 右侧：统计卡片（两行三列） */}
         <Col xs={24} lg={12}>
           <Row gutter={[16, 16]} className="h-full">
             {/* 第一行 */}
-            <Col xs={24} sm={12}>
+            <Col xs={24} sm={12} md={8}>
               <Card 
                 className="stat-card stat-card-primary h-full p-3" 
                 style={{ background: generateGradientStyle(DASHBOARD_GRADIENTS[0]) }}
@@ -1532,7 +1592,7 @@ export default function Dashboard() {
               </Card>
             </Col>
 
-            <Col xs={24} sm={12}>
+            <Col xs={24} sm={12} md={8}>
               <Card 
                 className="stat-card stat-card-success h-full p-3"
                 style={{ background: generateGradientStyle(DASHBOARD_GRADIENTS[1]) }}
@@ -1548,8 +1608,7 @@ export default function Dashboard() {
               </Card>
             </Col>
 
-            {/* 第二行 */}
-            <Col xs={24} sm={12}>
+            <Col xs={24} sm={12} md={8}>
               <Card 
                 className="stat-card stat-card-warning h-full p-3"
                 style={{ background: generateGradientStyle(DASHBOARD_GRADIENTS[2]) }}
@@ -1565,19 +1624,51 @@ export default function Dashboard() {
               </Card>
             </Col>
 
-            <Col xs={24} sm={12}>
+            {/* 第二行 */}
+            <Col xs={24} sm={12} md={8}>
               <Card 
                 className="stat-card stat-card-info h-full p-3"
                 style={{ background: generateGradientStyle(DASHBOARD_GRADIENTS[3]) }}
               >
                 <Statistic
-                  title={<span className="stat-title text-gray-800 dark:text-gray-100 text-sm">平均用时</span>}
-                  value={stats.averageTime}
-                  suffix="分钟"
+                  title={<span className="stat-title text-gray-800 dark:text-gray-100 text-sm">累计做题时长</span>}
+                  value={stats.totalTime.days > 0 ? `${stats.totalTime.days}天${stats.totalTime.hours}小时` : `${stats.totalTime.hours}小时`}
                   prefix={<ClockCircleOutlined className="stat-icon text-yellow-600 dark:text-yellow-300 text-lg" />}
+                  valueStyle={{ color: '#1f2937', fontSize: stats.totalTime.days > 0 ? '18px' : '24px' }}
+                />
+                <div className="text-xs opacity-80 mt-1 text-gray-700 dark:text-gray-200">所有考试花费时间</div>
+              </Card>
+            </Col>
+
+            <Col xs={24} sm={12} md={8}>
+              <Card 
+                className="stat-card stat-card-primary h-full p-3"
+                style={{ background: generateGradientStyle(DASHBOARD_GRADIENTS[4] || DASHBOARD_GRADIENTS[0]) }}
+              >
+                <Statistic
+                  title={<span className="stat-title text-gray-800 dark:text-gray-100 text-sm">练习天数</span>}
+                  value={stats.practiceDays}
+                  suffix="天"
+                  prefix={<CalendarOutlined className="stat-icon text-green-600 dark:text-green-300 text-lg" />}
                   valueStyle={{ color: '#1f2937', fontSize: '24px' }}
                 />
-                <div className="text-xs opacity-80 mt-1 text-gray-700 dark:text-gray-200">平均答题时长</div>
+                <div className="text-xs opacity-80 mt-1 text-gray-700 dark:text-gray-200">从第一次考试至今</div>
+              </Card>
+            </Col>
+
+            <Col xs={24} sm={12} md={8}>
+              <Card 
+                className="stat-card stat-card-success h-full p-3"
+                style={{ background: generateGradientStyle(DASHBOARD_GRADIENTS[5] || DASHBOARD_GRADIENTS[1]) }}
+              >
+                <Statistic
+                  title={<span className="stat-title text-gray-800 dark:text-gray-100 text-sm">做题数量</span>}
+                  value={stats.totalQuestions}
+                  suffix="题"
+                  prefix={<FileTextOutlined className="stat-icon text-indigo-600 dark:text-indigo-300 text-lg" />}
+                  valueStyle={{ color: '#1f2937', fontSize: '24px' }}
+                />
+                <div className="text-xs opacity-80 mt-1 text-gray-700 dark:text-gray-200">累计答题总数</div>
               </Card>
             </Col>
           </Row>
