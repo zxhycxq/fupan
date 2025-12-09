@@ -414,25 +414,34 @@ export default function ExamList() {
       dataIndex: 'exam_name',
       key: 'exam_name',
       width: 200,
+      ellipsis: {
+        showTitle: false,
+      },
       render: (value: string, record: ExamRecord) => {
         // 如果有报告链接，显示为可点击的链接
         if (record.report_url && record.report_url.trim()) {
           return (
-            <a 
-              href={record.report_url} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="font-medium inline-flex items-center gap-1"
-              style={{ color: '#1890ff' }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <span>{value}</span>
-              <LinkOutlined style={{ fontSize: '12px' }} />
-            </a>
+            <Tooltip title={value}>
+              <a 
+                href={record.report_url} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="font-medium inline-flex items-center gap-1"
+                style={{ color: '#1890ff' }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <span className="truncate max-w-[160px]">{value}</span>
+                <LinkOutlined style={{ fontSize: '12px' }} />
+              </a>
+            </Tooltip>
           );
         }
         // 否则显示普通文本
-        return <span className="font-medium">{value}</span>;
+        return (
+          <Tooltip title={value}>
+            <span className="font-medium truncate block">{value}</span>
+          </Tooltip>
+        );
       },
     },
     {
@@ -472,7 +481,7 @@ export default function ExamList() {
       ),
       dataIndex: 'time_used',
       key: 'time_used',
-      width: 90,
+      width: 75,
       render: (value: number | null) => {
         if (!value) return '-';
         
@@ -490,7 +499,7 @@ export default function ExamList() {
       title: '平均分',
       dataIndex: 'average_score',
       key: 'average_score',
-      width: 85,
+      width: 70,
       render: (value: number | null) => (
         value ? value.toFixed(1) : '-'
       ),
@@ -499,17 +508,10 @@ export default function ExamList() {
       title: '击败率',
       dataIndex: 'pass_rate',
       key: 'pass_rate',
-      width: 85,
+      width: 70,
       render: (value: number | null) => (
         value ? `${value.toFixed(1)}%` : '-'
       ),
-    },
-    {
-      title: '上传时间',
-      dataIndex: 'created_at',
-      key: 'created_at',
-      width: 180,
-      render: (value: string) => formatDate(value),
     },
     {
       title: '考试日期',
@@ -558,6 +560,13 @@ export default function ExamList() {
           disabled={isSavingSort} // 保存排序时禁用星级修改
         />
       ),
+    },
+    {
+      title: '上传时间',
+      dataIndex: 'created_at',
+      key: 'created_at',
+      width: 180,
+      render: (value: string) => formatDate(value),
     },
     {
       title: '操作',
