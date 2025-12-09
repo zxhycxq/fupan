@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Card, Button, Skeleton, Alert, Table, Modal, Rate, message, Space, Drawer, Form, Input, InputNumber, DatePicker, Tooltip } from 'antd';
+import { Card, Button, Skeleton, Alert, Table, Modal, Rate, message, Space, Drawer, Form, Input, InputNumber, DatePicker, Tooltip, Select, Tag } from 'antd';
 
 const { TextArea } = Input;
 import type { ColumnsType } from 'antd/es/table';
@@ -113,6 +113,7 @@ export default function ExamList() {
     setEditingRecord({ ...record });
     form.setFieldsValue({
       exam_name: record.exam_name,
+      exam_type: record.exam_type || '国考模考', // 添加考试类型
       total_score: record.total_score,
       time_used: record.time_used ? Math.round(record.time_used / 60) : null, // 将秒转换为分钟
       average_score: record.average_score,
@@ -160,6 +161,7 @@ export default function ExamList() {
         return;
       }
       updates.exam_name = values.exam_name.trim();
+      updates.exam_type = values.exam_type || '国考模考'; // 添加考试类型
 
       updates.total_score = Math.round(values.total_score * 10) / 10;
       updates.time_used = values.time_used ? values.time_used * 60 : null; // 将分钟转换为秒
@@ -370,6 +372,25 @@ export default function ExamList() {
     return <SortableItem index={index} {...restProps} />;
   };
 
+  // 获取考试类型的标签颜色
+  const getExamTypeColor = (examType: string | null): string => {
+    const type = examType || '国考模考';
+    switch (type) {
+      case '国考真题':
+        return '#f50'; // 红色
+      case '国考模考':
+        return '#2db7f5'; // 青色
+      case '省考真题':
+        return '#87d068'; // 绿色
+      case '省考模考':
+        return '#108ee9'; // 蓝色
+      case '其他':
+        return 'default'; // 默认灰色
+      default:
+        return '#2db7f5'; // 默认青色
+    }
+  };
+
   const columns: ColumnsType<ExamRecord> = [
     {
       title: '排序',
@@ -419,7 +440,11 @@ export default function ExamList() {
       dataIndex: 'exam_type',
       key: 'exam_type',
       width: 120,
-      render: (value: string | null) => value || '国考模考',
+      render: (value: string | null) => {
+        const type = value || '国考模考';
+        const color = getExamTypeColor(value);
+        return <Tag color={color} bordered>{type}</Tag>;
+      },
     },
     {
       title: '总分',
@@ -739,6 +764,22 @@ export default function ExamList() {
             <Input
               maxLength={50}
               placeholder="请输入考试名称"
+            />
+          </Form.Item>
+
+          <Form.Item
+            label="考试类型"
+            name="exam_type"
+          >
+            <Select
+              placeholder="请选择考试类型"
+              options={[
+                { value: '国考真题', label: '国考真题' },
+                { value: '国考模考', label: '国考模考' },
+                { value: '省考真题', label: '省考真题' },
+                { value: '省考模考', label: '省考模考' },
+                { value: '其他', label: '其他' }
+              ]}
             />
           </Form.Item>
 
