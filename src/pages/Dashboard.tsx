@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ReactECharts from 'echarts-for-react';
-import { Table, Card, Skeleton, Statistic, Row, Col, Button, message, Calendar, Badge, Tooltip, Select } from 'antd';
+import { Table, Card, Skeleton, Statistic, Row, Col, Button, message, Calendar, Badge, Tooltip, Select, DatePicker } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import type { Dayjs } from 'dayjs';
 import { RiseOutlined, ClockCircleOutlined, AimOutlined, TrophyOutlined, DownloadOutlined, CalendarOutlined, FileTextOutlined } from '@ant-design/icons';
@@ -10,11 +10,17 @@ import type { ExamRecord, UserSetting } from '@/types';
 import * as XLSX from 'xlsx';
 import dayjs from 'dayjs';
 import dayOfYear from 'dayjs/plugin/dayOfYear';
+import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
+import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import { Lunar, Solar } from 'lunar-typescript';
 import { DASHBOARD_GRADIENTS, generateGradientStyle } from '@/config/gradients';
 
+const { RangePicker } = DatePicker;
+
 // 扩展dayjs
 dayjs.extend(dayOfYear);
+dayjs.extend(isSameOrAfter);
+dayjs.extend(isSameOrBefore);
 
 // 励志古诗词数组
 const MOTIVATIONAL_POEMS = [
@@ -69,6 +75,7 @@ export default function Dashboard() {
   const [countdown, setCountdown] = useState<{ days: number; hours: number; minutes: number } | null>(null);
   const [todayPoem, setTodayPoem] = useState<string>('');
   const [calendarValue, setCalendarValue] = useState<Dayjs>(dayjs()); // 日历当前显示的月份
+  const [dateRange, setDateRange] = useState<[Dayjs | null, Dayjs | null] | null>(null); // 日期范围筛选
 
   // 安全地获取窗口宽度
   const getWindowWidth = () => {
@@ -200,13 +207,41 @@ export default function Dashboard() {
     }
   }, [examConfig?.exam_date]); // 依赖于exam_date而不是整个examConfig对象
 
+  // 根据日期范围过滤考试记录
+  const filteredExamRecords = useMemo(() => {
+    if (!dateRange || !dateRange[0] || !dateRange[1]) {
+      return examRecords;
+    }
+    
+    const [startDate, endDate] = dateRange;
+    return examRecords.filter(record => {
+      if (!record.exam_date) return false;
+      const examDate = dayjs(record.exam_date);
+      return examDate.isSameOrAfter(startDate, 'day') && examDate.isSameOrBefore(endDate, 'day');
+    });
+  }, [examRecords, dateRange]);
+
+  // 根据日期范围过滤模块详细统计
+  const filteredModuleDetailedStats = useMemo(() => {
+    if (!dateRange || !dateRange[0] || !dateRange[1]) {
+      return moduleDetailedStats;
+    }
+    
+    const [startDate, endDate] = dateRange;
+    return moduleDetailedStats.filter(stat => {
+      if (!stat.exam_date) return false;
+      const examDate = dayjs(stat.exam_date);
+      return examDate.isSameOrAfter(startDate, 'day') && examDate.isSameOrBefore(endDate, 'day');
+    });
+  }, [moduleDetailedStats, dateRange]);
+
   // 计算统计数据
   // 计算练习天数
   const practiceDays = useMemo(() => {
-    if (examRecords.length === 0) return 0;
+    if (filteredExamRecords.length === 0) return 0;
     
     // 找到最早的考试日期
-    const earliestDate = examRecords
+    const earliestDate = filteredExamRecords
       .filter(r => r.exam_date)
       .map(r => new Date(r.exam_date!))
       .sort((a, b) => a.getTime() - b.getTime())[0];
@@ -218,14 +253,14 @@ export default function Dashboard() {
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
     return diffDays;
-  }, [examRecords]);
+  }, [filteredExamRecords]);
 
   // 计算累计做题时长（返回天数和小时数）
   const totalTime = useMemo(() => {
-    if (examRecords.length === 0) return { days: 0, hours: 0 };
+    if (filteredExamRecords.length === 0) return { days: 0, hours: 0 };
     
     // time_used 单位是分钟
-    const totalMinutes = examRecords
+    const totalMinutes = filteredExamRecords
       .filter(r => r.time_used)
       .reduce((sum, r) => sum + (r.time_used || 0), 0);
     
@@ -234,20 +269,20 @@ export default function Dashboard() {
     const hours = totalHours % 24;
     
     return { days, hours };
-  }, [examRecords]);
+  }, [filteredExamRecords]);
 
   // 计算做题数量
   const totalQuestions = useMemo(() => {
-    if (moduleDetailedStats.length === 0) return 0;
+    if (filteredModuleDetailedStats.length === 0) return 0;
     
     // 按考试编号分组，每个考试只计算一次
-    const examGroups = moduleDetailedStats.reduce((acc, stat) => {
+    const examGroups = filteredModuleDetailedStats.reduce((acc, stat) => {
       if (!acc[stat.exam_number]) {
         acc[stat.exam_number] = [];
       }
       acc[stat.exam_number].push(stat);
       return acc;
-    }, {} as Record<number, typeof moduleDetailedStats>);
+    }, {} as Record<number, typeof filteredModuleDetailedStats>);
     
     // 计算每个考试的总题数
     const totalQuestions = Object.values(examGroups).reduce((sum, examStats) => {
@@ -256,15 +291,15 @@ export default function Dashboard() {
     }, 0);
     
     return totalQuestions;
-  }, [moduleDetailedStats]);
+  }, [filteredModuleDetailedStats]);
 
   const stats = {
-    totalExams: examRecords.length,
-    averageScore: examRecords.length > 0
-      ? (examRecords.reduce((sum, r) => sum + r.total_score, 0) / examRecords.length).toFixed(2)
+    totalExams: filteredExamRecords.length,
+    averageScore: filteredExamRecords.length > 0
+      ? (filteredExamRecords.reduce((sum, r) => sum + r.total_score, 0) / filteredExamRecords.length).toFixed(2)
       : '0',
-    highestScore: examRecords.length > 0
-      ? Math.max(...examRecords.map(r => r.total_score)).toFixed(2)
+    highestScore: filteredExamRecords.length > 0
+      ? Math.max(...filteredExamRecords.map(r => r.total_score)).toFixed(2)
       : '0',
     totalTime: totalTime,
     practiceDays: practiceDays,
@@ -307,7 +342,7 @@ export default function Dashboard() {
     },
     xAxis: {
       type: 'category',
-      data: examRecords.map(r => {
+      data: filteredExamRecords.map(r => {
         const date = r.exam_date || '';
         const name = r.exam_name || `第${r.exam_number}期`;
         return date ? `${name} ${date}` : name; // 调整格式：考试名称在前，日期在后
@@ -335,7 +370,7 @@ export default function Dashboard() {
       {
         name: '我的成绩',
         type: 'line',
-        data: examRecords.map(r => r.total_score),
+        data: filteredExamRecords.map(r => r.total_score),
         smooth: true,
         itemStyle: {
           color: '#1890FF',
@@ -357,7 +392,7 @@ export default function Dashboard() {
       {
         name: '平均分',
         type: 'line',
-        data: examRecords.map(r => r.average_score || 0),
+        data: filteredExamRecords.map(r => r.average_score || 0),
         smooth: true,
         itemStyle: {
           color: '#52C41A',
@@ -1643,13 +1678,21 @@ export default function Dashboard() {
                   minHeight: '120px'
                 }}
               >
-                <Statistic
-                  title={<span className="stat-title text-gray-900 dark:text-gray-100 text-sm font-semibold">累计做题时长</span>}
-                  value={stats.totalTime.days > 0 ? `${stats.totalTime.days}天${stats.totalTime.hours}小时` : `${stats.totalTime.hours}小时`}
-                  prefix={<ClockCircleOutlined className="stat-icon text-yellow-600 dark:text-yellow-300 text-lg" />}
-                  valueStyle={{ color: '#1f2937', fontSize: stats.totalTime.days > 0 ? '18px' : '24px', fontWeight: 600 }}
-                />
-                <div className="text-xs opacity-80 mt-1 text-gray-800 dark:text-gray-200">所有考试花费时间</div>
+                <div className="flex items-start gap-2">
+                  <ClockCircleOutlined className="stat-icon text-yellow-600 dark:text-yellow-300 text-lg mt-1" />
+                  <div className="flex-1">
+                    <div className="stat-title text-gray-900 dark:text-gray-100 text-sm font-semibold mb-2">累计做题时长</div>
+                    <div className="text-gray-900 dark:text-gray-100 font-semibold leading-tight">
+                      {stats.totalTime.days > 0 && (
+                        <div className="text-2xl">{stats.totalTime.days}天</div>
+                      )}
+                      <div className={stats.totalTime.days > 0 ? 'text-xl' : 'text-2xl'}>
+                        {stats.totalTime.hours}小时
+                      </div>
+                    </div>
+                    <div className="text-xs opacity-80 mt-1 text-gray-800 dark:text-gray-200">所有考试花费时间</div>
+                  </div>
+                </div>
               </Card>
             </Col>
 
@@ -1715,6 +1758,70 @@ export default function Dashboard() {
               headerRender={headerRender}
               className="exam-calendar"
             />
+          </Card>
+        </Col>
+      </Row>
+
+      {/* 日期范围筛选器 */}
+      <Row gutter={[16, 16]} className="mt-8">
+        <Col xs={24}>
+          <Card>
+            <div className="flex flex-wrap items-center gap-4">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">时间筛选：</span>
+              <RangePicker
+                value={dateRange}
+                onChange={(dates) => setDateRange(dates)}
+                placeholder={['开始日期', '结束日期']}
+                format="YYYY-MM-DD"
+                allowClear
+                className="flex-1 max-w-md"
+                renderExtraFooter={() => (
+                  <div className="flex gap-2 p-2 border-t">
+                    <Button
+                      size="small"
+                      onClick={() => {
+                        const end = dayjs();
+                        const start = end.subtract(1, 'month');
+                        setDateRange([start, end]);
+                      }}
+                    >
+                      最近一个月
+                    </Button>
+                    <Button
+                      size="small"
+                      onClick={() => {
+                        const end = dayjs();
+                        const start = end.subtract(3, 'month');
+                        setDateRange([start, end]);
+                      }}
+                    >
+                      最近三个月
+                    </Button>
+                    <Button
+                      size="small"
+                      onClick={() => {
+                        const end = dayjs();
+                        const start = end.subtract(6, 'month');
+                        setDateRange([start, end]);
+                      }}
+                    >
+                      最近半年
+                    </Button>
+                    <Button
+                      size="small"
+                      onClick={() => setDateRange(null)}
+                    >
+                      全部
+                    </Button>
+                  </div>
+                )}
+              />
+              {dateRange && dateRange[0] && dateRange[1] && (
+                <span className="text-sm text-gray-500">
+                  已选择：{dateRange[0].format('YYYY-MM-DD')} 至 {dateRange[1].format('YYYY-MM-DD')}
+                </span>
+              )}
+            </div>
           </Card>
         </Col>
       </Row>
