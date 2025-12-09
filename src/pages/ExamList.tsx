@@ -927,31 +927,22 @@ export default function ExamList() {
                 </Form.Item>
               </Col>
               
-              <Col xs={24} sm={24} md={24} lg={6}>
-                <Form.Item 
-                  label=" " 
-                  className="mb-2"
-                  labelCol={{ xs: 24, sm: 8 }}
-                  wrapperCol={{ xs: 24, sm: 16 }}
-                >
-                  <Space className="w-full" size="small">
-                    <Button 
-                      type="primary" 
-                      icon={<SearchOutlined />}
-                      htmlType="submit"
-                      className="flex-1"
-                    >
-                      搜索
-                    </Button>
-                    <Button 
-                      icon={<ReloadOutlined />}
-                      onClick={handleReset}
-                      className="flex-1"
-                    >
-                      重置
-                    </Button>
-                  </Space>
-                </Form.Item>
+              <Col xs={24} sm={24} md={24} lg={6} className="flex items-end justify-end">
+                <Space size="small">
+                  <Button 
+                    type="primary" 
+                    icon={<SearchOutlined />}
+                    htmlType="submit"
+                  >
+                    搜索
+                  </Button>
+                  <Button 
+                    icon={<ReloadOutlined />}
+                    onClick={handleReset}
+                  >
+                    重置
+                  </Button>
+                </Space>
               </Col>
             </Row>
           </Form>

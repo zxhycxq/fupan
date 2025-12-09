@@ -45,13 +45,11 @@ function TitleWithTooltip({ title, tooltip }: { title: string; tooltip: string }
   return (
     <div className="flex items-center gap-2">
       <span>{title}</span>
-      <Tooltip title="
-            <p>{tooltip}</p>
-          ">
-            <button type="button" className="inline-flex items-center">
-              <InfoCircleOutlined className="h-4 w-4 text-muted-foreground cursor-help" />
-            </button>
-          </Tooltip>
+      <Tooltip title={tooltip}>
+        <button type="button" className="inline-flex items-center">
+          <InfoCircleOutlined className="h-4 w-4 text-muted-foreground cursor-help" />
+        </button>
+      </Tooltip>
     </div>
   );
 }
@@ -551,9 +549,9 @@ export default function ExamDetail() {
       },
     },
     legend: {
-      orient: 'vertical',
-      left: 'left',
-      top: 'middle',
+      orient: 'horizontal',
+      left: 'center',
+      bottom: 0,
       textStyle: {
         fontSize: 12,
       },
@@ -563,7 +561,7 @@ export default function ExamDetail() {
         name: '用时',
         type: 'pie',
         radius: ['40%', '70%'],
-        center: ['60%', '50%'],
+        center: ['50%', '45%'],
         avoidLabelOverlap: true,
         itemStyle: {
           borderRadius: 10,
