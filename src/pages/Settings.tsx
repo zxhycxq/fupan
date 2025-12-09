@@ -343,6 +343,8 @@ export default function Settings() {
                   onChange={(date) => setExamDate(date ? date.format('YYYY-MM-DD') : '')}
                   placeholder="请选择考试日期"
                   style={{ width: '100%' }}
+                  size="middle"
+                  getPopupContainer={(trigger) => trigger.parentElement || document.body}
                   disabledDate={(current) => current && current < dayjs().startOf('day')}
                 />
               </div>

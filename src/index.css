@@ -584,3 +584,92 @@ All colors MUST be HSL.
   text-decoration: line-through;
 }
 
+/* 移动端日期选择器优化 */
+@media (max-width: 640px) {
+  /* 日期选择器弹出层优化 */
+  .ant-picker-dropdown {
+    max-width: 95vw !important;
+  }
+
+  /* 日期选择器面板优化 */
+  .ant-picker-panel-container {
+    max-width: 95vw !important;
+  }
+
+  /* 日期范围选择器面板优化 */
+  .ant-picker-panels {
+    flex-direction: column !important;
+  }
+
+  /* 日期选择器输入框优化 */
+  .ant-picker {
+    font-size: 14px !important;
+  }
+
+  /* 日期选择器日历单元格优化 */
+  .ant-picker-cell {
+    padding: 4px 0 !important;
+  }
+
+  .ant-picker-cell-inner {
+    min-width: 28px !important;
+    height: 28px !important;
+    line-height: 28px !important;
+    font-size: 13px !important;
+  }
+
+  /* 日期选择器头部优化 */
+  .ant-picker-header {
+    padding: 8px 12px !important;
+  }
+
+  .ant-picker-header-view button {
+    font-size: 14px !important;
+  }
+
+  /* 快捷选项优化 */
+  .ant-picker-presets {
+    max-width: 100% !important;
+  }
+
+  .ant-picker-presets ul {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+
+  .ant-picker-presets li {
+    flex: 0 0 calc(50% - 4px) !important;
+  }
+
+  /* 日期范围选择器输入框优化 */
+  .ant-picker-range {
+    padding: 4px 8px !important;
+  }
+
+  .ant-picker-range .ant-picker-input input {
+    font-size: 13px !important;
+  }
+
+  /* 确保弹出层不超出屏幕 */
+  .ant-picker-dropdown .ant-picker-panel {
+    max-width: 100% !important;
+  }
+
+  /* 日期选择器底部按钮优化 */
+  .ant-picker-footer {
+    padding: 8px 12px !important;
+  }
+
+  .ant-picker-footer .ant-btn {
+    font-size: 13px !important;
+    padding: 4px 12px !important;
+    height: 28px !important;
+  }
+
+  /* 日期范围选择器分隔符优化 */
+  .ant-picker-range-separator {
+    padding: 0 4px !important;
+  }
+}
+

@@ -899,6 +899,8 @@ export default function ExamList() {
                     placeholder={['开始日期', '结束日期']}
                     className="w-full"
                     format="YYYY-MM-DD"
+                    size="middle"
+                    getPopupContainer={(trigger) => trigger.parentElement || document.body}
                     presets={[
                       { label: '最近一个月', value: [dayjs().subtract(1, 'month'), dayjs()] },
                       { label: '最近三个月', value: [dayjs().subtract(3, 'month'), dayjs()] },
@@ -1106,6 +1108,8 @@ export default function ExamList() {
               style={{ width: '100%' }}
               format="YYYY-MM-DD"
               placeholder="选择考试日期"
+              size="middle"
+              getPopupContainer={(trigger) => trigger.parentElement || document.body}
               disabledDate={(current) => {
                 if (!editingRecord) return false;
                 const uploadDate = dayjs(editingRecord.created_at).startOf('day');
