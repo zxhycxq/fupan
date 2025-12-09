@@ -1,8 +1,16 @@
-import { useEffect, useState } from 'react';
-import { Card, Row, Col, Skeleton } from 'antd';
+import { useEffect, useState, useMemo } from 'react';
+import { Card, Row, Col, Skeleton, DatePicker, Button } from 'antd';
 import ReactECharts from 'echarts-for-react';
 import { supabase } from '@/db/supabase';
 import type { ExamRecord } from '@/types';
+import dayjs, { Dayjs } from 'dayjs';
+import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
+import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
+
+dayjs.extend(isSameOrAfter);
+dayjs.extend(isSameOrBefore);
+
+const { RangePicker } = DatePicker;
 
 // 子模块颜色配置 - 使用明显区分的颜色
 const SUB_MODULE_COLORS: Record<string, string> = {
@@ -80,6 +88,7 @@ const MODULE_CONFIG = [
 export default function ModuleAnalysis() {
   const [examRecords, setExamRecords] = useState<ExamRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [dateRange, setDateRange] = useState<[Dayjs, Dayjs] | null>(null);
 
   useEffect(() => {
     loadData();
@@ -105,10 +114,37 @@ export default function ModuleAnalysis() {
     }
   };
 
+  // 根据日期范围过滤考试记录
+  const filteredExamRecords = useMemo(() => {
+    if (!dateRange || !dateRange[0] || !dateRange[1]) {
+      return examRecords;
+    }
+    
+    const [startDate, endDate] = dateRange;
+    return examRecords.filter(record => {
+      if (!record.exam_date) return false;
+      const examDate = dayjs(record.exam_date);
+      return examDate.isSameOrAfter(startDate, 'day') && examDate.isSameOrBefore(endDate, 'day');
+    });
+  }, [examRecords, dateRange]);
+
   // 获取模块趋势数据
-  const getModuleTrendData = async (parentModule: string, subModules: string[]) => {
+  const getModuleTrendData = async (parentModule: string, subModules: string[], filteredRecords: ExamRecord[]) => {
     try {
-      // 获取所有模块分数记录
+      // 如果没有过滤后的记录，返回空数据
+      if (filteredRecords.length === 0) {
+        return {
+          examNumbers: [],
+          examNames: [],
+          examDates: [],
+          series: subModules.map(name => ({ name, data: [] }))
+        };
+      }
+
+      // 获取过滤后的考试记录的 ID 列表
+      const filteredExamIds = filteredRecords.map(r => r.id);
+
+      // 获取所有模块分数记录，只查询过滤后的考试
       const { data: moduleScores, error } = await supabase
         .from('module_scores')
         .select(`
@@ -127,6 +163,7 @@ export default function ModuleAnalysis() {
           )
         `)
         .in('module_name', subModules)
+        .in('exam_record_id', filteredExamIds)
         .order('exam_records(sort_order)', { ascending: true });
 
       if (error) {
@@ -275,7 +312,7 @@ export default function ModuleAnalysis() {
   };
 
   // 渲染模块图表
-  const ModuleChart = ({ config }: { config: typeof MODULE_CONFIG[0] }) => {
+  const ModuleChart = ({ config, filteredRecords }: { config: typeof MODULE_CONFIG[0]; filteredRecords: ExamRecord[] }) => {
     const [chartData, setChartData] = useState<{
       examNumbers: number[];
       examNames: string[];
@@ -287,12 +324,12 @@ export default function ModuleAnalysis() {
     useEffect(() => {
       const loadChartData = async () => {
         setLoading(true);
-        const data = await getModuleTrendData(config.name, config.subModules);
+        const data = await getModuleTrendData(config.name, config.subModules, filteredRecords);
         setChartData(data);
         setLoading(false);
       };
       loadChartData();
-    }, [config]);
+    }, [config, filteredRecords]);
 
     if (loading) {
       return <Skeleton active />;
@@ -336,11 +373,54 @@ export default function ModuleAnalysis() {
         <p className="text-gray-500 mt-2">查看各个模块的正确率趋势变化</p>
       </div>
 
+      {/* 日期范围筛选器 - 固定在顶部 */}
+      <div className="sticky top-16 z-10 mb-6 -mx-6 px-6 py-3 bg-background/95 backdrop-blur-sm border-b">
+        <div className="flex flex-wrap items-center gap-4">
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">时间筛选：</span>
+          <RangePicker
+            value={dateRange}
+            onChange={(dates) => setDateRange(dates)}
+            placeholder={['开始日期', '结束日期']}
+            format="YYYY-MM-DD"
+            allowClear
+            className="flex-1 max-w-md"
+            renderExtraFooter={() => (
+              <div className="flex gap-2 p-2 border-t">
+                <Button size="small" onClick={() => {
+                  const end = dayjs();
+                  const start = end.subtract(1, 'month');
+                  setDateRange([start, end]);
+                }}>
+                  最近一个月
+                </Button>
+                <Button size="small" onClick={() => {
+                  const end = dayjs();
+                  const start = end.subtract(3, 'month');
+                  setDateRange([start, end]);
+                }}>
+                  最近三个月
+                </Button>
+                <Button size="small" onClick={() => {
+                  const end = dayjs();
+                  const start = end.subtract(6, 'month');
+                  setDateRange([start, end]);
+                }}>
+                  最近半年
+                </Button>
+                <Button size="small" onClick={() => setDateRange(null)}>
+                  全部
+                </Button>
+              </div>
+            )}
+          />
+        </div>
+      </div>
+
       <Row gutter={[16, 16]}>
         {MODULE_CONFIG.map((config) => (
           <Col xs={24} key={config.name}>
             <Card>
-              <ModuleChart config={config} />
+              <ModuleChart config={config} filteredRecords={filteredExamRecords} />
             </Card>
           </Col>
         ))}
