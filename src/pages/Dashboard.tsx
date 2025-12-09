@@ -1669,7 +1669,7 @@ export default function Dashboard() {
 
         {/* 右侧：统计卡片（两行三列） */}
         <Col xs={24} lg={12}>
-          <Row gutter={[16, 16]} style={{ height: isMobile ? 'auto' : '480px' }}>
+          <Row gutter={[16, 16]} style={{ height: isMobile ? 'auto' : '380px' }}>
             {/* 第一行 */}
             <Col xs={24} sm={12} md={8}>
               <StatCard
@@ -1716,24 +1716,31 @@ export default function Dashboard() {
                 className="stat-card stat-card-info p-3"
                 style={{ 
                   background: generateGradientStyle(DASHBOARD_GRADIENTS[3]),
-                  height: isMobile ? 'auto' : '224px',
+                  height: isMobile ? 'auto' : '180px',
                   minHeight: '120px'
                 }}
               >
-                <div className="flex items-start gap-2">
-                  <ClockCircleOutlined className="stat-icon text-yellow-600 dark:text-yellow-300 text-lg mt-1" />
-                  <div className="flex-1">
-                    <div className="stat-title text-gray-900 dark:text-gray-100 text-sm font-semibold mb-2">累计做题时长</div>
+                <div className="flex flex-col h-full">
+                  {/* 标题和图标 */}
+                  <div className="flex items-center gap-2 mb-3">
+                    <ClockCircleOutlined className="stat-icon text-yellow-600 dark:text-yellow-300 text-lg flex-shrink-0" />
+                    <div className="stat-title text-gray-800 dark:text-gray-200 text-sm font-semibold">累计做题时长</div>
+                  </div>
+                  
+                  {/* 数值 */}
+                  <div className="flex-1 flex items-center">
                     <div className="text-gray-900 dark:text-gray-100 font-semibold leading-tight">
                       {stats.totalTime.days > 0 && (
-                        <div className="text-2xl">{stats.totalTime.days}天</div>
+                        <div className="text-3xl">{stats.totalTime.days}天</div>
                       )}
-                      <div className={stats.totalTime.days > 0 ? 'text-xl' : 'text-2xl'}>
+                      <div className={stats.totalTime.days > 0 ? 'text-xl' : 'text-3xl'}>
                         {stats.totalTime.hours}小时
                       </div>
                     </div>
-                    <div className="text-xs opacity-80 mt-1 text-gray-800 dark:text-gray-200">所有考试花费时间</div>
                   </div>
+                  
+                  {/* 描述 */}
+                  <div className="text-xs opacity-80 mt-2 text-gray-700 dark:text-gray-300">所有考试花费时间</div>
                 </div>
               </Card>
             </Col>

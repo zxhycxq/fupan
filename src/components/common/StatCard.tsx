@@ -31,7 +31,7 @@ export default function StatCard({
       className={`stat-card p-3 ${className}`}
       style={{
         background: gradient,
-        height: isMobile ? 'auto' : '224px',
+        height: isMobile ? 'auto' : '180px',
         minHeight: '120px'
       }}
     >
