@@ -586,9 +586,9 @@ export default function Dashboard() {
       },
     },
     legend: {
-      orient: isMobile ? 'horizontal' : 'vertical',
-      left: isMobile ? 'center' : 'left',
-      top: isMobile ? 'bottom' : 'middle',
+      orient: 'horizontal',
+      left: 'left',
+      bottom: 0,
       textStyle: {
         fontSize: isMobile ? 10 : 12,
       },

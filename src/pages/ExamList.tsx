@@ -483,13 +483,13 @@ export default function ExamList() {
       title: '考试日期',
       dataIndex: 'exam_date',
       key: 'exam_date',
-      width: 140,
+      width: 120,
       render: (value: string | null) => value || '-',
     },
     {
       title: '备注',
       key: 'notes',
-      width: 100,
+      width: 90,
       render: (_: any, record: ExamRecord) => (
         <Space size="small">
           <Button
@@ -517,7 +517,7 @@ export default function ExamList() {
       title: '星级',
       dataIndex: 'rating',
       key: 'rating',
-      width: 150,
+      width: 180,
       render: (value: number, record: ExamRecord) => (
         <Rate
           allowHalf
