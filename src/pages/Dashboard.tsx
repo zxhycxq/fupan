@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ReactECharts from 'echarts-for-react';
 import { Table, Card, Skeleton, Statistic, Row, Col, Button, message, Calendar, Badge, Tooltip, Select } from 'antd';
@@ -202,7 +202,7 @@ export default function Dashboard() {
 
   // 计算统计数据
   // 计算练习天数
-  const calculatePracticeDays = () => {
+  const practiceDays = useMemo(() => {
     if (examRecords.length === 0) return 0;
     
     // 找到最早的考试日期
@@ -218,10 +218,10 @@ export default function Dashboard() {
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
     return diffDays;
-  };
+  }, [examRecords]);
 
   // 计算累计做题时长（返回天数和小时数）
-  const calculateTotalTime = () => {
+  const totalTime = useMemo(() => {
     if (examRecords.length === 0) return { days: 0, hours: 0 };
     
     const totalSeconds = examRecords
@@ -233,10 +233,10 @@ export default function Dashboard() {
     const hours = totalHours % 24;
     
     return { days, hours };
-  };
+  }, [examRecords]);
 
   // 计算做题数量
-  const calculateTotalQuestions = () => {
+  const totalQuestions = useMemo(() => {
     if (moduleDetailedStats.length === 0) return 0;
     
     // 按考试编号分组，每个考试只计算一次
@@ -255,11 +255,7 @@ export default function Dashboard() {
     }, 0);
     
     return totalQuestions;
-  };
-
-  const totalTime = calculateTotalTime();
-  const practiceDays = calculatePracticeDays();
-  const totalQuestions = calculateTotalQuestions();
+  }, [moduleDetailedStats]);
 
   const stats = {
     totalExams: examRecords.length,
