@@ -4,7 +4,7 @@ import { Button, Card, Input, InputNumber, Progress, message, Spin, Tabs, Select
 import { UploadOutlined, LoadingOutlined, CloseOutlined, DeleteOutlined, PictureOutlined, FormOutlined } from '@ant-design/icons';
 import { fileToBase64, recognizeText, compressImage } from '@/services/imageRecognition';
 import { parseExamData } from '@/services/dataParser';
-import { createExamRecord, createModuleScores, getNextSortOrder } from '@/db/api';
+import { createExamRecord, createModuleScores, getNextSortOrder, getNextIndexNumber } from '@/db/api';
 import FormInputTab from '@/components/exam/FormInputTab';
 
 interface FileWithPreview {
@@ -159,12 +159,16 @@ export default function Upload() {
       console.log('解析到的模块数量:', moduleScores.length);
       console.log('模块列表:', moduleScores.map(m => `${m.parent_module ? m.parent_module + ' > ' : ''}${m.module_name}`).join(', '));
 
-      // 添加考试名称和排序号
+      // 获取下一个可用的索引号
+      const nextIndexNumber = await getNextIndexNumber();
+      console.log('获取到的索引号:', nextIndexNumber);
+
+      // 添加考试名称、排序号和索引号
       const recordWithNameAndSortOrder = {
         ...examRecord,
         exam_name: examName,
         sort_order: sortOrder,
-        index_number: sortOrder, // 索引项，用于排序，必须唯一
+        index_number: nextIndexNumber, // 使用自动生成的唯一索引号
         rating: 0, // 默认星级为 0
       };
 

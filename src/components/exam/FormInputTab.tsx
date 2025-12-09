@@ -1,6 +1,6 @@
 import { Form, Collapse, Row, Col, InputNumber, Button, message } from 'antd';
 import { SaveOutlined } from '@ant-design/icons';
-import { createExamRecord, createModuleScores } from '@/db/api';
+import { createExamRecord, createModuleScores, getNextIndexNumber } from '@/db/api';
 import { useNavigate } from 'react-router-dom';
 
 const { Panel } = Collapse;
@@ -155,10 +155,14 @@ export default function FormInputTab({ examName, sortOrder, examType, onSubmitSt
 
       onSubmitStart();
 
+      // 获取下一个可用的索引号
+      const nextIndexNumber = await getNextIndexNumber();
+      console.log('获取到的索引号:', nextIndexNumber);
+
       const examRecord = {
         exam_name: examName,
         exam_number: sortOrder,
-        index_number: sortOrder, // 索引项，用于排序，必须唯一
+        index_number: nextIndexNumber, // 使用自动生成的唯一索引号
         sort_order: sortOrder,
         total_score: totalScore,
         time_used: totalTime,

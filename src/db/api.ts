@@ -555,6 +555,23 @@ export async function getNextSortOrder(): Promise<number> {
   return data ? data.sort_order + 1 : 1;
 }
 
+// 获取下一个可用的索引号（用于 index_number 字段）
+export async function getNextIndexNumber(): Promise<number> {
+  const { data, error } = await supabase
+    .from('exam_records')
+    .select('index_number')
+    .order('index_number', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    console.error('获取最大索引号失败:', error);
+    throw error;
+  }
+
+  return data ? data.index_number + 1 : 1;
+}
+
 // 更新考试记录的备注（进步和错误）
 export async function updateExamNotes(
   id: string, 
