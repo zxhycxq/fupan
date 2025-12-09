@@ -1,15 +1,17 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Card, Button, Skeleton, Alert, Table, Modal, Rate, message, Space, Drawer, Form, Input, InputNumber, DatePicker, Tooltip, Select, Tag } from 'antd';
+import { Card, Button, Skeleton, Alert, Table, Modal, Rate, message, Space, Drawer, Form, Input, InputNumber, DatePicker, Tooltip, Select, Tag, Row, Col } from 'antd';
 
 const { TextArea } = Input;
+const { RangePicker } = DatePicker;
 import type { ColumnsType } from 'antd/es/table';
 import { getAllExamRecords, deleteExamRecord, updateExamRecord, updateExamRating, updateExamNotes } from '@/db/api';
 import type { ExamRecord } from '@/types';
-import { EyeOutlined, DeleteOutlined, PlusOutlined, EditOutlined, InfoCircleOutlined, MenuOutlined, RiseOutlined, WarningOutlined, ClockCircleOutlined, LinkOutlined, DownloadOutlined } from '@ant-design/icons';
+import { EyeOutlined, DeleteOutlined, PlusOutlined, EditOutlined, InfoCircleOutlined, MenuOutlined, RiseOutlined, WarningOutlined, ClockCircleOutlined, LinkOutlined, DownloadOutlined, SearchOutlined, ReloadOutlined } from '@ant-design/icons';
 import { SortableContainer, SortableElement, SortableHandle } from 'react-sortable-hoc';
 import { arrayMoveImmutable } from 'array-move';
 import dayjs from 'dayjs';
+import type { Dayjs } from 'dayjs';
 import WangEditor, { type WangEditorRef } from '@/components/common/WangEditor';
 
 // 拖拽手柄
@@ -23,8 +25,19 @@ const SortableItem = SortableElement((props: any) => <tr {...props} />);
 // 可排序的容器
 const SortableBody = SortableContainer((props: any) => <tbody {...props} />);
 
+// 筛选条件接口
+interface FilterParams {
+  examName?: string;
+  examType?: string;
+  scoreRange?: string;
+  passRateRange?: string;
+  dateRange?: [Dayjs, Dayjs] | null;
+  rating?: number;
+}
+
 export default function ExamList() {
   const [examRecords, setExamRecords] = useState<ExamRecord[]>([]);
+  const [filteredRecords, setFilteredRecords] = useState<ExamRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [drawerVisible, setDrawerVisible] = useState(false);
@@ -38,7 +51,9 @@ export default function ExamList() {
   const [isSavingSort, setIsSavingSort] = useState(false); // 新增：保存排序的loading状态
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [filterParams, setFilterParams] = useState<FilterParams>({});
   const [form] = Form.useForm();
+  const [filterForm] = Form.useForm();
   const editorRef = useRef<WangEditorRef>(null);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -73,6 +88,7 @@ export default function ExamList() {
       setLoadError(null); // 清除之前的错误
       const records = await getAllExamRecords();
       setExamRecords(records);
+      setFilteredRecords(records); // 初始化筛选后的记录
       if (records.length === 0) {
         console.warn('未获取到考试记录数据');
       }
@@ -83,9 +99,96 @@ export default function ExamList() {
       message.error('加载考试记录失败，请查看页面提示');
       // 即使失败也设置空数组，避免页面崩溃
       setExamRecords([]);
+      setFilteredRecords([]);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // 应用筛选条件
+  useEffect(() => {
+    applyFilters();
+  }, [examRecords, filterParams]);
+
+  // 筛选逻辑
+  const applyFilters = () => {
+    let filtered = [...examRecords];
+
+    // 按名称筛选
+    if (filterParams.examName) {
+      const searchText = filterParams.examName.toLowerCase();
+      filtered = filtered.filter(record => 
+        record.exam_name.toLowerCase().includes(searchText)
+      );
+    }
+
+    // 按考试类型筛选
+    if (filterParams.examType) {
+      filtered = filtered.filter(record => 
+        record.exam_type === filterParams.examType
+      );
+    }
+
+    // 按总分区间筛选
+    if (filterParams.scoreRange) {
+      const [min, max] = filterParams.scoreRange.split('-').map(Number);
+      filtered = filtered.filter(record => {
+        const score = record.total_score || 0;
+        return score >= min && score <= max;
+      });
+    }
+
+    // 按击败率区间筛选
+    if (filterParams.passRateRange) {
+      const [min, max] = filterParams.passRateRange.split('-').map(Number);
+      filtered = filtered.filter(record => {
+        const rate = record.pass_rate || 0;
+        return rate >= min && rate <= max;
+      });
+    }
+
+    // 按考试日期筛选
+    if (filterParams.dateRange && filterParams.dateRange.length === 2) {
+      const [startDate, endDate] = filterParams.dateRange;
+      filtered = filtered.filter(record => {
+        if (!record.exam_date) return false;
+        const examDate = dayjs(record.exam_date);
+        return examDate.isAfter(startDate.startOf('day')) && 
+               examDate.isBefore(endDate.endOf('day'));
+      });
+    }
+
+    // 按星级筛选
+    if (filterParams.rating !== undefined) {
+      filtered = filtered.filter(record => {
+        const rating = record.rating || 0;
+        // 四舍五入到整数
+        return Math.round(rating) === filterParams.rating;
+      });
+    }
+
+    setFilteredRecords(filtered);
+    // 重置到第一页
+    setCurrentPage(1);
+  };
+
+  // 处理搜索
+  const handleSearch = () => {
+    const values = filterForm.getFieldsValue();
+    setFilterParams({
+      examName: values.examName,
+      examType: values.examType,
+      scoreRange: values.scoreRange,
+      passRateRange: values.passRateRange,
+      dateRange: values.dateRange,
+      rating: values.rating,
+    });
+  };
+
+  // 处理重置
+  const handleReset = () => {
+    filterForm.resetFields();
+    setFilterParams({});
   };
 
   const handleDelete = async (id: string, examName: string) => {
@@ -696,6 +799,113 @@ export default function ExamList() {
           />
         )}
 
+        {/* 筛选表单 */}
+        <Card className="mb-4" size="small">
+          <Form
+            form={filterForm}
+            layout="vertical"
+            onFinish={handleSearch}
+          >
+            <Row gutter={[16, 0]}>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Form.Item label="考试名称" name="examName" className="mb-2">
+                  <Input placeholder="请输入考试名称" allowClear />
+                </Form.Item>
+              </Col>
+              
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Form.Item label="考试类型" name="examType" className="mb-2">
+                  <Select placeholder="请选择考试类型" allowClear>
+                    <Select.Option value="国考真题">国考真题</Select.Option>
+                    <Select.Option value="国考模考">国考模考</Select.Option>
+                    <Select.Option value="省考真题">省考真题</Select.Option>
+                    <Select.Option value="省考模考">省考模考</Select.Option>
+                    <Select.Option value="其他">其他</Select.Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+              
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Form.Item label="总分区间" name="scoreRange" className="mb-2">
+                  <Select placeholder="请选择总分区间" allowClear>
+                    <Select.Option value="0-10">0-10分</Select.Option>
+                    <Select.Option value="11-20">11-20分</Select.Option>
+                    <Select.Option value="21-30">21-30分</Select.Option>
+                    <Select.Option value="31-40">31-40分</Select.Option>
+                    <Select.Option value="41-50">41-50分</Select.Option>
+                    <Select.Option value="51-60">51-60分</Select.Option>
+                    <Select.Option value="61-70">61-70分</Select.Option>
+                    <Select.Option value="71-80">71-80分</Select.Option>
+                    <Select.Option value="81-90">81-90分</Select.Option>
+                    <Select.Option value="91-100">91-100分</Select.Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+              
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Form.Item label="击败率区间" name="passRateRange" className="mb-2">
+                  <Select placeholder="请选择击败率区间" allowClear>
+                    <Select.Option value="0-10">0-10%</Select.Option>
+                    <Select.Option value="11-20">11-20%</Select.Option>
+                    <Select.Option value="21-30">21-30%</Select.Option>
+                    <Select.Option value="31-40">31-40%</Select.Option>
+                    <Select.Option value="41-50">41-50%</Select.Option>
+                    <Select.Option value="51-60">51-60%</Select.Option>
+                    <Select.Option value="61-70">61-70%</Select.Option>
+                    <Select.Option value="71-80">71-80%</Select.Option>
+                    <Select.Option value="81-90">81-90%</Select.Option>
+                    <Select.Option value="91-100">91-100%</Select.Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+              
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Form.Item label="考试日期" name="dateRange" className="mb-2">
+                  <RangePicker 
+                    placeholder={['开始日期', '结束日期']}
+                    className="w-full"
+                    format="YYYY-MM-DD"
+                  />
+                </Form.Item>
+              </Col>
+              
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Form.Item label="星级" name="rating" className="mb-2">
+                  <Select placeholder="请选择星级" allowClear>
+                    <Select.Option value={1}>⭐ 1星</Select.Option>
+                    <Select.Option value={2}>⭐ 2星</Select.Option>
+                    <Select.Option value={3}>⭐ 3星</Select.Option>
+                    <Select.Option value={4}>⭐ 4星</Select.Option>
+                    <Select.Option value={5}>⭐ 5星</Select.Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+              
+              <Col xs={24} sm={24} md={24} lg={6}>
+                <Form.Item label=" " className="mb-2">
+                  <Space className="w-full" size="small">
+                    <Button 
+                      type="primary" 
+                      icon={<SearchOutlined />}
+                      onClick={handleSearch}
+                      className="flex-1"
+                    >
+                      搜索
+                    </Button>
+                    <Button 
+                      icon={<ReloadOutlined />}
+                      onClick={handleReset}
+                      className="flex-1"
+                    >
+                      重置
+                    </Button>
+                  </Space>
+                </Form.Item>
+              </Col>
+            </Row>
+          </Form>
+        </Card>
+
         {examRecords.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-gray-500 mb-4">暂无考试记录</p>
@@ -707,7 +917,7 @@ export default function ExamList() {
           <div className="overflow-x-auto">
             <Table
               columns={columns}
-              dataSource={examRecords}
+              dataSource={filteredRecords}
               rowKey="id"
               className="select-none" // 添加禁止文字选中的CSS类
               pagination={{
