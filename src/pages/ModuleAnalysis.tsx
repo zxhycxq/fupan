@@ -1,16 +1,15 @@
 import { useEffect, useState, useMemo } from 'react';
-import { Card, Row, Col, Skeleton, DatePicker, Button } from 'antd';
+import { Card, Row, Col, Skeleton } from 'antd';
 import ReactECharts from 'echarts-for-react';
 import { supabase } from '@/db/supabase';
 import type { ExamRecord } from '@/types';
 import dayjs, { Dayjs } from 'dayjs';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
+import DateRangeFilter from '@/components/common/DateRangeFilter';
 
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isSameOrBefore);
-
-const { RangePicker } = DatePicker;
 
 // 子模块颜色配置 - 使用明显区分的颜色
 const SUB_MODULE_COLORS: Record<string, string> = {
@@ -374,47 +373,7 @@ export default function ModuleAnalysis() {
       </div>
 
       {/* 日期范围筛选器 - 固定在顶部 */}
-      <div className="sticky top-16 z-10 mb-6 -mx-6 px-6 py-3 bg-background/95 backdrop-blur-sm border-b">
-        <div className="flex flex-wrap items-center gap-4">
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">时间筛选：</span>
-          <RangePicker
-            value={dateRange}
-            onChange={(dates) => setDateRange(dates)}
-            placeholder={['开始日期', '结束日期']}
-            format="YYYY-MM-DD"
-            allowClear
-            className="flex-1 max-w-md"
-            renderExtraFooter={() => (
-              <div className="flex gap-2 p-2 border-t">
-                <Button size="small" onClick={() => {
-                  const end = dayjs();
-                  const start = end.subtract(1, 'month');
-                  setDateRange([start, end]);
-                }}>
-                  最近一个月
-                </Button>
-                <Button size="small" onClick={() => {
-                  const end = dayjs();
-                  const start = end.subtract(3, 'month');
-                  setDateRange([start, end]);
-                }}>
-                  最近三个月
-                </Button>
-                <Button size="small" onClick={() => {
-                  const end = dayjs();
-                  const start = end.subtract(6, 'month');
-                  setDateRange([start, end]);
-                }}>
-                  最近半年
-                </Button>
-                <Button size="small" onClick={() => setDateRange(null)}>
-                  全部
-                </Button>
-              </div>
-            )}
-          />
-        </div>
-      </div>
+      <DateRangeFilter value={dateRange} onChange={setDateRange} className="-mx-6 px-6" />
 
       <Row gutter={[16, 16]}>
         {MODULE_CONFIG.map((config) => (

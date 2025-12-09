@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ReactECharts from 'echarts-for-react';
-import { Table, Card, Skeleton, Statistic, Row, Col, Button, message, Calendar, Badge, Tooltip, Select, DatePicker } from 'antd';
+import { Table, Card, Skeleton, Row, Col, Button, message, Calendar, Badge, Tooltip, Select } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import type { Dayjs } from 'dayjs';
 import { RiseOutlined, ClockCircleOutlined, AimOutlined, TrophyOutlined, DownloadOutlined, CalendarOutlined, FileTextOutlined } from '@ant-design/icons';
@@ -14,8 +14,8 @@ import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import { Lunar, Solar } from 'lunar-typescript';
 import { DASHBOARD_GRADIENTS, generateGradientStyle } from '@/config/gradients';
-
-const { RangePicker } = DatePicker;
+import DateRangeFilter from '@/components/common/DateRangeFilter';
+import StatCard from '@/components/common/StatCard';
 
 // 扩展dayjs
 dayjs.extend(dayOfYear);
@@ -1652,61 +1652,7 @@ export default function Dashboard() {
       )}
 
       {/* 日期范围筛选器 - 固定在顶部 */}
-      <div className="sticky top-16 z-10 mb-6 -mx-4 px-4 py-3 bg-background/95 backdrop-blur-sm border-b">
-        <div className="container mx-auto">
-          <div className="flex flex-wrap items-center gap-4">
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">时间筛选：</span>
-            <RangePicker
-              value={dateRange}
-              onChange={(dates) => setDateRange(dates)}
-              placeholder={['开始日期', '结束日期']}
-              format="YYYY-MM-DD"
-              allowClear
-              className="flex-1 max-w-md"
-              renderExtraFooter={() => (
-                <div className="flex gap-2 p-2 border-t">
-                  <Button
-                    size="small"
-                    onClick={() => {
-                      const end = dayjs();
-                      const start = end.subtract(1, 'month');
-                      setDateRange([start, end]);
-                    }}
-                  >
-                    最近一个月
-                  </Button>
-                  <Button
-                    size="small"
-                    onClick={() => {
-                      const end = dayjs();
-                      const start = end.subtract(3, 'month');
-                      setDateRange([start, end]);
-                    }}
-                  >
-                    最近三个月
-                  </Button>
-                  <Button
-                    size="small"
-                    onClick={() => {
-                      const end = dayjs();
-                      const start = end.subtract(6, 'month');
-                      setDateRange([start, end]);
-                    }}
-                  >
-                    最近半年
-                  </Button>
-                  <Button
-                    size="small"
-                    onClick={() => setDateRange(null)}
-                  >
-                    全部
-                  </Button>
-                </div>
-              )}
-            />
-          </div>
-        </div>
-      </div>
+      <DateRangeFilter value={dateRange} onChange={setDateRange} />
 
       {/* 平均分仪表盘和统计卡片 */}
       <Row gutter={[16, 16]} className="mb-8">
@@ -1726,63 +1672,42 @@ export default function Dashboard() {
           <Row gutter={[16, 16]} style={{ height: isMobile ? 'auto' : '480px' }}>
             {/* 第一行 */}
             <Col xs={24} sm={12} md={8}>
-              <Card 
-                className="stat-card stat-card-primary p-3" 
-                style={{ 
-                  background: generateGradientStyle(DASHBOARD_GRADIENTS[0]),
-                  height: isMobile ? 'auto' : '224px',
-                  minHeight: '120px'
-                }}
-              >
-                <Statistic
-                  title={<span className="stat-title text-gray-900 dark:text-gray-100 text-sm font-semibold">考试次数</span>}
-                  value={stats.totalExams}
-                  suffix="次"
-                  prefix={<TrophyOutlined className="stat-icon text-purple-600 dark:text-purple-300 text-lg" />}
-                  valueStyle={{ color: '#1f2937', fontSize: '24px', fontWeight: 600 }}
-                />
-                <div className="text-xs opacity-80 mt-1 text-gray-800 dark:text-gray-200">累计考试次数</div>
-              </Card>
+              <StatCard
+                title="考试次数"
+                value={stats.totalExams}
+                suffix="次"
+                prefix={<TrophyOutlined className="stat-icon text-purple-600 dark:text-purple-300 text-lg" />}
+                description="累计考试次数"
+                gradient={generateGradientStyle(DASHBOARD_GRADIENTS[0])}
+                className="stat-card-primary"
+                isMobile={isMobile}
+              />
             </Col>
 
             <Col xs={24} sm={12} md={8}>
-              <Card 
-                className="stat-card stat-card-success p-3"
-                style={{ 
-                  background: generateGradientStyle(DASHBOARD_GRADIENTS[1]),
-                  height: isMobile ? 'auto' : '224px',
-                  minHeight: '120px'
-                }}
-              >
-                <Statistic
-                  title={<span className="stat-title text-gray-900 dark:text-gray-100 text-sm font-semibold">平均分</span>}
-                  value={stats.averageScore}
-                  suffix="分"
-                  prefix={<RiseOutlined className="stat-icon text-orange-600 dark:text-orange-300 text-lg" />}
-                  valueStyle={{ color: '#1f2937', fontSize: '24px', fontWeight: 600 }}
-                />
-                <div className="text-xs opacity-80 mt-1 text-gray-800 dark:text-gray-200">所有考试平均分</div>
-              </Card>
+              <StatCard
+                title="平均分"
+                value={stats.averageScore}
+                suffix="分"
+                prefix={<RiseOutlined className="stat-icon text-orange-600 dark:text-orange-300 text-lg" />}
+                description="所有考试平均分"
+                gradient={generateGradientStyle(DASHBOARD_GRADIENTS[1])}
+                className="stat-card-success"
+                isMobile={isMobile}
+              />
             </Col>
 
             <Col xs={24} sm={12} md={8}>
-              <Card 
-                className="stat-card stat-card-warning p-3"
-                style={{ 
-                  background: generateGradientStyle(DASHBOARD_GRADIENTS[2]),
-                  height: isMobile ? 'auto' : '224px',
-                  minHeight: '120px'
-                }}
-              >
-                <Statistic
-                  title={<span className="stat-title text-gray-900 dark:text-gray-100 text-sm font-semibold">最高分</span>}
-                  value={stats.highestScore}
-                  suffix="分"
-                  prefix={<AimOutlined className="stat-icon text-blue-600 dark:text-blue-300 text-lg" />}
-                  valueStyle={{ color: '#1f2937', fontSize: '24px', fontWeight: 600 }}
-                />
-                <div className="text-xs opacity-80 mt-1 text-gray-800 dark:text-gray-200">历史最高分数</div>
-              </Card>
+              <StatCard
+                title="最高分"
+                value={stats.highestScore}
+                suffix="分"
+                prefix={<AimOutlined className="stat-icon text-blue-600 dark:text-blue-300 text-lg" />}
+                description="历史最高分数"
+                gradient={generateGradientStyle(DASHBOARD_GRADIENTS[2])}
+                className="stat-card-warning"
+                isMobile={isMobile}
+              />
             </Col>
 
             {/* 第二行 */}
@@ -1814,43 +1739,29 @@ export default function Dashboard() {
             </Col>
 
             <Col xs={24} sm={12} md={8}>
-              <Card 
-                className="stat-card stat-card-primary p-3"
-                style={{ 
-                  background: generateGradientStyle(DASHBOARD_GRADIENTS[4] || DASHBOARD_GRADIENTS[0]),
-                  height: isMobile ? 'auto' : '224px',
-                  minHeight: '120px'
-                }}
-              >
-                <Statistic
-                  title={<span className="stat-title text-gray-900 dark:text-gray-100 text-sm font-semibold">练习天数</span>}
-                  value={stats.practiceDays}
-                  suffix="天"
-                  prefix={<CalendarOutlined className="stat-icon text-green-600 dark:text-green-300 text-lg" />}
-                  valueStyle={{ color: '#1f2937', fontSize: '24px', fontWeight: 600 }}
-                />
-                <div className="text-xs opacity-80 mt-1 text-gray-800 dark:text-gray-200">从第一次考试至今</div>
-              </Card>
+              <StatCard
+                title="练习天数"
+                value={stats.practiceDays}
+                suffix="天"
+                prefix={<CalendarOutlined className="stat-icon text-green-600 dark:text-green-300 text-lg" />}
+                description="从第一次考试至今"
+                gradient={generateGradientStyle(DASHBOARD_GRADIENTS[4] || DASHBOARD_GRADIENTS[0])}
+                className="stat-card-primary"
+                isMobile={isMobile}
+              />
             </Col>
 
             <Col xs={24} sm={12} md={8}>
-              <Card 
-                className="stat-card stat-card-success p-3"
-                style={{ 
-                  background: generateGradientStyle(DASHBOARD_GRADIENTS[5] || DASHBOARD_GRADIENTS[1]),
-                  height: isMobile ? 'auto' : '224px',
-                  minHeight: '120px'
-                }}
-              >
-                <Statistic
-                  title={<span className="stat-title text-gray-900 dark:text-gray-100 text-sm font-semibold">做题数量</span>}
-                  value={stats.totalQuestions}
-                  suffix="题"
-                  prefix={<FileTextOutlined className="stat-icon text-indigo-600 dark:text-indigo-300 text-lg" />}
-                  valueStyle={{ color: '#1f2937', fontSize: '24px', fontWeight: 600 }}
-                />
-                <div className="text-xs opacity-80 mt-1 text-gray-800 dark:text-gray-200">累计答题总数</div>
-              </Card>
+              <StatCard
+                title="做题数量"
+                value={stats.totalQuestions}
+                suffix="题"
+                prefix={<FileTextOutlined className="stat-icon text-indigo-600 dark:text-indigo-300 text-lg" />}
+                description="累计答题总数"
+                gradient={generateGradientStyle(DASHBOARD_GRADIENTS[5] || DASHBOARD_GRADIENTS[1])}
+                className="stat-card-success"
+                isMobile={isMobile}
+              />
             </Col>
           </Row>
         </Col>
