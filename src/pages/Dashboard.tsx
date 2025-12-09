@@ -227,15 +227,25 @@ export default function Dashboard() {
       trigger: 'axis',
       formatter: (params: any) => {
         if (!params || params.length === 0) return '';
-        const param = params[0];
-        return `${param.axisValue}<br/>${param.marker}${param.seriesName}: ${param.value.toFixed(2)}分`;
+        let result = `${params[0].axisValue}<br/>`;
+        params.forEach((param: any) => {
+          result += `${param.marker}${param.seriesName}: ${param.value.toFixed(2)}分<br/>`;
+        });
+        return result;
+      },
+    },
+    legend: {
+      data: ['我的成绩', '平均分'],
+      top: isMobile ? 30 : 35,
+      textStyle: {
+        fontSize: isMobile ? 10 : 12,
       },
     },
     grid: {
       left: isMobile ? '5%' : '3%',
       right: isMobile ? '5%' : '4%',
       bottom: isMobile ? '15%' : '12%', // 增加底部空间以容纳旋转的标签
-      top: isMobile ? 50 : 60,
+      top: isMobile ? 65 : 70, // 增加顶部空间以容纳图例
       containLabel: true,
     },
     xAxis: {
@@ -243,7 +253,7 @@ export default function Dashboard() {
       data: examRecords.map(r => {
         const date = r.exam_date || '';
         const name = r.exam_name || `第${r.exam_number}期`;
-        return date ? `${date} ${name}` : name;
+        return date ? `${name} ${date}` : name; // 调整格式：考试名称在前，日期在后
       }),
       axisLabel: {
         fontSize: isMobile ? 10 : 12,
@@ -266,7 +276,7 @@ export default function Dashboard() {
     },
     series: [
       {
-        name: '总分',
+        name: '我的成绩',
         type: 'line',
         data: examRecords.map(r => r.total_score),
         smooth: true,
@@ -285,6 +295,19 @@ export default function Dashboard() {
               { offset: 1, color: 'rgba(24, 144, 255, 0.05)' },
             ],
           },
+        },
+      },
+      {
+        name: '平均分',
+        type: 'line',
+        data: examRecords.map(r => r.average_score || 0),
+        smooth: true,
+        itemStyle: {
+          color: '#52C41A',
+        },
+        lineStyle: {
+          type: 'dashed', // 使用虚线区分
+          width: 2,
         },
       },
     ],
@@ -400,7 +423,7 @@ export default function Dashboard() {
       data: moduleTrendData.exam_dates && moduleTrendData.exam_names 
         ? moduleTrendData.exam_dates.map((date, idx) => {
             const name = moduleTrendData.exam_names?.[idx] || `第${moduleTrendData.exam_numbers[idx]}次`;
-            return date ? `${date} ${name}` : name;
+            return date ? `${name} ${date}` : name; // 调整格式：考试名称在前，日期在后
           })
         : moduleTrendData.exam_numbers.map(n => `第${n}次`),
       name: '考试',
@@ -496,7 +519,7 @@ export default function Dashboard() {
       data: moduleTimeTrendData.exam_dates && moduleTimeTrendData.exam_names 
         ? moduleTimeTrendData.exam_dates.map((date, idx) => {
             const name = moduleTimeTrendData.exam_names?.[idx] || `第${moduleTimeTrendData.exam_numbers[idx]}次`;
-            return date ? `${date} ${name}` : name;
+            return date ? `${name} ${date}` : name; // 调整格式：考试名称在前，日期在后
           })
         : moduleTimeTrendData.exam_numbers.map(n => `第${n}次`),
       name: '考试',

@@ -240,7 +240,7 @@ export default function ModuleAnalysis() {
         boundaryGap: false,
         data: examDates.map((date, idx) => {
           const name = examNames[idx] || `第${examNumbers[idx]}期`;
-          return date ? `${date} ${name}` : name;
+          return date ? `${name} ${date}` : name; // 调整格式：考试名称在前，日期在后
         }),
         axisLabel: {
           rotate: 45,
