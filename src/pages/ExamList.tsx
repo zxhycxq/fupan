@@ -118,6 +118,7 @@ export default function ExamList() {
       average_score: record.average_score,
       pass_rate: record.pass_rate,
       exam_date: record.exam_date ? dayjs(record.exam_date) : null,
+      report_url: record.report_url || '',
     });
     setDrawerVisible(true);
   };
@@ -165,6 +166,7 @@ export default function ExamList() {
       updates.average_score = values.average_score ? Math.round(values.average_score * 10) / 10 : null;
       updates.pass_rate = values.pass_rate ? Math.round(values.pass_rate * 10) / 10 : null;
       updates.exam_date = values.exam_date ? values.exam_date.format('YYYY-MM-DD') : null;
+      updates.report_url = values.report_url ? values.report_url.trim() : null;
 
       await updateExamRecord(editingRecord.id!, updates);
 
@@ -800,6 +802,22 @@ export default function ExamList() {
                 const uploadDate = dayjs(editingRecord.created_at).startOf('day');
                 return current && current.isAfter(uploadDate);
               }}
+            />
+          </Form.Item>
+
+          <Form.Item
+            label="考试报告链接"
+            name="report_url"
+            rules={[
+              {
+                type: 'url',
+                message: '请输入有效的URL地址',
+              },
+            ]}
+          >
+            <Input
+              placeholder="请输入考试报告链接地址（选填）"
+              prefix={<LinkOutlined />}
             />
           </Form.Item>
         </Form>

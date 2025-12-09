@@ -90,8 +90,6 @@ export default function ExamDetail() {
   const [editingNoteType, setEditingNoteType] = useState<'improvements' | 'mistakes' | 'both'>('both'); // 新增：区分编辑类型
   const [improvements, setImprovements] = useState<string>('');
   const [mistakes, setMistakes] = useState<string>('');
-  const [isEditingReportUrl, setIsEditingReportUrl] = useState(false);
-  const [reportUrl, setReportUrl] = useState<string>('');
   const [isSaving, setIsSaving] = useState(false);
   const [timeChartType, setTimeChartType] = useState<'pie' | 'bar'>('pie'); // 用时图表类型，默认饼图
   // 使用 antd message
@@ -332,50 +330,6 @@ export default function ExamDetail() {
       console.error('保存备注失败:', error);
       const errorMessage = error instanceof Error ? error.message : '保存备注失败';
       message.error(errorMessage);
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  // 打开报告链接编辑对话框
-  const handleEditReportUrl = () => {
-    if (!examDetail) return;
-    setReportUrl(examDetail.report_url || '');
-    setIsEditingReportUrl(true);
-  };
-
-  // 保存报告链接
-  const handleSaveReportUrl = async () => {
-    if (!examDetail || !id) return;
-
-    // 验证URL格式(如果有输入的话)
-    if (reportUrl && reportUrl.trim()) {
-      try {
-        new URL(reportUrl.trim());
-      } catch {
-        message.success("错误");
-        return;
-      }
-    }
-
-    try {
-      setIsSaving(true);
-      const urlToSave = reportUrl.trim() || null;
-      await updateExamRecord(id, { report_url: urlToSave });
-      
-      // 更新本地状态
-      setExamDetail({
-        ...examDetail,
-        report_url: urlToSave || undefined,
-      });
-
-      message.success("成功");
-      
-      setIsEditingReportUrl(false);
-    } catch (error) {
-      console.error('更新考试报告链接失败:', error);
-      const errorMessage = error instanceof Error ? error.message : '更新考试报告链接失败';
-      message.success("错误");
     } finally {
       setIsSaving(false);
     }
@@ -705,32 +659,17 @@ export default function ExamDetail() {
           </Descriptions.Item>
           <Descriptions.Item label="考试报告链接" span={2}>
             {examDetail.report_url ? (
-              <div className="flex items-center gap-2">
-                <a
-                  href={examDetail.report_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-primary hover:underline"
-                >
-                  <LinkOutlined />
-                  <span>{examDetail.exam_name}考试报告链接地址</span>
-                </a>
-                <Button
-                  type="text"
-                  size="small"
-                  icon={<EditOutlined />}
-                  onClick={handleEditReportUrl}
-                />
-              </div>
-            ) : (
-              <Button
-                type="link"
-                size="small"
-                icon={<LinkOutlined />}
-                onClick={handleEditReportUrl}
+              <a
+                href={examDetail.report_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 text-primary hover:underline"
               >
-                添加{examDetail.exam_name}考试报告链接地址
-              </Button>
+                <LinkOutlined />
+                <span>{examDetail.exam_name}考试报告链接地址</span>
+              </a>
+            ) : (
+              <span className="text-gray-400">暂无链接</span>
             )}
           </Descriptions.Item>
         </Descriptions>
@@ -1247,29 +1186,6 @@ export default function ExamDetail() {
               />
             </div>
           )}
-        </div>
-      </Modal>
-
-      {/* 编辑考试报告链接对话框 */}
-      <Modal 
-        title="链接地址"
-        open={isEditingReportUrl} 
-        onCancel={() => setIsEditingReportUrl(false)}
-        onOk={handleSaveReportUrl}
-        okText="确定"
-        cancelText="取消"
-        confirmLoading={isSaving}
-      >
-        <div className="space-y-2">
-          <Input
-            type="url"
-            value={reportUrl}
-            onChange={(e) => setReportUrl(e.target.value)}
-            placeholder="https://example.com/report"
-          />
-          <p className="text-xs text-gray-500">
-            请输入完整的URL地址，包括 http:// 或 https://
-          </p>
         </div>
       </Modal>
     </div>
