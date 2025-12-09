@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import routes from "../../routes";
-import { BarChartOutlined, CalendarOutlined, MenuOutlined, CloseOutlined } from "@ant-design/icons";
+import { BarChartOutlined, MenuOutlined, CloseOutlined } from "@ant-design/icons";
 import { getExamConfig } from "@/db/api";
 
 const Header: React.FC = () => {
@@ -36,27 +36,24 @@ const Header: React.FC = () => {
   return (
     <header className="bg-white shadow-md sticky top-0 z-50 border-b">
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          {/* Logo和标题 */}
-          <div className="flex items-center gap-2 sm:gap-4">
-            <Link to="/" className="flex-shrink-0 flex items-center">
+        <div className="flex justify-between items-center h-16">
+          {/* 左侧：Logo和标题 */}
+          <div className="flex items-center gap-2">
+            <Link to="/" className="flex items-center gap-2">
               <BarChartOutlined className="text-2xl sm:text-3xl text-blue-600" />
-              <span className="ml-1 sm:ml-2 text-base sm:text-xl font-bold text-blue-600 max-sm:hidden">
+              <span className="text-base sm:text-xl font-bold text-blue-600 whitespace-nowrap">
                 考试成绩分析系统
-              </span>
-              <span className="ml-1 text-sm font-bold text-blue-600 sm:hidden">
-                成绩分析
               </span>
             </Link>
           </div>
 
-          {/* 桌面端导航 */}
-          <div className="hidden md:flex items-center space-x-4 lg:space-x-8">
+          {/* 右侧：桌面端导航菜单 */}
+          <div className="hidden md:flex items-center space-x-1 lg:space-x-2">
             {navigation.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
-                className={`px-3 py-2 text-sm lg:text-base font-medium rounded-md ${
+                className={`px-3 lg:px-4 py-2 text-sm lg:text-base font-medium rounded-md whitespace-nowrap ${
                   location.pathname === item.path
                     ? "text-blue-600 bg-blue-50"
                     : "text-gray-700 hover:text-blue-600 hover:bg-gray-50"
@@ -67,11 +64,12 @@ const Header: React.FC = () => {
             ))}
           </div>
 
-          {/* 移动端菜单按钮 */}
+          {/* 右侧：移动端菜单按钮 */}
           <div className="flex items-center md:hidden">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2 rounded-md text-gray-700 hover:text-blue-600 hover:bg-gray-50"
+              aria-label="菜单"
             >
               {mobileMenuOpen ? (
                 <CloseOutlined className="text-xl" />

@@ -295,16 +295,19 @@ export default function Dashboard() {
     };
   }, [moduleTimeTrendData, dateRange]);
 
-  // 根据筛选后的数据计算模块平均正确率
+  // 根据筛选后的数据计算模块平均正确率（只统计一级模块）
   const filteredModuleAvgScores = useMemo(() => {
     if (filteredModuleDetailedStats.length === 0) {
       return [];
     }
 
+    // 只统计一级模块（parent_module 为空的模块）
+    const firstLevelStats = filteredModuleDetailedStats.filter(stat => !stat.parent_module);
+
     // 按模块名称分组统计
     const moduleStats = new Map<string, { totalCorrect: number; totalQuestions: number }>();
     
-    filteredModuleDetailedStats.forEach(stat => {
+    firstLevelStats.forEach(stat => {
       const existing = moduleStats.get(stat.module_name) || { totalCorrect: 0, totalQuestions: 0 };
       moduleStats.set(stat.module_name, {
         totalCorrect: existing.totalCorrect + stat.correct_answers,
@@ -327,6 +330,7 @@ export default function Dashboard() {
     // 按正确率降序排序
     return avgScores.sort((a, b) => b.avg_accuracy - a.avg_accuracy);
   }, [filteredModuleDetailedStats]);
+
 
   // 计算日期范围限制
   const dateRangeLimits = useMemo(() => {
