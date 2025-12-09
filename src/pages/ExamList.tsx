@@ -865,6 +865,12 @@ export default function ExamList() {
                     placeholder={['开始日期', '结束日期']}
                     className="w-full"
                     format="YYYY-MM-DD"
+                    presets={[
+                      { label: '最近一个月', value: [dayjs().subtract(1, 'month'), dayjs()] },
+                      { label: '最近三个月', value: [dayjs().subtract(3, 'month'), dayjs()] },
+                      { label: '最近半年', value: [dayjs().subtract(6, 'month'), dayjs()] },
+                      { label: '全部', value: [dayjs().subtract(10, 'year'), dayjs()] },
+                    ]}
                   />
                 </Form.Item>
               </Col>
@@ -887,7 +893,7 @@ export default function ExamList() {
                     <Button 
                       type="primary" 
                       icon={<SearchOutlined />}
-                      onClick={handleSearch}
+                      htmlType="submit"
                       className="flex-1"
                     >
                       搜索
