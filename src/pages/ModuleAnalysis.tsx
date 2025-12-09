@@ -7,6 +7,7 @@ import dayjs, { Dayjs } from 'dayjs';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import DateRangeFilter from '@/components/common/DateRangeFilter';
+import PageHeader from '@/components/common/PageHeader';
 
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isSameOrBefore);
@@ -367,6 +368,9 @@ export default function ModuleAnalysis() {
 
   return (
     <div className="p-6">
+      {/* 页面头部 */}
+      <PageHeader />
+
       <div className="mb-6">
         <h1 className="text-2xl font-bold">各模块分析</h1>
         <p className="text-gray-500 mt-2">查看各个模块的正确率趋势变化</p>
