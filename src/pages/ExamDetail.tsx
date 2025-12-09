@@ -14,7 +14,8 @@ import {
   Col,
   Space,
   Typography,
-  Tabs
+  Tabs,
+  Descriptions
 } from 'antd';
 import { 
   ArrowLeftOutlined, 
@@ -680,52 +681,59 @@ export default function ExamDetail() {
       </Button>
 
       <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">{examDetail.exam_name} - 详情</h1>
-        <div className="text-gray-500">
-          排序: {examDetail.sort_order} | 创建时间: {new Date(examDetail.created_at).toLocaleString('zh-CN')}
-        </div>
-        <div className="flex flex-wrap items-center gap-4 text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <CalendarOutlined className="h-4 w-4" />
-            <span>考试日期: {examDetail.exam_date || examDetail.created_at.split('T')[0]}</span>
-          </div>
-          <span className="text-muted-foreground/50">|</span>
-          <span>上传时间: {formatDate(examDetail.created_at)}</span>
-          <span className="text-muted-foreground/50">|</span>
-          <div className="flex items-center gap-2">
+        <h1 className="text-3xl font-bold mb-4">{examDetail.exam_name} - 详情</h1>
+        
+        <Descriptions 
+          bordered 
+          column={{ xxl: 3, xl: 3, lg: 2, md: 2, sm: 1, xs: 1 }}
+          size="middle"
+        >
+          <Descriptions.Item label="排序">
+            {examDetail.sort_order}
+          </Descriptions.Item>
+          <Descriptions.Item label="考试日期">
+            <div className="flex items-center gap-2">
+              <CalendarOutlined />
+              <span>{examDetail.exam_date || examDetail.created_at.split('T')[0]}</span>
+            </div>
+          </Descriptions.Item>
+          <Descriptions.Item label="创建时间">
+            {new Date(examDetail.created_at).toLocaleString('zh-CN')}
+          </Descriptions.Item>
+          <Descriptions.Item label="上传时间">
+            {formatDate(examDetail.created_at)}
+          </Descriptions.Item>
+          <Descriptions.Item label="考试报告链接" span={2}>
             {examDetail.report_url ? (
-              <>
+              <div className="flex items-center gap-2">
                 <a
                   href={examDetail.report_url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-1 text-primary hover:underline"
                 >
-                  <LinkOutlined className="h-4 w-4" />
+                  <LinkOutlined />
                   <span>{examDetail.exam_name}考试报告链接地址</span>
                 </a>
                 <Button
                   type="text"
                   size="small"
-                  className="h-6 w-6"
+                  icon={<EditOutlined />}
                   onClick={handleEditReportUrl}
-                >
-                  <EditOutlined className="h-3 w-3" />
-                </Button>
-              </>
+                />
+              </div>
             ) : (
               <Button
-                type="text"
+                type="link"
                 size="small"
-                className="h-6 px-2 text-muted-foreground hover:text-primary"
+                icon={<LinkOutlined />}
                 onClick={handleEditReportUrl}
               >
-                <LinkOutlined className="h-3 w-3 mr-1" />
                 添加{examDetail.exam_name}考试报告链接地址
               </Button>
             )}
-          </div>
-        </div>
+          </Descriptions.Item>
+        </Descriptions>
         
         {/* 备注区域 - 两列布局 */}
         <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">

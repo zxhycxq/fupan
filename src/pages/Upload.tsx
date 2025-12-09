@@ -319,7 +319,6 @@ export default function Upload() {
                   </div>
                   <Button
                     type="default"
-                    size="small"
                     icon={<DeleteOutlined />}
                     onClick={() => {
                       selectedFiles.forEach(f => URL.revokeObjectURL(f.previewUrl));
