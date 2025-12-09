@@ -295,6 +295,57 @@ export default function Dashboard() {
     };
   }, [moduleTimeTrendData, dateRange]);
 
+  // 根据筛选后的数据计算模块平均正确率
+  const filteredModuleAvgScores = useMemo(() => {
+    if (filteredModuleDetailedStats.length === 0) {
+      return [];
+    }
+
+    // 按模块名称分组统计
+    const moduleStats = new Map<string, { totalCorrect: number; totalQuestions: number }>();
+    
+    filteredModuleDetailedStats.forEach(stat => {
+      const existing = moduleStats.get(stat.module_name) || { totalCorrect: 0, totalQuestions: 0 };
+      moduleStats.set(stat.module_name, {
+        totalCorrect: existing.totalCorrect + stat.correct_answers,
+        totalQuestions: existing.totalQuestions + stat.total_questions,
+      });
+    });
+
+    // 计算平均正确率
+    const avgScores: { module_name: string; avg_accuracy: number }[] = [];
+    moduleStats.forEach((stats, moduleName) => {
+      const avgAccuracy = stats.totalQuestions > 0 
+        ? (stats.totalCorrect / stats.totalQuestions) * 100 
+        : 0;
+      avgScores.push({
+        module_name: moduleName,
+        avg_accuracy: avgAccuracy,
+      });
+    });
+
+    // 按正确率降序排序
+    return avgScores.sort((a, b) => b.avg_accuracy - a.avg_accuracy);
+  }, [filteredModuleDetailedStats]);
+
+  // 计算日期范围限制
+  const dateRangeLimits = useMemo(() => {
+    if (examRecords.length === 0) {
+      return { minDate: null, maxDate: dayjs() };
+    }
+
+    // 找到最早的考试日期
+    const validDates = examRecords
+      .filter(r => r.exam_date)
+      .map(r => dayjs(r.exam_date!))
+      .sort((a, b) => a.valueOf() - b.valueOf());
+
+    const minDate = validDates.length > 0 ? validDates[0] : null;
+    const maxDate = dayjs(); // 最晚日期为今天
+
+    return { minDate, maxDate };
+  }, [examRecords]);
+
   // 计算统计数据
   // 计算练习天数
   const practiceDays = useMemo(() => {
@@ -494,7 +545,7 @@ export default function Dashboard() {
     },
     xAxis: {
       type: 'category',
-      data: moduleAvgScores.map(m => m.module_name),
+      data: filteredModuleAvgScores.map(m => m.module_name),
       axisLabel: {
         interval: 0,
         rotate: isMobile ? 45 : 30,
@@ -518,7 +569,7 @@ export default function Dashboard() {
       {
         name: '正确率',
         type: 'bar',
-        data: moduleAvgScores.map(m => m.avg_accuracy),
+        data: filteredModuleAvgScores.map(m => m.avg_accuracy),
         itemStyle: {
           color: (params: any) => {
             const value = params.value;
@@ -753,23 +804,23 @@ export default function Dashboard() {
         center: isMobile ? ['50%', '45%'] : ['50%', '50%'],
         data: [
           {
-            value: examRecords.filter(r => r.total_score >= 90).length,
+            value: filteredExamRecords.filter(r => r.total_score >= 90).length,
             name: '90-100分',
           },
           {
-            value: examRecords.filter(r => r.total_score >= 80 && r.total_score < 90).length,
+            value: filteredExamRecords.filter(r => r.total_score >= 80 && r.total_score < 90).length,
             name: '80-89分',
           },
           {
-            value: examRecords.filter(r => r.total_score >= 70 && r.total_score < 80).length,
+            value: filteredExamRecords.filter(r => r.total_score >= 70 && r.total_score < 80).length,
             name: '70-79分',
           },
           {
-            value: examRecords.filter(r => r.total_score >= 60 && r.total_score < 70).length,
+            value: filteredExamRecords.filter(r => r.total_score >= 60 && r.total_score < 70).length,
             name: '60-69分',
           },
           {
-            value: examRecords.filter(r => r.total_score < 60).length,
+            value: filteredExamRecords.filter(r => r.total_score < 60).length,
             name: '60分以下',
           },
         ],
@@ -1652,7 +1703,12 @@ export default function Dashboard() {
       )}
 
       {/* 日期范围筛选器 - 固定在顶部 */}
-      <DateRangeFilter value={dateRange} onChange={setDateRange} />
+      <DateRangeFilter 
+        value={dateRange} 
+        onChange={setDateRange}
+        minDate={dateRangeLimits.minDate}
+        maxDate={dateRangeLimits.maxDate}
+      />
 
       {/* 平均分仪表盘和统计卡片 */}
       <Row gutter={[16, 16]} className="mb-8">
@@ -1880,35 +1936,47 @@ export default function Dashboard() {
             </div>
           }
         >
-          <Table
-            columns={columns}
-            dataSource={tableDataWithSummary}
-            pagination={false}
-            size="middle"
-            bordered
-            scroll={{ x: 'max-content' }}
-            rowClassName={(record, index) => {
-              // 总计行使用特殊样式
-              if (record.key === 'total') {
-                return 'bg-muted/50';
-              }
-              // 汇总统计行使用特殊样式
-              if (record.key?.startsWith('summary_')) {
-                // 得分行使用绿色背景
-                if (record.key === 'summary_score') {
-                  return 'bg-green-50 dark:bg-green-900/20';
+          {filteredModuleDetailedStats.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <div className="text-6xl mb-4">📊</div>
+              <div className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">
+                暂无数据
+              </div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">
+                {dateRange ? '当前筛选条件下没有符合的考试记录' : '还没有考试记录，快去上传吧'}
+              </div>
+            </div>
+          ) : (
+            <Table
+              columns={columns}
+              dataSource={tableDataWithSummary}
+              pagination={false}
+              size="middle"
+              bordered
+              scroll={{ x: 'max-content' }}
+              rowClassName={(record, index) => {
+                // 总计行使用特殊样式
+                if (record.key === 'total') {
+                  return 'bg-muted/50';
                 }
-                // 其他汇总行使用蓝色背景
-                return 'bg-blue-50 dark:bg-blue-900/20';
-              }
-              // 斑马线样式：偶数行使用浅色背景
-              return index % 2 === 0 ? '' : 'bg-muted/30';
-            }}
-            expandable={{
-              defaultExpandAllRows: false,
-              rowExpandable: (record) => record.key !== 'total' && !record.key?.startsWith('summary_') && (record.children?.length || 0) > 0,
-            }}
-          />
+                // 汇总统计行使用特殊样式
+                if (record.key?.startsWith('summary_')) {
+                  // 得分行使用绿色背景
+                  if (record.key === 'summary_score') {
+                    return 'bg-green-50 dark:bg-green-900/20';
+                  }
+                  // 其他汇总行使用蓝色背景
+                  return 'bg-blue-50 dark:bg-blue-900/20';
+                }
+                // 斑马线样式：偶数行使用浅色背景
+                return index % 2 === 0 ? '' : 'bg-muted/30';
+              }}
+              expandable={{
+                defaultExpandAllRows: false,
+                rowExpandable: (record) => record.key !== 'total' && !record.key?.startsWith('summary_') && (record.children?.length || 0) > 0,
+              }}
+            />
+          )}
           
           {/* 原来的独立汇总统计表格 - 保留注释以备后用 */}
           {/* <div className="mt-4 overflow-x-auto">
