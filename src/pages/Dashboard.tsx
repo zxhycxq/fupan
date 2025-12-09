@@ -235,6 +235,66 @@ export default function Dashboard() {
     });
   }, [moduleDetailedStats, dateRange]);
 
+  // 根据日期范围过滤模块趋势数据
+  const filteredModuleTrendData = useMemo(() => {
+    if (!dateRange || !dateRange[0] || !dateRange[1]) {
+      return moduleTrendData;
+    }
+    
+    const [startDate, endDate] = dateRange;
+    const filteredIndices: number[] = [];
+    
+    // 找出符合日期范围的考试索引
+    moduleTrendData.exam_dates.forEach((date, index) => {
+      if (date) {
+        const examDate = dayjs(date);
+        if (examDate.isSameOrAfter(startDate, 'day') && examDate.isSameOrBefore(endDate, 'day')) {
+          filteredIndices.push(index);
+        }
+      }
+    });
+    
+    return {
+      exam_numbers: filteredIndices.map(i => moduleTrendData.exam_numbers[i]),
+      exam_names: filteredIndices.map(i => moduleTrendData.exam_names[i]),
+      exam_dates: filteredIndices.map(i => moduleTrendData.exam_dates[i]),
+      modules: moduleTrendData.modules.map(module => ({
+        module_name: module.module_name,
+        data: filteredIndices.map(i => module.data[i])
+      }))
+    };
+  }, [moduleTrendData, dateRange]);
+
+  // 根据日期范围过滤模块用时趋势数据
+  const filteredModuleTimeTrendData = useMemo(() => {
+    if (!dateRange || !dateRange[0] || !dateRange[1]) {
+      return moduleTimeTrendData;
+    }
+    
+    const [startDate, endDate] = dateRange;
+    const filteredIndices: number[] = [];
+    
+    // 找出符合日期范围的考试索引
+    moduleTimeTrendData.exam_dates.forEach((date, index) => {
+      if (date) {
+        const examDate = dayjs(date);
+        if (examDate.isSameOrAfter(startDate, 'day') && examDate.isSameOrBefore(endDate, 'day')) {
+          filteredIndices.push(index);
+        }
+      }
+    });
+    
+    return {
+      exam_numbers: filteredIndices.map(i => moduleTimeTrendData.exam_numbers[i]),
+      exam_names: filteredIndices.map(i => moduleTimeTrendData.exam_names[i]),
+      exam_dates: filteredIndices.map(i => moduleTimeTrendData.exam_dates[i]),
+      modules: moduleTimeTrendData.modules.map(module => ({
+        module_name: module.module_name,
+        data: filteredIndices.map(i => module.data[i])
+      }))
+    };
+  }, [moduleTimeTrendData, dateRange]);
+
   // 计算统计数据
   // 计算练习天数
   const practiceDays = useMemo(() => {
@@ -495,7 +555,7 @@ export default function Dashboard() {
       },
     },
     legend: {
-      data: moduleTrendData.modules.map(m => m.module_name),
+      data: filteredModuleTrendData.modules.map(m => m.module_name),
       top: 30,
       type: 'scroll',
       textStyle: {
@@ -512,12 +572,12 @@ export default function Dashboard() {
     xAxis: {
       type: 'category',
       boundaryGap: ['5%', '5%'], // 左右留间隙
-      data: moduleTrendData.exam_dates && moduleTrendData.exam_names 
-        ? moduleTrendData.exam_dates.map((date, idx) => {
-            const name = moduleTrendData.exam_names?.[idx] || `第${moduleTrendData.exam_numbers[idx]}次`;
+      data: filteredModuleTrendData.exam_dates && filteredModuleTrendData.exam_names 
+        ? filteredModuleTrendData.exam_dates.map((date, idx) => {
+            const name = filteredModuleTrendData.exam_names?.[idx] || `第${filteredModuleTrendData.exam_numbers[idx]}次`;
             return date ? `${name} ${date}` : name; // 调整格式：考试名称在前，日期在后
           })
-        : moduleTrendData.exam_numbers.map(n => `第${n}次`),
+        : filteredModuleTrendData.exam_numbers.map(n => `第${n}次`),
       name: '考试',
       nameTextStyle: {
         fontSize: isMobile ? 10 : 12,
@@ -541,7 +601,7 @@ export default function Dashboard() {
         formatter: '{value}%',
       },
     },
-    series: moduleTrendData.modules.map((module, index) => ({
+    series: filteredModuleTrendData.modules.map((module, index) => ({
       name: module.module_name,
       type: 'line',
       data: module.data,
@@ -591,7 +651,7 @@ export default function Dashboard() {
       },
     },
     legend: {
-      data: moduleTimeTrendData.modules.map(m => m.module_name),
+      data: filteredModuleTimeTrendData.modules.map(m => m.module_name),
       top: 30,
       type: 'scroll',
       textStyle: {
@@ -608,12 +668,12 @@ export default function Dashboard() {
     xAxis: {
       type: 'category',
       boundaryGap: ['5%', '5%'],
-      data: moduleTimeTrendData.exam_dates && moduleTimeTrendData.exam_names 
-        ? moduleTimeTrendData.exam_dates.map((date, idx) => {
-            const name = moduleTimeTrendData.exam_names?.[idx] || `第${moduleTimeTrendData.exam_numbers[idx]}次`;
+      data: filteredModuleTimeTrendData.exam_dates && filteredModuleTimeTrendData.exam_names 
+        ? filteredModuleTimeTrendData.exam_dates.map((date, idx) => {
+            const name = filteredModuleTimeTrendData.exam_names?.[idx] || `第${filteredModuleTimeTrendData.exam_numbers[idx]}次`;
             return date ? `${name} ${date}` : name; // 调整格式：考试名称在前，日期在后
           })
-        : moduleTimeTrendData.exam_numbers.map(n => `第${n}次`),
+        : filteredModuleTimeTrendData.exam_numbers.map(n => `第${n}次`),
       name: '考试',
       nameTextStyle: {
         fontSize: isMobile ? 10 : 12,
@@ -636,7 +696,7 @@ export default function Dashboard() {
         formatter: '{value}',
       },
     },
-    series: moduleTimeTrendData.modules.map((module, index) => ({
+    series: filteredModuleTimeTrendData.modules.map((module, index) => ({
       name: module.module_name,
       type: 'line',
       data: module.data,
@@ -824,11 +884,11 @@ export default function Dashboard() {
   };
 
   // 获取所有考试期数（从考试记录中获取，确保包含所有记录）
-  const allExamNumbers = examRecords.map(r => r.sort_order).sort((a, b) => a - b);
+  const allExamNumbers = filteredExamRecords.map(r => r.sort_order).sort((a, b) => a - b);
 
   // 创建考试信息映射（期数 -> {名称, 日期}）
   const examInfoMap = new Map<number, { name: string; date: string | null }>();
-  examRecords.forEach(record => {
+  filteredExamRecords.forEach(record => {
     examInfoMap.set(record.sort_order, {
       name: record.exam_name || `第${record.sort_order}期`,
       date: record.exam_date,
@@ -838,7 +898,7 @@ export default function Dashboard() {
   // 组织表格数据：按主模块分组，子模块作为children
   const moduleMap = new Map<string, TableDataType>();
 
-  moduleDetailedStats.forEach(stat => {
+  filteredModuleDetailedStats.forEach(stat => {
     if (!stat.parent_module) {
       // 主模块数据 - 不累加，直接使用原始数据
       if (!moduleMap.has(stat.module_name)) {
@@ -1591,6 +1651,63 @@ export default function Dashboard() {
         </Row>
       )}
 
+      {/* 日期范围筛选器 - 固定在顶部 */}
+      <div className="sticky top-16 z-10 mb-6 -mx-4 px-4 py-3 bg-background/95 backdrop-blur-sm border-b">
+        <div className="container mx-auto">
+          <div className="flex flex-wrap items-center gap-4">
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">时间筛选：</span>
+            <RangePicker
+              value={dateRange}
+              onChange={(dates) => setDateRange(dates)}
+              placeholder={['开始日期', '结束日期']}
+              format="YYYY-MM-DD"
+              allowClear
+              className="flex-1 max-w-md"
+              renderExtraFooter={() => (
+                <div className="flex gap-2 p-2 border-t">
+                  <Button
+                    size="small"
+                    onClick={() => {
+                      const end = dayjs();
+                      const start = end.subtract(1, 'month');
+                      setDateRange([start, end]);
+                    }}
+                  >
+                    最近一个月
+                  </Button>
+                  <Button
+                    size="small"
+                    onClick={() => {
+                      const end = dayjs();
+                      const start = end.subtract(3, 'month');
+                      setDateRange([start, end]);
+                    }}
+                  >
+                    最近三个月
+                  </Button>
+                  <Button
+                    size="small"
+                    onClick={() => {
+                      const end = dayjs();
+                      const start = end.subtract(6, 'month');
+                      setDateRange([start, end]);
+                    }}
+                  >
+                    最近半年
+                  </Button>
+                  <Button
+                    size="small"
+                    onClick={() => setDateRange(null)}
+                  >
+                    全部
+                  </Button>
+                </div>
+              )}
+            />
+          </div>
+        </div>
+      </div>
+
       {/* 平均分仪表盘和统计卡片 */}
       <Row gutter={[16, 16]} className="mb-8">
         {/* 左侧：平均分仪表盘 */}
@@ -1758,70 +1875,6 @@ export default function Dashboard() {
               headerRender={headerRender}
               className="exam-calendar"
             />
-          </Card>
-        </Col>
-      </Row>
-
-      {/* 日期范围筛选器 */}
-      <Row gutter={[16, 16]} className="mt-8">
-        <Col xs={24}>
-          <Card>
-            <div className="flex flex-wrap items-center gap-4">
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">时间筛选：</span>
-              <RangePicker
-                value={dateRange}
-                onChange={(dates) => setDateRange(dates)}
-                placeholder={['开始日期', '结束日期']}
-                format="YYYY-MM-DD"
-                allowClear
-                className="flex-1 max-w-md"
-                renderExtraFooter={() => (
-                  <div className="flex gap-2 p-2 border-t">
-                    <Button
-                      size="small"
-                      onClick={() => {
-                        const end = dayjs();
-                        const start = end.subtract(1, 'month');
-                        setDateRange([start, end]);
-                      }}
-                    >
-                      最近一个月
-                    </Button>
-                    <Button
-                      size="small"
-                      onClick={() => {
-                        const end = dayjs();
-                        const start = end.subtract(3, 'month');
-                        setDateRange([start, end]);
-                      }}
-                    >
-                      最近三个月
-                    </Button>
-                    <Button
-                      size="small"
-                      onClick={() => {
-                        const end = dayjs();
-                        const start = end.subtract(6, 'month');
-                        setDateRange([start, end]);
-                      }}
-                    >
-                      最近半年
-                    </Button>
-                    <Button
-                      size="small"
-                      onClick={() => setDateRange(null)}
-                    >
-                      全部
-                    </Button>
-                  </div>
-                )}
-              />
-              {dateRange && dateRange[0] && dateRange[1] && (
-                <span className="text-sm text-gray-500">
-                  已选择：{dateRange[0].format('YYYY-MM-DD')} 至 {dateRange[1].format('YYYY-MM-DD')}
-                </span>
-              )}
-            </div>
           </Card>
         </Col>
       </Row>
