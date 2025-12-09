@@ -415,6 +415,13 @@ export default function ExamList() {
       },
     },
     {
+      title: '考试类型',
+      dataIndex: 'exam_type',
+      key: 'exam_type',
+      width: 120,
+      render: (value: string | null) => value || '国考模考',
+    },
+    {
       title: '总分',
       dataIndex: 'total_score',
       key: 'total_score',
@@ -672,7 +679,7 @@ export default function ExamList() {
               pagination={{
                 current: currentPage,
                 pageSize: pageSize,
-                pageSizeOptions: ['10', '20', '30', '50'],
+                pageSizeOptions: ['10', '20', '30', '50', '100'],
                 showSizeChanger: true,
                 showQuickJumper: true,
                 showTotal: (total) => `共 ${total} 条记录`,

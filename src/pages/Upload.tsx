@@ -16,7 +16,7 @@ export default function Upload() {
   const [activeTab, setActiveTab] = useState<string>('image');
   const [examName, setExamName] = useState<string>('');
   const [sortOrder, setSortOrder] = useState<number>(1);
-  const [examType, setExamType] = useState<string>('省考');
+  const [examType, setExamType] = useState<string>('国考模考');
   const [timeUsedMinutes, setTimeUsedMinutes] = useState<number>(120);
   const [selectedFiles, setSelectedFiles] = useState<FileWithPreview[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -163,10 +163,11 @@ export default function Upload() {
       const nextIndexNumber = await getNextIndexNumber();
       console.log('获取到的索引号:', nextIndexNumber);
 
-      // 添加考试名称、排序号和索引号
+      // 添加考试名称、排序号、索引号和考试类型
       const recordWithNameAndSortOrder = {
         ...examRecord,
         exam_name: examName,
+        exam_type: examType, // 添加考试类型
         sort_order: sortOrder,
         index_number: nextIndexNumber, // 使用自动生成的唯一索引号
         rating: 0, // 默认星级为 0
@@ -418,8 +419,11 @@ export default function Upload() {
                         onChange={(value) => setExamType(value)}
                         style={{ width: '100%' }}
                         options={[
-                          { value: '省考', label: '省考' },
-                          { value: '国考', label: '国考' }
+                          { value: '国考真题', label: '国考真题' },
+                          { value: '国考模考', label: '国考模考' },
+                          { value: '省考真题', label: '省考真题' },
+                          { value: '省考模考', label: '省考模考' },
+                          { value: '其他', label: '其他' }
                         ]}
                       />
                     </div>

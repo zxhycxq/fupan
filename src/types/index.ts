@@ -10,6 +10,7 @@ export interface ExamRecord {
   id: string;
   exam_number: number; // 保留用于向后兼容
   exam_name: string; // 考试名称
+  exam_type?: string; // 考试类型：国考真题、国考模考、省考真题、省考模考、其他
   index_number: number; // 索引项，用于排序，必须唯一
   rating: number; // 星级评分，支持半星，范围 0-5
   total_score: number;

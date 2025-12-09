@@ -645,6 +645,9 @@ export default function ExamDetail() {
           <Descriptions.Item label="排序">
             {examDetail.sort_order}
           </Descriptions.Item>
+          <Descriptions.Item label="考试类型">
+            {examDetail.exam_type || '国考模考'}
+          </Descriptions.Item>
           <Descriptions.Item label="考试日期">
             <div className="flex items-center gap-2">
               <CalendarOutlined />

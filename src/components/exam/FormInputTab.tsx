@@ -161,6 +161,7 @@ export default function FormInputTab({ examName, sortOrder, examType, onSubmitSt
 
       const examRecord = {
         exam_name: examName,
+        exam_type: examType, // 添加考试类型
         exam_number: sortOrder,
         index_number: nextIndexNumber, // 使用自动生成的唯一索引号
         sort_order: sortOrder,
