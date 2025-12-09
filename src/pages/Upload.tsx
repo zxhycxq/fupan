@@ -164,6 +164,7 @@ export default function Upload() {
         ...examRecord,
         exam_name: examName,
         sort_order: sortOrder,
+        index_number: sortOrder, // 索引项，用于排序，必须唯一
         rating: 0, // 默认星级为 0
       };
 

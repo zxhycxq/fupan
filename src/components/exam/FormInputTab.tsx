@@ -158,6 +158,7 @@ export default function FormInputTab({ examName, sortOrder, examType, onSubmitSt
       const examRecord = {
         exam_name: examName,
         exam_number: sortOrder,
+        index_number: sortOrder, // 索引项，用于排序，必须唯一
         sort_order: sortOrder,
         total_score: totalScore,
         time_used: totalTime,
