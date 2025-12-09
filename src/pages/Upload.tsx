@@ -38,6 +38,38 @@ export default function Upload() {
     fetchNextSortOrder();
   }, []);
 
+  // 上传时禁止页面滚动
+  useEffect(() => {
+    if (isUploading) {
+      // 保存当前滚动位置
+      const scrollY = window.scrollY;
+      // 禁止滚动
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = '100%';
+    } else {
+      // 恢复滚动
+      const scrollY = document.body.style.top;
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      // 恢复滚动位置
+      if (scrollY) {
+        window.scrollTo(0, parseInt(scrollY || '0') * -1);
+      }
+    }
+    
+    // 清理函数
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+    };
+  }, [isUploading]);
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     

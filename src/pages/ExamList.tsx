@@ -194,7 +194,11 @@ export default function ExamList() {
   const handleDelete = async (id: string, examName: string) => {
     Modal.confirm({
       title: '确认删除',
-      content: `确定要删除"${examName}"的考试记录吗？此操作无法撤销。`,
+      content: (
+        <div>
+          确定要删除"<span style={{ color: '#ff4d4f', fontWeight: 'bold' }}>{examName}</span>"的考试记录吗？此操作无法撤销。
+        </div>
+      ),
       okText: '删除',
       cancelText: '取消',
       okButtonProps: { danger: true },
@@ -803,18 +807,30 @@ export default function ExamList() {
         <Card className="mb-4" size="small">
           <Form
             form={filterForm}
-            layout="vertical"
             onFinish={handleSearch}
+            className="filter-form"
           >
-            <Row gutter={[16, 0]}>
+            <Row gutter={[16, 8]}>
               <Col xs={24} sm={12} md={8} lg={6}>
-                <Form.Item label="考试名称" name="examName" className="mb-2">
+                <Form.Item 
+                  label="考试名称" 
+                  name="examName" 
+                  className="mb-2"
+                  labelCol={{ xs: 24, sm: 8 }}
+                  wrapperCol={{ xs: 24, sm: 16 }}
+                >
                   <Input placeholder="请输入考试名称" allowClear />
                 </Form.Item>
               </Col>
               
               <Col xs={24} sm={12} md={8} lg={6}>
-                <Form.Item label="考试类型" name="examType" className="mb-2">
+                <Form.Item 
+                  label="考试类型" 
+                  name="examType" 
+                  className="mb-2"
+                  labelCol={{ xs: 24, sm: 8 }}
+                  wrapperCol={{ xs: 24, sm: 16 }}
+                >
                   <Select placeholder="请选择考试类型" allowClear>
                     <Select.Option value="国考真题">国考真题</Select.Option>
                     <Select.Option value="国考模考">国考模考</Select.Option>
@@ -826,7 +842,13 @@ export default function ExamList() {
               </Col>
               
               <Col xs={24} sm={12} md={8} lg={6}>
-                <Form.Item label="总分区间" name="scoreRange" className="mb-2">
+                <Form.Item 
+                  label="总分区间" 
+                  name="scoreRange" 
+                  className="mb-2"
+                  labelCol={{ xs: 24, sm: 8 }}
+                  wrapperCol={{ xs: 24, sm: 16 }}
+                >
                   <Select placeholder="请选择总分区间" allowClear>
                     <Select.Option value="0-10">0-10分</Select.Option>
                     <Select.Option value="11-20">11-20分</Select.Option>
@@ -843,7 +865,13 @@ export default function ExamList() {
               </Col>
               
               <Col xs={24} sm={12} md={8} lg={6}>
-                <Form.Item label="击败率区间" name="passRateRange" className="mb-2">
+                <Form.Item 
+                  label="击败率区间" 
+                  name="passRateRange" 
+                  className="mb-2"
+                  labelCol={{ xs: 24, sm: 8 }}
+                  wrapperCol={{ xs: 24, sm: 16 }}
+                >
                   <Select placeholder="请选择击败率区间" allowClear>
                     <Select.Option value="0-10">0-10%</Select.Option>
                     <Select.Option value="11-20">11-20%</Select.Option>
@@ -860,7 +888,13 @@ export default function ExamList() {
               </Col>
               
               <Col xs={24} sm={12} md={8} lg={6}>
-                <Form.Item label="考试日期" name="dateRange" className="mb-2">
+                <Form.Item 
+                  label="考试日期" 
+                  name="dateRange" 
+                  className="mb-2"
+                  labelCol={{ xs: 24, sm: 8 }}
+                  wrapperCol={{ xs: 24, sm: 16 }}
+                >
                   <RangePicker 
                     placeholder={['开始日期', '结束日期']}
                     className="w-full"
@@ -876,7 +910,13 @@ export default function ExamList() {
               </Col>
               
               <Col xs={24} sm={12} md={8} lg={6}>
-                <Form.Item label="星级" name="rating" className="mb-2">
+                <Form.Item 
+                  label="星级" 
+                  name="rating" 
+                  className="mb-2"
+                  labelCol={{ xs: 24, sm: 8 }}
+                  wrapperCol={{ xs: 24, sm: 16 }}
+                >
                   <Select placeholder="请选择星级" allowClear>
                     <Select.Option value={1}>⭐ 1星</Select.Option>
                     <Select.Option value={2}>⭐ 2星</Select.Option>
@@ -888,7 +928,12 @@ export default function ExamList() {
               </Col>
               
               <Col xs={24} sm={24} md={24} lg={6}>
-                <Form.Item label=" " className="mb-2">
+                <Form.Item 
+                  label=" " 
+                  className="mb-2"
+                  labelCol={{ xs: 24, sm: 8 }}
+                  wrapperCol={{ xs: 24, sm: 16 }}
+                >
                   <Space className="w-full" size="small">
                     <Button 
                       type="primary" 
