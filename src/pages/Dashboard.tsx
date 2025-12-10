@@ -899,7 +899,7 @@ export default function Dashboard() {
         axisLabel: {
           color: '#464646',
           fontSize: isMobile ? 13 : 16,  // 调整字体大小
-          distance: -30,  // 调整距离，让文字显示在图表上方
+          distance: -60,  // 负值让文字显示在外围更远的位置
           formatter: function (value: number) {
             // 简化逻辑：根据刻度值直接显示对应的等级称谓
             // 刻度值：40, 50, 60, 70, 80, 90
@@ -930,7 +930,7 @@ export default function Dashboard() {
         },
         detail: {
           fontSize: isMobile ? 30 : 38,  // 调整分数显示大小
-          offsetCenter: [0, '5%'],  // 向上移动数字位置（从20%改为5%）
+          offsetCenter: [0, '15%'],  // 向下移动数字位置（从5%改为15%，约10px）
           valueAnimation: true,
           formatter: function (value: number) {
             return value.toFixed(1);  // 保留1位小数
