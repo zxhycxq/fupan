@@ -20,44 +20,44 @@ export const GRADE_LABEL_THEMES: GradeLabelTheme[] = [
     id: 'theme1',
     name: '易经系列',
     labels: [
-      { value: 50, label: '潜龙勿用' },  // 40-59分
-      { value: 65, label: '见龙在田' },  // 60-69分
-      { value: 75, label: '终日乾乾' },  // 70-79分
-      { value: 85, label: '或跃在渊' },  // 80-89分
-      { value: 95, label: '飞龙在天' }   // 90-100分
+      { value: 45, label: '潜龙勿用' },  // <50分（40-50区间）
+      { value: 55, label: '见龙在田' },  // 50-60分
+      { value: 65, label: '终日乾乾' },  // 60-70分
+      { value: 75, label: '或跃在渊' },  // 70-80分
+      { value: 85, label: '飞龙在天' }   // >80分（80-90区间）
     ]
   },
   {
     id: 'theme2',
     name: '修行系列',
     labels: [
-      { value: 50, label: '启蒙之境' },  // 40-59分
-      { value: 65, label: '登堂之境' },  // 60-69分
-      { value: 75, label: '入室之境' },  // 70-79分
-      { value: 85, label: '精研之境' },  // 80-89分
-      { value: 95, label: '大成之境' }   // 90-100分
+      { value: 45, label: '启蒙之境' },  // <50分（40-50区间）
+      { value: 55, label: '登堂之境' },  // 50-60分
+      { value: 65, label: '入室之境' },  // 60-70分
+      { value: 75, label: '精研之境' },  // 70-80分
+      { value: 85, label: '大成之境' }   // >80分（80-90区间）
     ]
   },
   {
     id: 'theme3',
     name: '成长系列',
     labels: [
-      { value: 50, label: '萌芽初醒' },  // 40-59分
-      { value: 65, label: '新苗成长' },  // 60-69分
-      { value: 75, label: '含苞待放' },  // 70-79分
-      { value: 85, label: '花开锦绣' },  // 80-89分
-      { value: 95, label: '硕果满枝' }   // 90-100分
+      { value: 45, label: '萌芽初醒' },  // <50分（40-50区间）
+      { value: 55, label: '新苗成长' },  // 50-60分
+      { value: 65, label: '含苞待放' },  // 60-70分
+      { value: 75, label: '花开锦绣' },  // 70-80分
+      { value: 85, label: '硕果满枝' }   // >80分（80-90区间）
     ]
   },
   {
     id: 'theme4',
     name: '成就系列',
     labels: [
-      { value: 50, label: '默默无闻' },  // 40-59分
-      { value: 65, label: '小有所成' },  // 60-69分
-      { value: 75, label: '初露锋芒' },  // 70-79分
-      { value: 85, label: '卓然不群' },  // 80-89分
-      { value: 95, label: '名满天下' }   // 90-100分
+      { value: 45, label: '默默无闻' },  // <50分（40-50区间）
+      { value: 55, label: '小有所成' },  // 50-60分
+      { value: 65, label: '初露锋芒' },  // 60-70分
+      { value: 75, label: '卓然不群' },  // 70-80分
+      { value: 85, label: '名满天下' }   // >80分（80-90区间）
     ]
   }
 ];

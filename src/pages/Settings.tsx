@@ -463,12 +463,16 @@ export default function Settings() {
                           {themeOption.name}
                         </div>
                         <div className="text-xs text-gray-600 space-y-1">
-                          {themeOption.labels.map((label, index) => (
-                            <div key={index} className="flex items-center gap-2">
-                              <span className="text-gray-400">{label.value}分:</span>
-                              <span className="font-medium">{label.label}</span>
-                            </div>
-                          ))}
+                          {themeOption.labels.map((label, index) => {
+                            // 根据索引显示对应的分数区间
+                            const ranges = ['<50分', '50-60分', '60-70分', '70-80分', '>80分'];
+                            return (
+                              <div key={index} className="flex items-center gap-2">
+                                <span className="text-gray-400">{ranges[index]}:</span>
+                                <span className="font-medium">{label.label}</span>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
 

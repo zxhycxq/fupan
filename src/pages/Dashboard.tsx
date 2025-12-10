@@ -902,27 +902,25 @@ export default function Dashboard() {
           distance: -60,  // 负值让文字显示在外围更远的位置
           rotate: 'tangential',  // 切向旋转，让文字沿着圆弧方向排列
           formatter: function (value: number) {
-            // 显示所有等级称谓，根据刻度值匹配对应的等级
-            // 刻度值：40, 50, 60, 70, 80, 90
-            // 对应等级：<50, 50-60, 60-70, 70-80, >80
+            // 显示所有等级称谓在区间正中间
+            // 区间1：40-50分，中间是45分，显示第1个等级（<50分）
+            // 区间2：50-60分，中间是55分，显示第2个等级（50-60分）
+            // 区间3：60-70分，中间是65分，显示第3个等级（60-70分）
+            // 区间4：70-80分，中间是75分，显示第4个等级（70-80分）
+            // 区间5：80-90分，中间是85分，显示第5个等级（>80分）
             
-            if (value === 40) {
-              // <50分，显示第1个等级
+            if (value === 45) {
               return gradeLabels[0]?.label || '';
-            } else if (value === 50) {
-              // 50-60分，显示第2个等级
+            } else if (value === 55) {
               return gradeLabels[1]?.label || '';
-            } else if (value === 60) {
-              // 60-70分，显示第3个等级
+            } else if (value === 65) {
               return gradeLabels[2]?.label || '';
-            } else if (value === 70) {
-              // 70-80分，显示第4个等级
+            } else if (value === 75) {
               return gradeLabels[3]?.label || '';
-            } else if (value === 80) {
-              // >=80分，显示第5个等级
+            } else if (value === 85) {
               return gradeLabels[4]?.label || '';
             }
-            return '';  // 90分的刻度不显示文字
+            return '';  // 其他刻度不显示文字
           }
         },
         title: {

@@ -66,7 +66,7 @@ export default function Sidebar() {
           <Link to="/" className="flex flex-col items-center gap-1" onClick={() => setIsOpen(false)}>
             <BarChartOutlined className="text-3xl text-blue-600" />
             <span className="text-sm font-bold text-blue-600 text-center leading-tight">
-              考公上岸记
+              考公复盘记
             </span>
           </Link>
         </div>
