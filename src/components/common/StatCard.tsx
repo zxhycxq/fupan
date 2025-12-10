@@ -28,31 +28,31 @@ export default function StatCard({
 }: StatCardProps) {
   return (
     <Card
-      className={`stat-card p-3 ${className}`}
+      className={`stat-card p-2 ${className}`}
       style={{
         background: gradient,
-        height: isMobile ? 'auto' : '180px',
-        minHeight: '120px'
+        height: isMobile ? 'auto' : '100%',
+        minHeight: '100px'
       }}
     >
       <div className="flex flex-col h-full">
         {/* 标题和图标 */}
-        <div className="flex items-center gap-2 mb-3">
+        <div className="flex items-center gap-1.5 mb-2">
           {prefix && <div className="flex-shrink-0">{prefix}</div>}
-          <div className="stat-title text-gray-800 dark:text-gray-200 text-sm font-semibold">{title}</div>
+          <div className="stat-title text-gray-800 dark:text-gray-200 text-xs font-semibold">{title}</div>
         </div>
         
         {/* 数值 */}
         <div className="flex-1 flex items-center">
           <div className="text-gray-900 dark:text-gray-100 font-semibold leading-tight">
-            <span className="text-3xl">{value}</span>
-            {suffix && <span className="text-xl ml-1">{suffix}</span>}
+            <span className="text-2xl">{value}</span>
+            {suffix && <span className="text-lg ml-1">{suffix}</span>}
           </div>
         </div>
         
         {/* 描述 */}
         {description && (
-          <div className="text-xs opacity-80 mt-2 text-gray-700 dark:text-gray-300">{description}</div>
+          <div className="text-xs opacity-80 mt-1.5 text-gray-700 dark:text-gray-300">{description}</div>
         )}
       </div>
     </Card>

@@ -1705,34 +1705,34 @@ export default function Dashboard() {
 
         <Col xs={12} sm={8} md={4}>
           <Card 
-            className="stat-card stat-card-info p-3"
+            className="stat-card stat-card-info p-2"
             style={{ 
               background: generateGradientStyle(DASHBOARD_GRADIENTS[3]),
               height: isMobile ? 'auto' : '100%',
-              minHeight: '120px'
+              minHeight: '100px'
             }}
           >
             <div className="flex flex-col h-full">
               {/* 标题和图标 */}
-              <div className="flex items-center gap-2 mb-3">
+              <div className="flex items-center gap-1.5 mb-2">
                 <ClockCircleOutlined className="stat-icon text-yellow-600 dark:text-yellow-300 text-lg flex-shrink-0" />
-                <div className="stat-title text-gray-800 dark:text-gray-200 text-sm font-semibold">累计做题时长</div>
+                <div className="stat-title text-gray-800 dark:text-gray-200 text-xs font-semibold">累计做题时长</div>
               </div>
               
               {/* 数值 */}
               <div className="flex-1 flex items-center">
                 <div className="text-gray-900 dark:text-gray-100 font-semibold leading-tight">
                   {stats.totalTime.days > 0 && (
-                    <div className="text-2xl">{stats.totalTime.days}天</div>
+                    <div className="text-xl">{stats.totalTime.days}天</div>
                   )}
-                  <div className={stats.totalTime.days > 0 ? 'text-lg' : 'text-2xl'}>
+                  <div className={stats.totalTime.days > 0 ? 'text-base' : 'text-2xl'}>
                     {stats.totalTime.hours}小时
                   </div>
                 </div>
               </div>
               
               {/* 描述 */}
-              <div className="text-xs opacity-80 mt-2 text-gray-700 dark:text-gray-300">所有考试花费时间</div>
+              <div className="text-xs opacity-80 mt-1.5 text-gray-700 dark:text-gray-300">所有考试花费时间</div>
             </div>
           </Card>
         </Col>
@@ -1768,10 +1768,10 @@ export default function Dashboard() {
       <Row gutter={[16, 16]} className="mb-8">
         {/* 左侧：平均分仪表盘 */}
         <Col xs={24} lg={12}>
-          <Card className="p-2" style={{ height: isMobile ? 'auto' : '380px' }}>
+          <Card className="p-2" style={{ height: isMobile ? 'auto' : '304px' }}>
             <ReactECharts
               option={averageScoreGaugeOption}
-              style={{ height: isMobile ? '300px' : '340px' }}
+              style={{ height: isMobile ? '240px' : '272px' }}
               opts={{ renderer: 'svg' }}
             />
           </Card>
@@ -1779,7 +1779,7 @@ export default function Dashboard() {
 
         {/* 右侧：倒计时和加油站（上下排列） */}
         <Col xs={24} lg={12}>
-          <Row gutter={[16, 16]} style={{ height: isMobile ? 'auto' : '380px' }}>
+          <Row gutter={[16, 16]} style={{ height: isMobile ? 'auto' : '304px' }}>
             {examConfig && countdown && (
               <>
                 {/* 考试倒计时 */}
