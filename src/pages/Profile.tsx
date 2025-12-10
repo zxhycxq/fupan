@@ -3,7 +3,6 @@ import { Card, Button, Alert, Modal, message } from 'antd';
 import { DeleteOutlined, ExclamationCircleOutlined, UserOutlined } from '@ant-design/icons';
 import { deleteAllUserData } from '@/db/api';
 import { useNavigate } from 'react-router-dom';
-import PageHeader from '@/components/common/PageHeader';
 
 export default function Profile() {
   const [isDeleting, setIsDeleting] = useState(false);
@@ -76,8 +75,6 @@ export default function Profile() {
 
   return (
     <div className="container mx-auto py-8 px-4">
-      {/* 页面头部 */}
-      <PageHeader />
 
       <Card 
         title={

@@ -4,7 +4,7 @@ import { ConfigProvider, theme as antdTheme, FloatButton } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
 import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
-import Header from '@/components/common/Header';
+import Sidebar from '@/components/common/Sidebar';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import routes from './routes';
 import { useTheme } from '@/hooks/use-theme';
@@ -100,20 +100,26 @@ function App() {
       theme={antdThemeConfig}
     >
       <ErrorBoundary>
-        <div className="flex flex-col min-h-screen bg-gray-50">
-          <Header />
-          <main className="flex-grow">
-            <Routes>
-              {routes.map((route, index) => (
-                <Route
-                  key={index}
-                  path={route.path}
-                  element={route.element}
-                />
-              ))}
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </main>
+        <div className="flex h-screen overflow-hidden bg-gray-50">
+          {/* 左侧导航栏 */}
+          <Sidebar />
+          
+          {/* 右侧主内容区域 */}
+          <div className="flex-1 flex flex-col overflow-hidden">
+            {/* 主内容 */}
+            <main className="flex-1 overflow-auto">
+              <Routes>
+                {routes.map((route, index) => (
+                  <Route
+                    key={index}
+                    path={route.path}
+                    element={route.element}
+                  />
+                ))}
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </main>
+          </div>
           
           {/* 全局返回顶部按钮 */}
           <FloatButton.BackTop

@@ -5,7 +5,6 @@ import { useTheme, themes } from '@/hooks/use-theme';
 import { getUserSettings, batchUpsertUserSettings, getExamConfig, saveExamConfig } from '@/db/api';
 import type { UserSetting } from '@/types';
 import dayjs from 'dayjs';
-import PageHeader from '@/components/common/PageHeader';
 
 // 6大模块
 const MAIN_MODULES = [
@@ -143,8 +142,6 @@ export default function Settings() {
 
   return (
     <div className="container mx-auto py-8 px-4">
-      {/* 页面头部 */}
-      <PageHeader />
 
       <Card 
         title="系统设置"

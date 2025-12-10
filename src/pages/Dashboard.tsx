@@ -16,7 +16,6 @@ import { Lunar, Solar } from 'lunar-typescript';
 import { DASHBOARD_GRADIENTS, generateGradientStyle } from '@/config/gradients';
 import DateRangeFilter from '@/components/common/DateRangeFilter';
 import StatCard from '@/components/common/StatCard';
-import PageHeader from '@/components/common/PageHeader';
 
 // 扩展dayjs
 dayjs.extend(dayOfYear);
@@ -1655,9 +1654,6 @@ export default function Dashboard() {
 
   return (
     <div className="container mx-auto py-8 px-4">
-      {/* 页面头部 */}
-      <PageHeader />
-
       {/* 倒计时和加油站 */}
       {examConfig && countdown && (
         <Row gutter={[16, 16]} className="mb-6">

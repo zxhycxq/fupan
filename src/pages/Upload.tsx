@@ -6,7 +6,6 @@ import { fileToBase64, recognizeText, compressImage } from '@/services/imageReco
 import { parseExamData } from '@/services/dataParser';
 import { createExamRecord, createModuleScores, getNextSortOrder, getNextIndexNumber } from '@/db/api';
 import FormInputTab from '@/components/exam/FormInputTab';
-import PageHeader from '@/components/common/PageHeader';
 
 interface FileWithPreview {
   file: File;
@@ -245,8 +244,6 @@ export default function Upload() {
 
   return (
     <div className="container mx-auto py-8 px-4 relative">
-      {/* 页面头部 */}
-      <PageHeader />
 
       {/* 上传中的全屏遮罩 */}
       {isUploading && (

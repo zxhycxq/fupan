@@ -13,7 +13,6 @@ import { arrayMoveImmutable } from 'array-move';
 import dayjs from 'dayjs';
 import type { Dayjs } from 'dayjs';
 import WangEditor, { type WangEditorRef } from '@/components/common/WangEditor';
-import PageHeader from '@/components/common/PageHeader';
 
 // 拖拽手柄
 const DragHandle = SortableHandle(() => (
@@ -757,8 +756,6 @@ export default function ExamList() {
 
   return (
     <div className="container mx-auto py-4 px-2 xl:py-8 xl:px-4">
-      {/* 页面头部 */}
-      <PageHeader />
 
       <Card
         title={
