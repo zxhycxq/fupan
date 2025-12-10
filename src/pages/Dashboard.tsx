@@ -845,11 +845,11 @@ export default function Dashboard() {
 
   // 等级名称配置
   const gradeLabels = [
-    { value: 0.1, label: '默默无闻' },    // 0-59分
-    { value: 0.65, label: '小有所成' },   // 60-69分
-    { value: 0.75, label: '初露锋芒' },   // 70-79分
-    { value: 0.85, label: '卓然不群' },   // 80-89分
-    { value: 0.95, label: '名满天下' }    // 90-100分
+    { value: 50, label: '默默无闻' },    // 40-59分
+    { value: 65, label: '小有所成' },   // 60-69分
+    { value: 75, label: '初露锋芒' },   // 70-79分
+    { value: 85, label: '卓然不群' },   // 80-89分
+    { value: 95, label: '名满天下' }    // 90-100分
   ];
 
   // 平均分仪表盘配置
@@ -861,17 +861,17 @@ export default function Dashboard() {
         endAngle: 0,
         center: ['50%', '75%'],
         radius: '90%',
-        min: 0,
+        min: 40,  // 从40分开始
         max: 100,
-        splitNumber: 10,
+        splitNumber: 6,  // 调整分割数
         axisLine: {
           lineStyle: {
             width: 6,
             color: [
-              [0.6, '#FDDD60'],  // 0-60分：黄色
-              [0.7, '#58D9F9'],  // 60-70分：青色
-              [0.8, '#7CFFB2'],  // 70-80分：绿色
-              [1, '#C77CFF']     // 80-100分：紫色
+              [0.33, '#FDDD60'],  // 40-60分：黄色
+              [0.5, '#58D9F9'],   // 60-70分：青色
+              [0.67, '#7CFFB2'],  // 70-80分：绿色
+              [1, '#C77CFF']      // 80-100分：紫色
             ]
           }
         },
@@ -905,13 +905,8 @@ export default function Dashboard() {
           rotate: 'tangential',
           formatter: function (value: number) {
             // 根据分数显示对应的等级名称
-            if (value === 0) return '';
-            if (value === 10) return gradeLabels[0].label;
-            if (value === 65) return gradeLabels[1].label;
-            if (value === 75) return gradeLabels[2].label;
-            if (value === 85) return gradeLabels[3].label;
-            if (value === 95) return gradeLabels[4].label;
-            return '';
+            const label = gradeLabels.find(g => g.value === value);
+            return label ? label.label : '';
           }
         },
         title: {

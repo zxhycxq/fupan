@@ -37,7 +37,7 @@ export default function Sidebar() {
       {/* 移动端菜单按钮 */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-md bg-blue-600 text-white shadow-lg"
+        className="lg:hidden fixed top-4 left-4 z-[60] p-2 rounded-md bg-blue-600 text-white shadow-lg"
         aria-label="菜单"
       >
         {isOpen ? <CloseOutlined className="text-xl" /> : <MenuOutlined className="text-xl" />}
@@ -46,7 +46,7 @@ export default function Sidebar() {
       {/* 遮罩层（移动端） */}
       {isOpen && (
         <div
-          className="lg:hidden fixed inset-0 bg-black/50 z-40"
+          className="lg:hidden fixed inset-0 bg-black/50 z-[50]"
           onClick={() => setIsOpen(false)}
         />
       )}
@@ -54,7 +54,7 @@ export default function Sidebar() {
       {/* 侧边栏 */}
       <aside
         className={`
-          fixed lg:static inset-y-0 left-0 z-40
+          fixed lg:static inset-y-0 left-0 z-[55]
           w-32 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700
           transform transition-transform duration-300 ease-in-out
           ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}

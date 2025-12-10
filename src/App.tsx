@@ -107,7 +107,7 @@ function App() {
           {/* 右侧主内容区域 */}
           <div className="flex-1 flex flex-col overflow-hidden">
             {/* 主内容 */}
-            <main className="flex-1 overflow-auto">
+            <main className="flex-1 overflow-auto pb-8 lg:pb-0">
               <Routes>
                 {routes.map((route, index) => (
                   <Route
