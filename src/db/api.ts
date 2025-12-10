@@ -411,10 +411,10 @@ export async function batchUpsertUserSettings(
 }
 
 // 获取考试配置
-export async function getExamConfig(userId: string = 'default'): Promise<{ exam_type?: string; exam_date?: string; grade_label_theme?: string } | null> {
+export async function getExamConfig(userId: string = 'default'): Promise<{ exam_type?: string; exam_name?: string; exam_date?: string; grade_label_theme?: string } | null> {
   const { data, error } = await supabase
     .from('exam_config')
-    .select('exam_type, exam_date, grade_label_theme')
+    .select('exam_type, exam_name, exam_date, grade_label_theme')
     .eq('user_id', userId)
     .maybeSingle();
 
@@ -431,6 +431,7 @@ export async function saveExamConfig(
   examType: string,
   examDate: string,
   gradeLabelTheme: string = 'theme4',
+  examName: string = '',
   userId: string = 'default'
 ): Promise<void> {
   // 尝试更新现有配置
@@ -446,6 +447,7 @@ export async function saveExamConfig(
       .from('exam_config')
       .update({
         exam_type: examType,
+        exam_name: examName,
         exam_date: examDate,
         grade_label_theme: gradeLabelTheme,
         updated_at: new Date().toISOString(),
@@ -461,6 +463,7 @@ export async function saveExamConfig(
     const { error } = await supabase.from('exam_config').insert({
       user_id: userId,
       exam_type: examType,
+      exam_name: examName,
       exam_date: examDate,
       grade_label_theme: gradeLabelTheme,
     });

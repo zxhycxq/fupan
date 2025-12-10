@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Card, Button, InputNumber, Select, DatePicker, Space, message, Spin, Alert } from 'antd';
+import { Card, Button, InputNumber, Select, DatePicker, Space, message, Spin, Alert, Input } from 'antd';
 import { SaveOutlined, ReloadOutlined, CalendarOutlined, BgColorsOutlined, AimOutlined, TrophyOutlined } from '@ant-design/icons';
 import { useTheme, themes } from '@/hooks/use-theme';
 import { getUserSettings, batchUpsertUserSettings, getExamConfig, saveExamConfig } from '@/db/api';
@@ -21,11 +21,14 @@ const MAIN_MODULES = [
 const EXAM_TYPES = [
   { label: '国考', value: '国考' },
   { label: '省考', value: '省考' },
+  { label: '事业编', value: '事业编' },
+  { label: '其他', value: '其他' },
 ];
 
 export default function Settings() {
   const [settings, setSettings] = useState<Record<string, number>>({});
   const [examType, setExamType] = useState<string>('');
+  const [examName, setExamName] = useState<string>(''); // 自定义考试名称
   const [examDate, setExamDate] = useState<string>('');
   const [gradeLabelTheme, setGradeLabelTheme] = useState<string>('theme4');
   const [isLoading, setIsLoading] = useState(true);
@@ -61,6 +64,7 @@ export default function Settings() {
       const examConfig = await getExamConfig();
       if (examConfig) {
         setExamType(examConfig.exam_type || '');
+        setExamName(examConfig.exam_name || '');
         setExamDate(examConfig.exam_date || '');
         setGradeLabelTheme(examConfig.grade_label_theme || 'theme4');
       }
@@ -107,7 +111,7 @@ export default function Settings() {
 
       // 保存考试配置（包括等级称谓主题）
       // 即使没有设置考试类型和日期，也要保存等级称谓主题
-      await saveExamConfig(examType || '', examDate || '', gradeLabelTheme);
+      await saveExamConfig(examType || '', examDate || '', gradeLabelTheme, examName || '');
 
       message.success('设置已保存');
     } catch (error) {
@@ -332,12 +336,32 @@ export default function Settings() {
                 <div className="mb-2 text-sm font-medium">考试类型</div>
                 <Select
                   value={examType || undefined}
-                  onChange={setExamType}
+                  onChange={(value) => {
+                    setExamType(value);
+                    // 如果不是"其他"，清空自定义考试名称
+                    if (value !== '其他') {
+                      setExamName('');
+                    }
+                  }}
                   placeholder="请选择考试类型"
                   style={{ width: '100%' }}
                   options={EXAM_TYPES}
                 />
               </div>
+
+              {/* 当选择"其他"时显示自定义考试名称输入框 */}
+              {examType === '其他' && (
+                <div>
+                  <div className="mb-2 text-sm font-medium">考试名称</div>
+                  <Input
+                    value={examName}
+                    onChange={(e) => setExamName(e.target.value)}
+                    placeholder="请输入考试名称"
+                    maxLength={20}
+                    showCount
+                  />
+                </div>
+              )}
 
               <div>
                 <div className="mb-2 text-sm font-medium">考试日期</div>
@@ -357,9 +381,11 @@ export default function Settings() {
               message="说明"
               description={
                 <ul className="list-disc list-inside space-y-1 text-sm">
-                  <li>选择考试类型和日期后,系统将在顶部显示倒计时</li>
+                  <li>选择考试类型和日期后,系统将在主页显示倒计时</li>
+                  <li>支持国考、省考、事业编和自定义考试类型</li>
+                  <li>选择"其他"时可以自定义考试名称</li>
                   <li>倒计时会显示距离考试还有多少天</li>
-                  <li>可以随时修改考试日期</li>
+                  <li>可以随时修改考试类型、名称和日期</li>
                 </ul>
               }
               type="info"

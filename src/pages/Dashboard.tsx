@@ -72,7 +72,7 @@ export default function Dashboard() {
   const [userSettings, setUserSettings] = useState<UserSetting[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
-  const [examConfig, setExamConfig] = useState<{ exam_type?: string; exam_date?: string; grade_label_theme?: string } | null>(null);
+  const [examConfig, setExamConfig] = useState<{ exam_type?: string; exam_name?: string; exam_date?: string; grade_label_theme?: string } | null>(null);
   const [countdown, setCountdown] = useState<{ days: number; hours: number; minutes: number } | null>(null);
   const [todayPoem, setTodayPoem] = useState<string>('');
   const [calendarValue, setCalendarValue] = useState<Dayjs>(dayjs()); // 日历当前显示的月份
@@ -1806,7 +1806,9 @@ export default function Dashboard() {
                     <div className="text-4xl">📅</div>
                     <div className="flex-1">
                       <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-                        {examConfig.exam_type}倒计时
+                        {examConfig.exam_type === '其他' && examConfig.exam_name 
+                          ? `${examConfig.exam_name}倒计时` 
+                          : `${examConfig.exam_type}倒计时`}
                       </div>
                       <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                         {countdown.days > 0 ? (

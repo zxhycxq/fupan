@@ -5,7 +5,8 @@
 - `exam_config` 表
   - `id` (uuid, 主键, 默认: gen_random_uuid())
   - `user_id` (text, 用户标识, 默认: 'default', 唯一)
-  - `exam_type` (text, 考试类型: 国考/省考)
+  - `exam_type` (text, 考试类型: 国考/省考/事业编/其他)
+  - `exam_name` (text, 自定义考试名称, 当exam_type为'其他'时使用)
   - `exam_date` (date, 考试日期)
   - `grade_label_theme` (text, 等级称谓主题, 默认: 'theme4')
   - `created_at` (timestamptz, 创建时间, 默认: now())
@@ -13,6 +14,8 @@
 
 ## 2. 说明
 - exam_config 表用于存储用户的考试配置信息
+- exam_type 支持：国考、省考、事业编、其他
+- 当 exam_type 为'其他'时，使用 exam_name 字段存储自定义考试名称
 - grade_label_theme 用于存储用户选择的等级称谓主题
 - 可选值：
   - 'theme1': 易经系列 - 潜龙勿用、见龙在田、终日乾乾、或跃在渊、飞龙在天
@@ -26,6 +29,7 @@ CREATE TABLE IF NOT EXISTS exam_config (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id text NOT NULL DEFAULT 'default' UNIQUE,
   exam_type text,
+  exam_name text,
   exam_date date,
   grade_label_theme text DEFAULT 'theme4',
   created_at timestamptz DEFAULT now(),
@@ -35,7 +39,8 @@ CREATE TABLE IF NOT EXISTS exam_config (
 -- 添加注释
 COMMENT ON TABLE exam_config IS '考试配置表';
 COMMENT ON COLUMN exam_config.user_id IS '用户标识';
-COMMENT ON COLUMN exam_config.exam_type IS '考试类型(国考/省考)';
+COMMENT ON COLUMN exam_config.exam_type IS '考试类型(国考/省考/事业编/其他)';
+COMMENT ON COLUMN exam_config.exam_name IS '自定义考试名称(当exam_type为其他时使用)';
 COMMENT ON COLUMN exam_config.exam_date IS '考试日期';
 COMMENT ON COLUMN exam_config.grade_label_theme IS '等级称谓主题(theme1-theme4)';
 

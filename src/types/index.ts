@@ -117,7 +117,8 @@ export interface UserSetting {
 
 // 考试配置类型
 export interface ExamConfig {
-  exam_type: string; // 考试类型(国考/省考)
+  exam_type: string; // 考试类型(国考/省考/事业编/其他)
+  exam_name?: string; // 自定义考试名称(当exam_type为'其他'时使用)
   exam_date: string; // 考试日期
   grade_label_theme?: string; // 等级称谓主题(theme1-theme4)
 }
