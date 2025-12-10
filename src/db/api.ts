@@ -411,12 +411,11 @@ export async function batchUpsertUserSettings(
 }
 
 // 获取考试配置
-export async function getExamConfig(userId: string = 'default'): Promise<{ exam_type?: string; exam_date?: string } | null> {
+export async function getExamConfig(userId: string = 'default'): Promise<{ exam_type?: string; exam_date?: string; grade_label_theme?: string } | null> {
   const { data, error } = await supabase
-    .from('user_settings')
-    .select('exam_type, exam_date')
+    .from('exam_config')
+    .select('exam_type, exam_date, grade_label_theme')
     .eq('user_id', userId)
-    .not('exam_type', 'is', null)
     .maybeSingle();
 
   if (error) {
@@ -431,26 +430,27 @@ export async function getExamConfig(userId: string = 'default'): Promise<{ exam_
 export async function saveExamConfig(
   examType: string,
   examDate: string,
+  gradeLabelTheme: string = 'theme4',
   userId: string = 'default'
 ): Promise<void> {
-  // 先获取一个现有的设置记录
-  const { data: existingSetting } = await supabase
-    .from('user_settings')
+  // 尝试更新现有配置
+  const { data: existingConfig } = await supabase
+    .from('exam_config')
     .select('id')
     .eq('user_id', userId)
-    .limit(1)
     .maybeSingle();
 
-  if (existingSetting) {
+  if (existingConfig) {
     // 更新现有记录
     const { error } = await supabase
-      .from('user_settings')
+      .from('exam_config')
       .update({
         exam_type: examType,
         exam_date: examDate,
+        grade_label_theme: gradeLabelTheme,
         updated_at: new Date().toISOString(),
       })
-      .eq('id', existingSetting.id);
+      .eq('user_id', userId);
 
     if (error) {
       console.error('更新考试配置失败:', error);
@@ -458,12 +458,11 @@ export async function saveExamConfig(
     }
   } else {
     // 创建新记录
-    const { error } = await supabase.from('user_settings').insert({
+    const { error } = await supabase.from('exam_config').insert({
       user_id: userId,
-      module_name: '政治理论', // 默认模块
-      target_accuracy: 80,
       exam_type: examType,
       exam_date: examDate,
+      grade_label_theme: gradeLabelTheme,
     });
 
     if (error) {

@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Card, Button, InputNumber, Select, DatePicker, Space, message, Spin, Alert } from 'antd';
-import { SaveOutlined, ReloadOutlined, CalendarOutlined, BgColorsOutlined, AimOutlined } from '@ant-design/icons';
+import { SaveOutlined, ReloadOutlined, CalendarOutlined, BgColorsOutlined, AimOutlined, TrophyOutlined } from '@ant-design/icons';
 import { useTheme, themes } from '@/hooks/use-theme';
 import { getUserSettings, batchUpsertUserSettings, getExamConfig, saveExamConfig } from '@/db/api';
 import type { UserSetting } from '@/types';
 import dayjs from 'dayjs';
+import { GRADE_LABEL_THEMES } from '@/config/gradeLabels';
 
 // 6大模块
 const MAIN_MODULES = [
@@ -26,6 +27,7 @@ export default function Settings() {
   const [settings, setSettings] = useState<Record<string, number>>({});
   const [examType, setExamType] = useState<string>('');
   const [examDate, setExamDate] = useState<string>('');
+  const [gradeLabelTheme, setGradeLabelTheme] = useState<string>('theme4');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const { theme, setTheme } = useTheme();
@@ -60,6 +62,7 @@ export default function Settings() {
       if (examConfig) {
         setExamType(examConfig.exam_type || '');
         setExamDate(examConfig.exam_date || '');
+        setGradeLabelTheme(examConfig.grade_label_theme || 'theme4');
       }
     } catch (error) {
       console.error('加载设置失败:', error);
@@ -104,7 +107,7 @@ export default function Settings() {
 
       // 保存考试配置
       if (examType && examDate) {
-        await saveExamConfig(examType, examDate);
+        await saveExamConfig(examType, examDate, gradeLabelTheme);
       }
 
       message.success('设置已保存');
@@ -358,6 +361,82 @@ export default function Settings() {
                   <li>选择考试类型和日期后,系统将在顶部显示倒计时</li>
                   <li>倒计时会显示距离考试还有多少天</li>
                   <li>可以随时修改考试日期</li>
+                </ul>
+              }
+              type="info"
+              showIcon
+              className="mt-4"
+            />
+          </div>
+
+          {/* 等级称谓主题配置部分 */}
+          <div>
+            <div className="border-b pb-3 mb-4">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <TrophyOutlined />
+                等级称谓主题设置
+              </h3>
+              <p className="text-sm text-gray-500 mt-1">
+                选择您喜欢的等级称谓风格,将在仪表盘中显示
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {GRADE_LABEL_THEMES.map((themeOption) => {
+                const isActive = gradeLabelTheme === themeOption.id;
+
+                return (
+                  <div
+                    key={themeOption.id}
+                    onClick={() => setGradeLabelTheme(themeOption.id)}
+                    className={`
+                      relative cursor-pointer rounded-lg border-2 p-4 transition-all
+                      ${isActive 
+                        ? 'border-blue-500 bg-blue-50 shadow-md' 
+                        : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
+                      }
+                    `}
+                  >
+                    <div className="flex items-start justify-between">
+                      {/* 主题信息 */}
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold text-base mb-2">
+                          {themeOption.name}
+                        </div>
+                        <div className="text-xs text-gray-600 space-y-1">
+                          {themeOption.labels.map((label, index) => (
+                            <div key={index} className="flex items-center gap-2">
+                              <span className="text-gray-400">{label.value}分:</span>
+                              <span className="font-medium">{label.label}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* 选中标记 */}
+                      {isActive && (
+                        <div className="flex-shrink-0 ml-2">
+                          <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center">
+                            <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <Alert
+              message="说明"
+              description={
+                <ul className="list-disc list-inside space-y-1 text-sm">
+                  <li>等级称谓会根据您的平均分显示在仪表盘中</li>
+                  <li>不同主题提供不同风格的等级名称</li>
+                  <li>选择后需要点击"保存设置"按钮才能生效</li>
+                  <li>等级称谓仅用于展示,不影响实际分数</li>
                 </ul>
               }
               type="info"
