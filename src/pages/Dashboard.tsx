@@ -860,7 +860,7 @@ export default function Dashboard() {
         radius: '90%',  // 稍微减小半径，确保文字不会超出
         min: 40,  // 从40分开始
         max: 90,  // 到90分结束
-        splitNumber: 5,  // 5个分段：<50, 50-60, 60-70, 70-80, >80
+        splitNumber: 10,  // 增加到10个分段，这样会生成11个刻度：40,45,50,55,60,65,70,75,80,85,90
         axisLine: {
           lineStyle: {
             width: 10,  // 加粗轴线
@@ -887,7 +887,8 @@ export default function Dashboard() {
           lineStyle: {
             color: 'auto',
             width: 2
-          }
+          },
+          splitNumber: 1  // 每个大刻度之间1个小刻度
         },
         splitLine: {
           length: 15,
@@ -902,12 +903,9 @@ export default function Dashboard() {
           distance: -60,  // 负值让文字显示在外围更远的位置
           rotate: 'tangential',  // 切向旋转，让文字沿着圆弧方向排列
           formatter: function (value: number) {
-            // 显示所有等级称谓在区间正中间
-            // 区间1：40-50分，中间是45分，显示第1个等级（<50分）
-            // 区间2：50-60分，中间是55分，显示第2个等级（50-60分）
-            // 区间3：60-70分，中间是65分，显示第3个等级（60-70分）
-            // 区间4：70-80分，中间是75分，显示第4个等级（70-80分）
-            // 区间5：80-90分，中间是85分，显示第5个等级（>80分）
+            // 只在区间中间位置显示等级称谓
+            // 45, 55, 65, 75, 85 这些位置显示称谓
+            // 40, 50, 60, 70, 80, 90 这些分界线位置不显示
             
             if (value === 45) {
               return gradeLabels[0]?.label || '';
@@ -920,7 +918,7 @@ export default function Dashboard() {
             } else if (value === 85) {
               return gradeLabels[4]?.label || '';
             }
-            return '';  // 其他刻度不显示文字
+            return '';  // 分界线位置不显示文字
           }
         },
         title: {
