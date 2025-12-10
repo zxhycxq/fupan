@@ -331,51 +331,85 @@ export default function Settings() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <div className="mb-2 text-sm font-medium">考试类型</div>
-                <Select
-                  value={examType || undefined}
-                  onChange={(value) => {
-                    setExamType(value);
-                    // 如果不是"其他"，清空自定义考试名称
-                    if (value !== '其他') {
-                      setExamName('');
-                    }
-                  }}
-                  placeholder="请选择考试类型"
-                  style={{ width: '100%' }}
-                  options={EXAM_TYPES}
-                />
-              </div>
+            {/* 根据是否选择"其他"调整布局 */}
+            {examType === '其他' ? (
+              // 选择"其他"时，三个字段在一行显示
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div>
+                  <div className="mb-2 text-sm font-medium">考试类型</div>
+                  <Select
+                    value={examType || undefined}
+                    onChange={(value) => {
+                      setExamType(value);
+                      // 如果不是"其他"，清空自定义考试名称
+                      if (value !== '其他') {
+                        setExamName('');
+                      }
+                    }}
+                    placeholder="请选择考试类型"
+                    style={{ width: '100%' }}
+                    options={EXAM_TYPES}
+                  />
+                </div>
 
-              {/* 当选择"其他"时显示自定义考试名称输入框 */}
-              {examType === '其他' && (
                 <div>
                   <div className="mb-2 text-sm font-medium">考试名称</div>
                   <Input
                     value={examName}
                     onChange={(e) => setExamName(e.target.value)}
                     placeholder="请输入考试名称"
-                    maxLength={20}
+                    maxLength={15}
                     showCount
                   />
                 </div>
-              )}
 
-              <div>
-                <div className="mb-2 text-sm font-medium">考试日期</div>
-                <DatePicker
-                  value={examDate ? dayjs(examDate) : null}
-                  onChange={(date) => setExamDate(date ? date.format('YYYY-MM-DD') : '')}
-                  placeholder="请选择考试日期"
-                  style={{ width: '100%' }}
-                  size="middle"
-                  getPopupContainer={(trigger) => trigger.parentElement || document.body}
-                  disabledDate={(current) => current && current < dayjs().startOf('day')}
-                />
+                <div>
+                  <div className="mb-2 text-sm font-medium">考试日期</div>
+                  <DatePicker
+                    value={examDate ? dayjs(examDate) : null}
+                    onChange={(date) => setExamDate(date ? date.format('YYYY-MM-DD') : '')}
+                    placeholder="请选择考试日期"
+                    style={{ width: '100%' }}
+                    size="middle"
+                    getPopupContainer={(trigger) => trigger.parentElement || document.body}
+                    disabledDate={(current) => current && current < dayjs().startOf('day')}
+                  />
+                </div>
               </div>
-            </div>
+            ) : (
+              // 未选择"其他"时，两个字段在一行显示
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                <div>
+                  <div className="mb-2 text-sm font-medium">考试类型</div>
+                  <Select
+                    value={examType || undefined}
+                    onChange={(value) => {
+                      setExamType(value);
+                      // 如果不是"其他"，清空自定义考试名称
+                      if (value !== '其他') {
+                        setExamName('');
+                      }
+                    }}
+                    placeholder="请选择考试类型"
+                    style={{ width: '100%' }}
+                    options={EXAM_TYPES}
+                  />
+                </div>
+
+                <div>
+                  <div className="mb-2 text-sm font-medium">考试日期</div>
+                  <DatePicker
+                    value={examDate ? dayjs(examDate) : null}
+                    onChange={(date) => setExamDate(date ? date.format('YYYY-MM-DD') : '')}
+                    placeholder="请选择考试日期"
+                    style={{ width: '100%' }}
+                    size="middle"
+                    getPopupContainer={(trigger) => trigger.parentElement || document.body}
+                    disabledDate={(current) => current && current < dayjs().startOf('day')}
+                  />
+                </div>
+              </div>
+            )}
 
             <Alert
               message="说明"
@@ -383,7 +417,7 @@ export default function Settings() {
                 <ul className="list-disc list-inside space-y-1 text-sm">
                   <li>选择考试类型和日期后,系统将在主页显示倒计时</li>
                   <li>支持国考、省考、事业编和自定义考试类型</li>
-                  <li>选择"其他"时可以自定义考试名称</li>
+                  <li>选择"其他"时可以自定义考试名称(最多15个字符)</li>
                   <li>倒计时会显示距离考试还有多少天</li>
                   <li>可以随时修改考试类型、名称和日期</li>
                 </ul>

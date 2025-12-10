@@ -856,8 +856,8 @@ export default function Dashboard() {
         type: 'gauge',
         startAngle: 180,
         endAngle: 0,
-        center: ['50%', '75%'],  // 调整中心位置，留出更多空间
-        radius: '110%',  // 进一步增大半径
+        center: ['50%', '80%'],  // 调整中心位置，为外围文字留出空间
+        radius: '100%',  // 调整半径
         min: 40,  // 从40分开始
         max: 90,  // 到90分结束
         splitNumber: 5,  // 5个分段：<50, 50-60, 60-70, 70-80, >80
@@ -875,9 +875,9 @@ export default function Dashboard() {
         },
         pointer: {
           icon: 'path://M12.8,0.7l12,40.1H0.7L12.8,0.7z',
-          length: '50%',  // 增加指针长度
-          width: 15,
-          offsetCenter: [0, '0%'],  // 调整指针位置，不要太靠近刻度
+          length: '60%',  // 调整指针长度，让它更靠近刻度
+          width: 12,
+          offsetCenter: [0, '5%'],  // 微调指针位置，避免与数字重叠
           itemStyle: {
             color: 'auto'
           }
@@ -899,7 +899,7 @@ export default function Dashboard() {
         axisLabel: {
           color: '#464646',
           fontSize: isMobile ? 14 : 18,  // 增大字体
-          distance: 25,  // 增加距离，让文字显示在外侧
+          distance: -35,  // 负值让文字显示在外围
           formatter: function (value: number) {
             // 简化逻辑：根据刻度值直接显示对应的等级称谓
             // 刻度值：40, 50, 60, 70, 80, 90
@@ -929,8 +929,8 @@ export default function Dashboard() {
           show: false
         },
         detail: {
-          fontSize: isMobile ? 36 : 48,  // 增大分数显示
-          offsetCenter: [0, '10%'],  // 调整分数位置
+          fontSize: isMobile ? 32 : 42,  // 调整分数显示大小
+          offsetCenter: [0, '20%'],  // 调整分数位置，避免与指针重叠
           valueAnimation: true,
           formatter: function (value: number) {
             return value.toFixed(1);  // 保留1位小数
