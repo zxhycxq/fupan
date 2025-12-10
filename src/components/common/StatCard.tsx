@@ -28,16 +28,16 @@ export default function StatCard({
 }: StatCardProps) {
   return (
     <Card
-      className={`stat-card p-2 ${className}`}
+      className={`stat-card p-1.5 ${className}`}
       style={{
         background: gradient,
         height: isMobile ? 'auto' : '100%',
-        minHeight: '100px'
+        minHeight: '90px'
       }}
     >
       <div className="flex flex-col h-full">
         {/* 标题和图标 */}
-        <div className="flex items-center gap-1.5 mb-2">
+        <div className="flex items-center gap-1 mb-1.5">
           {prefix && <div className="flex-shrink-0">{prefix}</div>}
           <div className="stat-title text-gray-800 dark:text-gray-200 text-xs font-semibold">{title}</div>
         </div>
@@ -52,7 +52,7 @@ export default function StatCard({
         
         {/* 描述 */}
         {description && (
-          <div className="text-xs opacity-80 mt-1.5 text-gray-700 dark:text-gray-300">{description}</div>
+          <div className="text-xs opacity-80 mt-1 text-gray-700 dark:text-gray-300">{description}</div>
         )}
       </div>
     </Card>

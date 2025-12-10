@@ -16,11 +16,11 @@ import { useState } from 'react';
 // 菜单图标映射
 const menuIcons: Record<string, React.ReactNode> = {
   '/': <DashboardOutlined />,
-  '/exam-list': <FileTextOutlined />,
-  '/upload': <CloudUploadOutlined />,
   '/module-analysis': <LineChartOutlined />,
-  '/profile': <UserOutlined />,
+  '/upload': <CloudUploadOutlined />,
+  '/exams': <FileTextOutlined />,
   '/settings': <SettingOutlined />,
+  '/profile': <UserOutlined />,
 };
 
 /**

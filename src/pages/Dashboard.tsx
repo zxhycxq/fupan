@@ -1705,16 +1705,16 @@ export default function Dashboard() {
 
         <Col xs={12} sm={8} md={4}>
           <Card 
-            className="stat-card stat-card-info p-2"
+            className="stat-card stat-card-info p-1.5"
             style={{ 
               background: generateGradientStyle(DASHBOARD_GRADIENTS[3]),
               height: isMobile ? 'auto' : '100%',
-              minHeight: '100px'
+              minHeight: '90px'
             }}
           >
             <div className="flex flex-col h-full">
               {/* 标题和图标 */}
-              <div className="flex items-center gap-1.5 mb-2">
+              <div className="flex items-center gap-1 mb-1.5">
                 <ClockCircleOutlined className="stat-icon text-yellow-600 dark:text-yellow-300 text-lg flex-shrink-0" />
                 <div className="stat-title text-gray-800 dark:text-gray-200 text-xs font-semibold">累计做题时长</div>
               </div>
@@ -1732,7 +1732,7 @@ export default function Dashboard() {
               </div>
               
               {/* 描述 */}
-              <div className="text-xs opacity-80 mt-1.5 text-gray-700 dark:text-gray-300">所有考试花费时间</div>
+              <div className="text-xs opacity-80 mt-1 text-gray-700 dark:text-gray-300">所有考试花费时间</div>
             </div>
           </Card>
         </Col>
@@ -1768,10 +1768,10 @@ export default function Dashboard() {
       <Row gutter={[16, 16]} className="mb-8">
         {/* 左侧：平均分仪表盘 */}
         <Col xs={24} lg={12}>
-          <Card className="p-2" style={{ height: isMobile ? 'auto' : '304px' }}>
+          <Card className="p-2" style={{ height: isMobile ? 'auto' : '243px' }}>
             <ReactECharts
               option={averageScoreGaugeOption}
-              style={{ height: isMobile ? '240px' : '272px' }}
+              style={{ height: isMobile ? '200px' : '218px' }}
               opts={{ renderer: 'svg' }}
             />
           </Card>
@@ -1779,7 +1779,7 @@ export default function Dashboard() {
 
         {/* 右侧：倒计时和加油站（上下排列） */}
         <Col xs={24} lg={12}>
-          <Row gutter={[16, 16]} style={{ height: isMobile ? 'auto' : '304px' }}>
+          <Row gutter={[16, 16]} style={{ height: isMobile ? 'auto' : '243px' }}>
             {examConfig && countdown && (
               <>
                 {/* 考试倒计时 */}
