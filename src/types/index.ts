@@ -119,6 +119,7 @@ export interface UserSetting {
 export interface ExamConfig {
   exam_type: string; // 考试类型(国考/省考)
   exam_date: string; // 考试日期
+  grade_label_theme?: string; // 等级称谓主题(theme1-theme4)
 }
 
 // 识别结果确认数据类型

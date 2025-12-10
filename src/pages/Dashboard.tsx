@@ -16,6 +16,7 @@ import { Lunar, Solar } from 'lunar-typescript';
 import { DASHBOARD_GRADIENTS, generateGradientStyle } from '@/config/gradients';
 import DateRangeFilter from '@/components/common/DateRangeFilter';
 import StatCard from '@/components/common/StatCard';
+import { getGradeLabelsByTheme } from '@/config/gradeLabels';
 
 // 扩展dayjs
 dayjs.extend(dayOfYear);
@@ -71,7 +72,7 @@ export default function Dashboard() {
   const [userSettings, setUserSettings] = useState<UserSetting[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
-  const [examConfig, setExamConfig] = useState<{ exam_type?: string; exam_date?: string } | null>(null);
+  const [examConfig, setExamConfig] = useState<{ exam_type?: string; exam_date?: string; grade_label_theme?: string } | null>(null);
   const [countdown, setCountdown] = useState<{ days: number; hours: number; minutes: number } | null>(null);
   const [todayPoem, setTodayPoem] = useState<string>('');
   const [calendarValue, setCalendarValue] = useState<Dayjs>(dayjs()); // 日历当前显示的月份
@@ -843,14 +844,10 @@ export default function Dashboard() {
     ],
   };
 
-  // 等级名称配置
-  const gradeLabels = [
-    { value: 50, label: '默默无闻' },    // 40-59分
-    { value: 65, label: '小有所成' },   // 60-69分
-    { value: 75, label: '初露锋芒' },   // 70-79分
-    { value: 85, label: '卓然不群' },   // 80-89分
-    { value: 95, label: '名满天下' }    // 90-100分
-  ];
+  // 等级名称配置 - 根据用户设置的主题获取
+  const gradeLabels = useMemo(() => {
+    return getGradeLabelsByTheme(examConfig?.grade_label_theme || 'theme4');
+  }, [examConfig?.grade_label_theme]);
 
   // 平均分仪表盘配置
   const averageScoreGaugeOption = {
