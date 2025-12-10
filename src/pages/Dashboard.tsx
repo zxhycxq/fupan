@@ -856,14 +856,14 @@ export default function Dashboard() {
         type: 'gauge',
         startAngle: 180,
         endAngle: 0,
-        center: ['50%', '70%'],  // 调整中心位置
-        radius: '100%',  // 增大半径
+        center: ['50%', '75%'],  // 调整中心位置，留出更多空间
+        radius: '110%',  // 进一步增大半径
         min: 40,  // 从40分开始
         max: 90,  // 到90分结束
         splitNumber: 5,  // 5个分段：<50, 50-60, 60-70, 70-80, >80
         axisLine: {
           lineStyle: {
-            width: 8,  // 加粗轴线
+            width: 10,  // 加粗轴线
             color: [
               [0.2, '#FF6B6B'],   // 40-50分：红色
               [0.4, '#FFA500'],   // 50-60分：橙色
@@ -875,76 +875,52 @@ export default function Dashboard() {
         },
         pointer: {
           icon: 'path://M12.8,0.7l12,40.1H0.7L12.8,0.7z',
-          length: '12%',
-          width: 20,
-          offsetCenter: [0, '-60%'],
+          length: '50%',  // 增加指针长度
+          width: 15,
+          offsetCenter: [0, '0%'],  // 调整指针位置，不要太靠近刻度
           itemStyle: {
             color: 'auto'
           }
         },
         axisTick: {
-          length: 12,
+          length: 8,
           lineStyle: {
             color: 'auto',
             width: 2
           }
         },
         splitLine: {
-          length: 20,
+          length: 15,
           lineStyle: {
             color: 'auto',
-            width: 5
+            width: 4
           }
         },
         axisLabel: {
           color: '#464646',
-          fontSize: isMobile ? 12 : 16,  // 增大字体
-          distance: -50,  // 调整距离
-          rotate: 'tangential',  // 保持切线方向旋转
+          fontSize: isMobile ? 14 : 18,  // 增大字体
+          distance: 25,  // 增加距离，让文字显示在外侧
           formatter: function (value: number) {
-            // 使用范围匹配来显示等级称谓
-            // 根据用户当前分数所在区间，只显示该区间的称谓
-            const currentScore = Math.max(40, Math.min(90, Number(stats.averageScore) || 0)); // 限制在40-90之间
+            // 简化逻辑：根据刻度值直接显示对应的等级称谓
+            // 刻度值：40, 50, 60, 70, 80, 90
+            const currentScore = Math.max(40, Math.min(90, Number(stats.averageScore) || 0));
             
-            // 判断当前分数所在区间
-            let currentRange = '';
-            if (currentScore < 50) {
-              currentRange = '<50';
-            } else if (currentScore >= 50 && currentScore < 60) {
-              currentRange = '50-60';
-            } else if (currentScore >= 60 && currentScore < 70) {
-              currentRange = '60-70';
-            } else if (currentScore >= 70 && currentScore < 80) {
-              currentRange = '70-80';
-            } else {
-              currentRange = '>80';
-            }
-            
-            // 判断当前刻度值对应的区间
-            let tickRange = '';
-            if (value < 50) {
-              tickRange = '<50';
-            } else if (value >= 50 && value < 60) {
-              tickRange = '50-60';
-            } else if (value >= 60 && value < 70) {
-              tickRange = '60-70';
-            } else if (value >= 70 && value < 80) {
-              tickRange = '70-80';
-            } else {
-              tickRange = '>80';
-            }
-            
-            // 只在当前分数所在区间的刻度上显示称谓
-            if (tickRange === currentRange) {
-              const label = gradeLabels.find(g => {
-                if (currentRange === '<50') return g.value === 40;
-                if (currentRange === '50-60') return g.value === 50;
-                if (currentRange === '60-70') return g.value === 60;
-                if (currentRange === '70-80') return g.value === 70;
-                if (currentRange === '>80') return g.value === 80;
-                return false;
-              });
-              return label ? label.label : '';
+            // 判断当前分数所在区间，只在该区间显示称谓
+            if (currentScore < 50 && value === 40) {
+              // <50分，显示第1个等级
+              return gradeLabels[0]?.label || '';
+            } else if (currentScore >= 50 && currentScore < 60 && value === 50) {
+              // 50-60分，显示第2个等级
+              return gradeLabels[1]?.label || '';
+            } else if (currentScore >= 60 && currentScore < 70 && value === 60) {
+              // 60-70分，显示第3个等级
+              return gradeLabels[2]?.label || '';
+            } else if (currentScore >= 70 && currentScore < 80 && value === 70) {
+              // 70-80分，显示第4个等级
+              return gradeLabels[3]?.label || '';
+            } else if (currentScore >= 80 && value === 80) {
+              // >=80分，显示第5个等级
+              return gradeLabels[4]?.label || '';
             }
             return '';
           }
@@ -953,11 +929,11 @@ export default function Dashboard() {
           show: false
         },
         detail: {
-          fontSize: isMobile ? 32 : 40,  // 增大分数显示
-          offsetCenter: [0, '-15%'],
+          fontSize: isMobile ? 36 : 48,  // 增大分数显示
+          offsetCenter: [0, '10%'],  // 调整分数位置
           valueAnimation: true,
           formatter: function (value: number) {
-            return Math.round(value) + '';
+            return value.toFixed(1);  // 保留1位小数
           },
           color: 'inherit'
         },
