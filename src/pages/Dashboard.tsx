@@ -901,28 +901,27 @@ export default function Dashboard() {
           fontSize: isMobile ? 13 : 16,  // 调整字体大小
           distance: -60,  // 负值让文字显示在外围更远的位置
           formatter: function (value: number) {
-            // 简化逻辑：根据刻度值直接显示对应的等级称谓
+            // 显示所有等级称谓，根据刻度值匹配对应的等级
             // 刻度值：40, 50, 60, 70, 80, 90
-            const currentScore = Math.max(40, Math.min(90, Number(stats.averageScore) || 0));
+            // 对应等级：<50, 50-60, 60-70, 70-80, >80
             
-            // 判断当前分数所在区间，只在该区间显示称谓
-            if (currentScore < 50 && value === 40) {
+            if (value === 40) {
               // <50分，显示第1个等级
               return gradeLabels[0]?.label || '';
-            } else if (currentScore >= 50 && currentScore < 60 && value === 50) {
+            } else if (value === 50) {
               // 50-60分，显示第2个等级
               return gradeLabels[1]?.label || '';
-            } else if (currentScore >= 60 && currentScore < 70 && value === 60) {
+            } else if (value === 60) {
               // 60-70分，显示第3个等级
               return gradeLabels[2]?.label || '';
-            } else if (currentScore >= 70 && currentScore < 80 && value === 70) {
+            } else if (value === 70) {
               // 70-80分，显示第4个等级
               return gradeLabels[3]?.label || '';
-            } else if (currentScore >= 80 && value === 80) {
+            } else if (value === 80) {
               // >=80分，显示第5个等级
               return gradeLabels[4]?.label || '';
             }
-            return '';
+            return '';  // 90分的刻度不显示文字
           }
         },
         title: {
