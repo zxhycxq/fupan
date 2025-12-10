@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Card, Button, InputNumber, Select, DatePicker, Space, message, Spin, Alert, Input } from 'antd';
-import { SaveOutlined, ReloadOutlined, CalendarOutlined, BgColorsOutlined, AimOutlined, TrophyOutlined } from '@ant-design/icons';
+import { Card, Button, InputNumber, Select, DatePicker, Space, message, Spin, Alert, Input, Tooltip } from 'antd';
+import { SaveOutlined, ReloadOutlined, CalendarOutlined, BgColorsOutlined, AimOutlined, TrophyOutlined, QuestionCircleOutlined } from '@ant-design/icons';
 import { useTheme, themes } from '@/hooks/use-theme';
 import { getUserSettings, batchUpsertUserSettings, getExamConfig, saveExamConfig } from '@/db/api';
 import type { UserSetting } from '@/types';
@@ -178,10 +178,20 @@ export default function Settings() {
               <h3 className="text-lg font-semibold flex items-center gap-2">
                 <AimOutlined />
                 目标正确率设置
+                <Tooltip 
+                  title={
+                    <div className="space-y-1">
+                      <div>• 目标正确率范围: 0-100%</div>
+                      <div>• 默认目标为80%</div>
+                      <div>• 设置后将在雷达图中显示目标线,方便对比实际表现</div>
+                      <div>• 建议根据自身情况设置合理的目标</div>
+                    </div>
+                  }
+                  placement="right"
+                >
+                  <QuestionCircleOutlined className="text-gray-400 hover:text-blue-500 cursor-help text-base" />
+                </Tooltip>
               </h3>
-              <p className="text-sm text-gray-500 mt-1">
-                设置各模块的目标正确率,用于在雷达图中对比实际表现
-              </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -201,21 +211,6 @@ export default function Settings() {
                 </div>
               ))}
             </div>
-
-            <Alert
-              message="说明"
-              description={
-                <ul className="list-disc list-inside space-y-1 text-sm">
-                  <li>目标正确率范围: 0-100%</li>
-                  <li>默认目标为80%</li>
-                  <li>设置后将在雷达图中显示目标线,方便对比实际表现</li>
-                  <li>建议根据自身情况设置合理的目标</li>
-                </ul>
-              }
-              type="info"
-              showIcon
-              className="mt-4"
-            />
           </div>
 
           {/* 主题配置部分 */}
@@ -224,10 +219,20 @@ export default function Settings() {
               <h3 className="text-lg font-semibold flex items-center gap-2">
                 <BgColorsOutlined />
                 主题肤色设置
+                <Tooltip 
+                  title={
+                    <div className="space-y-1">
+                      <div>• 主题配色会立即生效,无需保存</div>
+                      <div>• 主题设置会自动保存到浏览器本地</div>
+                      <div>• 不同主题适合不同的使用场景和个人喜好</div>
+                      <div>• 主题颜色会应用到所有按钮、图表和交互元素</div>
+                    </div>
+                  }
+                  placement="right"
+                >
+                  <QuestionCircleOutlined className="text-gray-400 hover:text-blue-500 cursor-help text-base" />
+                </Tooltip>
               </h3>
-              <p className="text-sm text-gray-500 mt-1">
-                选择您喜欢的主题配色方案
-              </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -302,21 +307,6 @@ export default function Settings() {
                 );
               })}
             </div>
-
-            <Alert
-              message="说明"
-              description={
-                <ul className="list-disc list-inside space-y-1 text-sm">
-                  <li>主题配色会立即生效,无需保存</li>
-                  <li>主题设置会自动保存到浏览器本地</li>
-                  <li>不同主题适合不同的使用场景和个人喜好</li>
-                  <li>主题颜色会应用到所有按钮、图表和交互元素</li>
-                </ul>
-              }
-              type="info"
-              showIcon
-              className="mt-4"
-            />
           </div>
 
           {/* 考试倒计时配置部分 */}
@@ -325,10 +315,21 @@ export default function Settings() {
               <h3 className="text-lg font-semibold flex items-center gap-2">
                 <CalendarOutlined />
                 考试倒计时设置
+                <Tooltip 
+                  title={
+                    <div className="space-y-1">
+                      <div>• 选择考试类型和日期后,系统将在主页显示倒计时</div>
+                      <div>• 支持国考、省考、事业编和自定义考试类型</div>
+                      <div>• 选择"其他"时可以自定义考试名称(最多15个字符)</div>
+                      <div>• 倒计时会显示距离考试还有多少天</div>
+                      <div>• 可以随时修改考试类型、名称和日期</div>
+                    </div>
+                  }
+                  placement="right"
+                >
+                  <QuestionCircleOutlined className="text-gray-400 hover:text-blue-500 cursor-help text-base" />
+                </Tooltip>
               </h3>
-              <p className="text-sm text-gray-500 mt-1">
-                设置考试类型和日期,系统将在顶部显示倒计时
-              </p>
             </div>
 
             {/* 根据是否选择"其他"调整布局 */}
@@ -410,22 +411,6 @@ export default function Settings() {
                 </div>
               </div>
             )}
-
-            <Alert
-              message="说明"
-              description={
-                <ul className="list-disc list-inside space-y-1 text-sm">
-                  <li>选择考试类型和日期后,系统将在主页显示倒计时</li>
-                  <li>支持国考、省考、事业编和自定义考试类型</li>
-                  <li>选择"其他"时可以自定义考试名称(最多15个字符)</li>
-                  <li>倒计时会显示距离考试还有多少天</li>
-                  <li>可以随时修改考试类型、名称和日期</li>
-                </ul>
-              }
-              type="info"
-              showIcon
-              className="mt-4"
-            />
           </div>
 
           {/* 等级称谓主题配置部分 */}
@@ -434,13 +419,23 @@ export default function Settings() {
               <h3 className="text-lg font-semibold flex items-center gap-2">
                 <TrophyOutlined />
                 等级称谓主题设置
+                <Tooltip 
+                  title={
+                    <div className="space-y-1">
+                      <div>• 等级称谓会根据您的平均分显示在仪表盘中</div>
+                      <div>• 不同主题提供不同风格的等级名称</div>
+                      <div>• 选择后需要点击"保存设置"按钮才能生效</div>
+                      <div>• 等级称谓仅用于展示,不影响实际分数</div>
+                    </div>
+                  }
+                  placement="right"
+                >
+                  <QuestionCircleOutlined className="text-gray-400 hover:text-blue-500 cursor-help text-base" />
+                </Tooltip>
               </h3>
-              <p className="text-sm text-gray-500 mt-1">
-                选择您喜欢的等级称谓风格,将在仪表盘中显示
-              </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
               {GRADE_LABEL_THEMES.map((themeOption) => {
                 const isActive = gradeLabelTheme === themeOption.id;
 
@@ -491,21 +486,6 @@ export default function Settings() {
                 );
               })}
             </div>
-
-            <Alert
-              message="说明"
-              description={
-                <ul className="list-disc list-inside space-y-1 text-sm">
-                  <li>等级称谓会根据您的平均分显示在仪表盘中</li>
-                  <li>不同主题提供不同风格的等级名称</li>
-                  <li>选择后需要点击"保存设置"按钮才能生效</li>
-                  <li>等级称谓仅用于展示,不影响实际分数</li>
-                </ul>
-              }
-              type="info"
-              showIcon
-              className="mt-4"
-            />
           </div>
         </Space>
       </Card>
