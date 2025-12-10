@@ -373,8 +373,8 @@ export default function ModuleAnalysis() {
         <p className="text-gray-500 mt-2">查看各个模块的正确率趋势变化</p>
       </div>
 
-      {/* 日期范围筛选器 - 固定在顶部 */}
-      <DateRangeFilter value={dateRange} onChange={setDateRange} className="-mx-6 px-6" />
+      {/* 日期范围筛选器 */}
+      <DateRangeFilter value={dateRange} onChange={setDateRange} />
 
       <Row gutter={[16, 16]}>
         {MODULE_CONFIG.map((config) => (

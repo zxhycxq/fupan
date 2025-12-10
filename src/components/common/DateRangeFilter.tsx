@@ -40,11 +40,10 @@ export default function DateRangeFilter({
   };
 
   return (
-    <div className={`sticky top-16 z-10 mb-6 -mx-4 px-4 py-3 bg-background/95 backdrop-blur-sm border-b ${className}`}>
-      <div className="container mx-auto">
-        <div className="flex flex-wrap items-center gap-4">
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">时间筛选：</span>
-          <RangePicker
+    <div className={`mb-6 ${className}`}>
+      <div className="flex flex-wrap items-center gap-4">
+        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">时间筛选：</span>
+        <RangePicker
             value={value}
             onChange={(dates) => onChange(dates)}
             placeholder={['开始日期', '结束日期']}
@@ -100,6 +99,5 @@ export default function DateRangeFilter({
           />
         </div>
       </div>
-    </div>
-  );
-}
+    );
+  }

@@ -1,7 +1,27 @@
 import { Link, useLocation } from 'react-router-dom';
-import { BarChartOutlined, MenuOutlined, CloseOutlined } from '@ant-design/icons';
+import { 
+  BarChartOutlined, 
+  MenuOutlined, 
+  CloseOutlined,
+  DashboardOutlined,
+  FileTextOutlined,
+  CloudUploadOutlined,
+  LineChartOutlined,
+  UserOutlined,
+  SettingOutlined
+} from '@ant-design/icons';
 import routes from '@/routes';
 import { useState } from 'react';
+
+// 菜单图标映射
+const menuIcons: Record<string, React.ReactNode> = {
+  '/': <DashboardOutlined />,
+  '/exam-list': <FileTextOutlined />,
+  '/upload': <CloudUploadOutlined />,
+  '/module-analysis': <LineChartOutlined />,
+  '/profile': <UserOutlined />,
+  '/settings': <SettingOutlined />,
+};
 
 /**
  * 侧边栏导航组件
@@ -35,24 +55,24 @@ export default function Sidebar() {
       <aside
         className={`
           fixed lg:static inset-y-0 left-0 z-40
-          w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700
+          w-32 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700
           transform transition-transform duration-300 ease-in-out
           ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
           flex flex-col
         `}
       >
         {/* Logo 和标题 */}
-        <div className="h-16 flex items-center gap-2 px-6 border-b border-gray-200 dark:border-gray-700">
-          <Link to="/" className="flex items-center gap-2" onClick={() => setIsOpen(false)}>
-            <BarChartOutlined className="text-2xl text-blue-600" />
-            <span className="text-lg font-bold text-blue-600">
-              考试成绩分析
+        <div className="h-20 flex flex-col items-center justify-center gap-1 px-2 border-b border-gray-200 dark:border-gray-700">
+          <Link to="/" className="flex flex-col items-center gap-1" onClick={() => setIsOpen(false)}>
+            <BarChartOutlined className="text-3xl text-blue-600" />
+            <span className="text-sm font-bold text-blue-600 text-center leading-tight">
+              复盘啦
             </span>
           </Link>
         </div>
 
         {/* 导航菜单 */}
-        <nav className="flex-1 overflow-y-auto py-4 px-3">
+        <nav className="flex-1 overflow-y-auto py-4 px-2">
           <div className="space-y-1">
             {navigation.map((item) => (
               <Link
@@ -60,7 +80,7 @@ export default function Sidebar() {
                 to={item.path}
                 onClick={() => setIsOpen(false)}
                 className={`
-                  flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium
+                  flex flex-col items-center gap-1 px-2 py-3 rounded-lg text-xs font-medium
                   transition-colors duration-200
                   ${
                     location.pathname === item.path
@@ -69,16 +89,17 @@ export default function Sidebar() {
                   }
                 `}
               >
-                {item.name}
+                <span className="text-lg">{menuIcons[item.path]}</span>
+                <span className="text-center leading-tight">{item.name}</span>
               </Link>
             ))}
           </div>
         </nav>
 
         {/* 底部信息 */}
-        <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-          <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
-            © 2025 考试成绩分析系统
+        <div className="p-2 border-t border-gray-200 dark:border-gray-700">
+          <div className="text-xs text-gray-500 dark:text-gray-400 text-center leading-tight">
+            © 2025
           </div>
         </div>
       </aside>
