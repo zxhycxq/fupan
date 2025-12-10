@@ -843,6 +843,15 @@ export default function Dashboard() {
     ],
   };
 
+  // 等级名称配置
+  const gradeLabels = [
+    { value: 0.1, label: '默默无闻' },    // 0-59分
+    { value: 0.65, label: '小有所成' },   // 60-69分
+    { value: 0.75, label: '初露锋芒' },   // 70-79分
+    { value: 0.85, label: '卓然不群' },   // 80-89分
+    { value: 0.95, label: '名满天下' }    // 90-100分
+  ];
+
   // 平均分仪表盘配置
   const averageScoreGaugeOption = {
     series: [
@@ -850,60 +859,72 @@ export default function Dashboard() {
         type: 'gauge',
         startAngle: 180,
         endAngle: 0,
+        center: ['50%', '75%'],
+        radius: '90%',
         min: 0,
         max: 100,
         splitNumber: 10,
-        center: ['50%', '75%'], // 调整图表位置，向下移动
-        radius: '120%', // 增加半径，让图表更大
         axisLine: {
           lineStyle: {
-            width: 20,
+            width: 6,
             color: [
-              [0.6, '#5DADE2'], // 0-60分：蓝色
-              [0.8, '#48C9B0'], // 60-80分：青色
-              [1, '#EC7063']    // 80-100分：红色
+              [0.6, '#FDDD60'],  // 0-60分：黄色
+              [0.7, '#58D9F9'],  // 60-70分：青色
+              [0.8, '#7CFFB2'],  // 70-80分：绿色
+              [1, '#C77CFF']     // 80-100分：紫色
             ]
           }
         },
         pointer: {
+          icon: 'path://M12.8,0.7l12,40.1H0.7L12.8,0.7z',
+          length: '12%',
+          width: 20,
+          offsetCenter: [0, '-60%'],
           itemStyle: {
             color: 'auto'
-          },
-          width: 5,
-          length: '70%'
+          }
         },
         axisTick: {
-          distance: -20,
-          length: 8,
+          length: 12,
           lineStyle: {
-            color: '#fff',
+            color: 'auto',
             width: 2
           }
         },
         splitLine: {
-          distance: -20,
-          length: 15,
+          length: 20,
           lineStyle: {
-            color: '#fff',
-            width: 3
+            color: 'auto',
+            width: 5
           }
         },
         axisLabel: {
-          color: '#1f2937', // 深灰色
-          distance: 25,
-          fontSize: isMobile ? 12 : 14,
-          fontWeight: 500
-        },
-        detail: {
-          valueAnimation: true,
-          formatter: '{value} 分',
-          color: '#1f2937', // 深灰色
-          fontSize: isMobile ? 24 : 32,
-          fontWeight: 600,
-          offsetCenter: [0, '50%'] // 减小分数和图表的间距
+          color: '#464646',
+          fontSize: isMobile ? 14 : 16,
+          distance: -60,
+          rotate: 'tangential',
+          formatter: function (value: number) {
+            // 根据分数显示对应的等级名称
+            if (value === 0) return '';
+            if (value === 10) return gradeLabels[0].label;
+            if (value === 65) return gradeLabels[1].label;
+            if (value === 75) return gradeLabels[2].label;
+            if (value === 85) return gradeLabels[3].label;
+            if (value === 95) return gradeLabels[4].label;
+            return '';
+          }
         },
         title: {
-          show: false // 隐藏标题，我们将在外部显示
+          show: false
+        },
+        detail: {
+          fontSize: isMobile ? 28 : 36,
+          offsetCenter: [0, '-20%'],
+          valueAnimation: true,
+          formatter: function (value: number) {
+            return Math.round(value) + '';
+          },
+          color: 'inherit'
         },
         data: [
           {
