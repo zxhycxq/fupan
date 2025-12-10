@@ -1654,59 +1654,7 @@ export default function Dashboard() {
 
   return (
     <div className="container mx-auto py-8 px-4">
-      {/* 倒计时和加油站 */}
-      {examConfig && countdown && (
-        <Row gutter={[16, 16]} className="mb-6">
-          {/* 考试倒计时 */}
-          <Col xs={24} md={12}>
-            <Card className="h-full bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-700">
-              <div className="flex items-center gap-4">
-                <div className="text-4xl">📅</div>
-                <div className="flex-1">
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-                    {examConfig.exam_type}倒计时
-                  </div>
-                  <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                    {countdown.days > 0 ? (
-                      <>
-                        <span className="text-3xl">{countdown.days}</span> 天 
-                        <span className="text-xl ml-2">{countdown.hours}</span> 时 
-                        <span className="text-xl ml-1">{countdown.minutes}</span> 分
-                      </>
-                    ) : countdown.hours > 0 || countdown.minutes > 0 ? (
-                      <>
-                        <span className="text-3xl">{countdown.hours}</span> 时 
-                        <span className="text-xl ml-2">{countdown.minutes}</span> 分
-                      </>
-                    ) : (
-                      <span className="text-xl">考试进行中</span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </Card>
-          </Col>
-
-          {/* 加油站 */}
-          <Col xs={24} md={12}>
-            <Card className="h-full bg-gradient-to-r from-orange-50 to-yellow-50 dark:from-orange-900/20 dark:to-yellow-800/20 border-orange-200 dark:border-orange-700">
-              <div className="flex items-center gap-4">
-                <div className="text-4xl">💪</div>
-                <div className="flex-1">
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-                    今日加油站
-                  </div>
-                  <div className="text-base font-medium text-gray-800 dark:text-gray-200 leading-relaxed">
-                    {todayPoem}
-                  </div>
-                </div>
-              </div>
-            </Card>
-          </Col>
-        </Row>
-      )}
-
-      {/* 日期范围筛选器 - 固定在顶部 */}
+      {/* 日期范围筛选器 */}
       <DateRangeFilter 
         value={dateRange} 
         onChange={setDateRange}
@@ -1714,7 +1662,109 @@ export default function Dashboard() {
         maxDate={dateRangeLimits.maxDate}
       />
 
-      {/* 平均分仪表盘和统计卡片 */}
+      {/* 数据指标卡片 - 一行6个 */}
+      <Row gutter={[16, 16]} className="mb-8">
+        <Col xs={12} sm={8} md={4}>
+          <StatCard
+            title="考试次数"
+            value={stats.totalExams}
+            suffix="次"
+            prefix={<TrophyOutlined className="stat-icon text-purple-600 dark:text-purple-300 text-lg" />}
+            description="累计考试次数"
+            gradient={generateGradientStyle(DASHBOARD_GRADIENTS[0])}
+            className="stat-card-primary"
+            isMobile={isMobile}
+          />
+        </Col>
+
+        <Col xs={12} sm={8} md={4}>
+          <StatCard
+            title="平均分"
+            value={stats.averageScore}
+            suffix="分"
+            prefix={<RiseOutlined className="stat-icon text-orange-600 dark:text-orange-300 text-lg" />}
+            description="所有考试平均分"
+            gradient={generateGradientStyle(DASHBOARD_GRADIENTS[1])}
+            className="stat-card-success"
+            isMobile={isMobile}
+          />
+        </Col>
+
+        <Col xs={12} sm={8} md={4}>
+          <StatCard
+            title="最高分"
+            value={stats.highestScore}
+            suffix="分"
+            prefix={<AimOutlined className="stat-icon text-blue-600 dark:text-blue-300 text-lg" />}
+            description="历史最高分数"
+            gradient={generateGradientStyle(DASHBOARD_GRADIENTS[2])}
+            className="stat-card-warning"
+            isMobile={isMobile}
+          />
+        </Col>
+
+        <Col xs={12} sm={8} md={4}>
+          <Card 
+            className="stat-card stat-card-info p-3"
+            style={{ 
+              background: generateGradientStyle(DASHBOARD_GRADIENTS[3]),
+              height: isMobile ? 'auto' : '100%',
+              minHeight: '120px'
+            }}
+          >
+            <div className="flex flex-col h-full">
+              {/* 标题和图标 */}
+              <div className="flex items-center gap-2 mb-3">
+                <ClockCircleOutlined className="stat-icon text-yellow-600 dark:text-yellow-300 text-lg flex-shrink-0" />
+                <div className="stat-title text-gray-800 dark:text-gray-200 text-sm font-semibold">累计做题时长</div>
+              </div>
+              
+              {/* 数值 */}
+              <div className="flex-1 flex items-center">
+                <div className="text-gray-900 dark:text-gray-100 font-semibold leading-tight">
+                  {stats.totalTime.days > 0 && (
+                    <div className="text-2xl">{stats.totalTime.days}天</div>
+                  )}
+                  <div className={stats.totalTime.days > 0 ? 'text-lg' : 'text-2xl'}>
+                    {stats.totalTime.hours}小时
+                  </div>
+                </div>
+              </div>
+              
+              {/* 描述 */}
+              <div className="text-xs opacity-80 mt-2 text-gray-700 dark:text-gray-300">所有考试花费时间</div>
+            </div>
+          </Card>
+        </Col>
+
+        <Col xs={12} sm={8} md={4}>
+          <StatCard
+            title="练习天数"
+            value={stats.practiceDays}
+            suffix="天"
+            prefix={<CalendarOutlined className="stat-icon text-green-600 dark:text-green-300 text-lg" />}
+            description="从第一次考试至今"
+            gradient={generateGradientStyle(DASHBOARD_GRADIENTS[4] || DASHBOARD_GRADIENTS[0])}
+            className="stat-card-primary"
+            isMobile={isMobile}
+          />
+        </Col>
+
+        <Col xs={12} sm={8} md={4}>
+          <StatCard
+            title="做题数量"
+            value={stats.totalQuestions}
+            suffix="题"
+            prefix={<FileTextOutlined className="stat-icon text-indigo-600 dark:text-indigo-300 text-lg" />}
+            description="累计答题总数"
+            gradient={generateGradientStyle(DASHBOARD_GRADIENTS[5] || DASHBOARD_GRADIENTS[1])}
+            className="stat-card-success"
+            isMobile={isMobile}
+          />
+        </Col>
+      </Row>
+
+      {/* 平均分仪表盘和倒计时/加油站 */}
       <Row gutter={[16, 16]} className="mb-8">
         {/* 左侧：平均分仪表盘 */}
         <Col xs={24} lg={12}>
@@ -1727,109 +1777,59 @@ export default function Dashboard() {
           </Card>
         </Col>
 
-        {/* 右侧：统计卡片（两行三列） */}
+        {/* 右侧：倒计时和加油站（上下排列） */}
         <Col xs={24} lg={12}>
           <Row gutter={[16, 16]} style={{ height: isMobile ? 'auto' : '380px' }}>
-            {/* 第一行 */}
-            <Col xs={24} sm={12} md={8}>
-              <StatCard
-                title="考试次数"
-                value={stats.totalExams}
-                suffix="次"
-                prefix={<TrophyOutlined className="stat-icon text-purple-600 dark:text-purple-300 text-lg" />}
-                description="累计考试次数"
-                gradient={generateGradientStyle(DASHBOARD_GRADIENTS[0])}
-                className="stat-card-primary"
-                isMobile={isMobile}
-              />
-            </Col>
-
-            <Col xs={24} sm={12} md={8}>
-              <StatCard
-                title="平均分"
-                value={stats.averageScore}
-                suffix="分"
-                prefix={<RiseOutlined className="stat-icon text-orange-600 dark:text-orange-300 text-lg" />}
-                description="所有考试平均分"
-                gradient={generateGradientStyle(DASHBOARD_GRADIENTS[1])}
-                className="stat-card-success"
-                isMobile={isMobile}
-              />
-            </Col>
-
-            <Col xs={24} sm={12} md={8}>
-              <StatCard
-                title="最高分"
-                value={stats.highestScore}
-                suffix="分"
-                prefix={<AimOutlined className="stat-icon text-blue-600 dark:text-blue-300 text-lg" />}
-                description="历史最高分数"
-                gradient={generateGradientStyle(DASHBOARD_GRADIENTS[2])}
-                className="stat-card-warning"
-                isMobile={isMobile}
-              />
-            </Col>
-
-            {/* 第二行 */}
-            <Col xs={24} sm={12} md={8}>
-              <Card 
-                className="stat-card stat-card-info p-3"
-                style={{ 
-                  background: generateGradientStyle(DASHBOARD_GRADIENTS[3]),
-                  height: isMobile ? 'auto' : '180px',
-                  minHeight: '120px'
-                }}
-              >
-                <div className="flex flex-col h-full">
-                  {/* 标题和图标 */}
-                  <div className="flex items-center gap-2 mb-3">
-                    <ClockCircleOutlined className="stat-icon text-yellow-600 dark:text-yellow-300 text-lg flex-shrink-0" />
-                    <div className="stat-title text-gray-800 dark:text-gray-200 text-sm font-semibold">累计做题时长</div>
-                  </div>
-                  
-                  {/* 数值 */}
-                  <div className="flex-1 flex items-center">
-                    <div className="text-gray-900 dark:text-gray-100 font-semibold leading-tight">
-                      {stats.totalTime.days > 0 && (
-                        <div className="text-3xl">{stats.totalTime.days}天</div>
-                      )}
-                      <div className={stats.totalTime.days > 0 ? 'text-xl' : 'text-3xl'}>
-                        {stats.totalTime.hours}小时
+            {examConfig && countdown && (
+              <>
+                {/* 考试倒计时 */}
+                <Col xs={24}>
+                  <Card className="h-full bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-700">
+                    <div className="flex items-center gap-4">
+                      <div className="text-4xl">📅</div>
+                      <div className="flex-1">
+                        <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                          {examConfig.exam_type}倒计时
+                        </div>
+                        <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                          {countdown.days > 0 ? (
+                            <>
+                              <span className="text-3xl">{countdown.days}</span> 天 
+                              <span className="text-xl ml-2">{countdown.hours}</span> 时 
+                              <span className="text-xl ml-1">{countdown.minutes}</span> 分
+                            </>
+                          ) : countdown.hours > 0 || countdown.minutes > 0 ? (
+                            <>
+                              <span className="text-3xl">{countdown.hours}</span> 时 
+                              <span className="text-xl ml-2">{countdown.minutes}</span> 分
+                            </>
+                          ) : (
+                            <span className="text-xl">考试进行中</span>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  
-                  {/* 描述 */}
-                  <div className="text-xs opacity-80 mt-2 text-gray-700 dark:text-gray-300">所有考试花费时间</div>
-                </div>
-              </Card>
-            </Col>
+                  </Card>
+                </Col>
 
-            <Col xs={24} sm={12} md={8}>
-              <StatCard
-                title="练习天数"
-                value={stats.practiceDays}
-                suffix="天"
-                prefix={<CalendarOutlined className="stat-icon text-green-600 dark:text-green-300 text-lg" />}
-                description="从第一次考试至今"
-                gradient={generateGradientStyle(DASHBOARD_GRADIENTS[4] || DASHBOARD_GRADIENTS[0])}
-                className="stat-card-primary"
-                isMobile={isMobile}
-              />
-            </Col>
-
-            <Col xs={24} sm={12} md={8}>
-              <StatCard
-                title="做题数量"
-                value={stats.totalQuestions}
-                suffix="题"
-                prefix={<FileTextOutlined className="stat-icon text-indigo-600 dark:text-indigo-300 text-lg" />}
-                description="累计答题总数"
-                gradient={generateGradientStyle(DASHBOARD_GRADIENTS[5] || DASHBOARD_GRADIENTS[1])}
-                className="stat-card-success"
-                isMobile={isMobile}
-              />
-            </Col>
+                {/* 加油站 */}
+                <Col xs={24}>
+                  <Card className="h-full bg-gradient-to-r from-orange-50 to-yellow-50 dark:from-orange-900/20 dark:to-yellow-800/20 border-orange-200 dark:border-orange-700">
+                    <div className="flex items-center gap-4">
+                      <div className="text-4xl">💪</div>
+                      <div className="flex-1">
+                        <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                          今日加油站
+                        </div>
+                        <div className="text-base font-medium text-gray-800 dark:text-gray-200 leading-relaxed">
+                          {todayPoem}
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                </Col>
+              </>
+            )}
           </Row>
         </Col>
       </Row>
