@@ -897,9 +897,9 @@ export default function Dashboard() {
         },
         axisLabel: {
           color: '#464646',
-          fontSize: isMobile ? 14 : 16,
+          fontSize: isMobile ? 10 : 12,  // 减小字体大小
           distance: -60,
-          rotate: 'tangential',
+          rotate: 'tangential',  // 保持切线方向旋转
           formatter: function (value: number) {
             // 根据分数显示对应的等级名称
             const label = gradeLabels.find(g => g.value === value);
@@ -1798,56 +1798,54 @@ export default function Dashboard() {
         {/* 右侧：倒计时和加油站（上下排列） */}
         <Col xs={24} lg={12}>
           <Row gutter={[16, 16]} style={{ height: isMobile ? 'auto' : '243px' }}>
+            {/* 考试倒计时 - 只在有配置时显示 */}
             {examConfig && countdown && (
-              <>
-                {/* 考试倒计时 */}
-                <Col xs={24}>
-                  <Card className="h-full bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-700">
-                    <div className="flex items-center gap-4">
-                      <div className="text-4xl">📅</div>
-                      <div className="flex-1">
-                        <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-                          {examConfig.exam_type}倒计时
-                        </div>
-                        <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                          {countdown.days > 0 ? (
-                            <>
-                              <span className="text-3xl">{countdown.days}</span> 天 
-                              <span className="text-xl ml-2">{countdown.hours}</span> 时 
-                              <span className="text-xl ml-1">{countdown.minutes}</span> 分
-                            </>
-                          ) : countdown.hours > 0 || countdown.minutes > 0 ? (
-                            <>
-                              <span className="text-3xl">{countdown.hours}</span> 时 
-                              <span className="text-xl ml-2">{countdown.minutes}</span> 分
-                            </>
-                          ) : (
-                            <span className="text-xl">考试进行中</span>
-                          )}
-                        </div>
+              <Col xs={24}>
+                <Card className="h-full bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-700">
+                  <div className="flex items-center gap-4">
+                    <div className="text-4xl">📅</div>
+                    <div className="flex-1">
+                      <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                        {examConfig.exam_type}倒计时
+                      </div>
+                      <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                        {countdown.days > 0 ? (
+                          <>
+                            <span className="text-3xl">{countdown.days}</span> 天 
+                            <span className="text-xl ml-2">{countdown.hours}</span> 时 
+                            <span className="text-xl ml-1">{countdown.minutes}</span> 分
+                          </>
+                        ) : countdown.hours > 0 || countdown.minutes > 0 ? (
+                          <>
+                            <span className="text-3xl">{countdown.hours}</span> 时 
+                            <span className="text-xl ml-2">{countdown.minutes}</span> 分
+                          </>
+                        ) : (
+                          <span className="text-xl">考试进行中</span>
+                        )}
                       </div>
                     </div>
-                  </Card>
-                </Col>
-
-                {/* 加油站 */}
-                <Col xs={24}>
-                  <Card className="h-full bg-gradient-to-r from-orange-50 to-yellow-50 dark:from-orange-900/20 dark:to-yellow-800/20 border-orange-200 dark:border-orange-700">
-                    <div className="flex items-center gap-4">
-                      <div className="text-4xl">💪</div>
-                      <div className="flex-1">
-                        <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-                          今日加油站
-                        </div>
-                        <div className="text-base font-medium text-gray-800 dark:text-gray-200 leading-relaxed">
-                          {todayPoem}
-                        </div>
-                      </div>
-                    </div>
-                  </Card>
-                </Col>
-              </>
+                  </div>
+                </Card>
+              </Col>
             )}
+
+            {/* 加油站 - 始终显示 */}
+            <Col xs={24}>
+              <Card className="h-full bg-gradient-to-r from-orange-50 to-yellow-50 dark:from-orange-900/20 dark:to-yellow-800/20 border-orange-200 dark:border-orange-700">
+                <div className="flex items-center gap-4">
+                  <div className="text-4xl">💪</div>
+                  <div className="flex-1">
+                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                      今日加油站
+                    </div>
+                    <div className="text-base font-medium text-gray-800 dark:text-gray-200 leading-relaxed">
+                      {todayPoem}
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            </Col>
           </Row>
         </Col>
       </Row>

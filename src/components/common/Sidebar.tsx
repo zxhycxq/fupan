@@ -46,7 +46,7 @@ export default function Sidebar() {
       {/* 遮罩层（移动端） */}
       {isOpen && (
         <div
-          className="lg:hidden fixed inset-0 bg-black/50 z-[50]"
+          className="lg:hidden fixed inset-0 bg-black/50 z-[100]"
           onClick={() => setIsOpen(false)}
         />
       )}
@@ -54,7 +54,7 @@ export default function Sidebar() {
       {/* 侧边栏 */}
       <aside
         className={`
-          fixed lg:static inset-y-0 left-0 z-[55]
+          fixed lg:static inset-y-0 left-0 z-[110]
           w-32 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700
           transform transition-transform duration-300 ease-in-out
           ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
@@ -66,7 +66,7 @@ export default function Sidebar() {
           <Link to="/" className="flex flex-col items-center gap-1" onClick={() => setIsOpen(false)}>
             <BarChartOutlined className="text-3xl text-blue-600" />
             <span className="text-sm font-bold text-blue-600 text-center leading-tight">
-              复盘啦
+              考公上岸记
             </span>
           </Link>
         </div>

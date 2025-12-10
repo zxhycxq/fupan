@@ -105,10 +105,9 @@ export default function Settings() {
 
       await batchUpsertUserSettings(settingsArray);
 
-      // 保存考试配置
-      if (examType && examDate) {
-        await saveExamConfig(examType, examDate, gradeLabelTheme);
-      }
+      // 保存考试配置（包括等级称谓主题）
+      // 即使没有设置考试类型和日期，也要保存等级称谓主题
+      await saveExamConfig(examType || '', examDate || '', gradeLabelTheme);
 
       message.success('设置已保存');
     } catch (error) {
