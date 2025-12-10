@@ -900,6 +900,7 @@ export default function Dashboard() {
           color: '#464646',
           fontSize: isMobile ? 13 : 16,  // 调整字体大小
           distance: -60,  // 负值让文字显示在外围更远的位置
+          rotate: 'tangential',  // 切向旋转，让文字沿着圆弧方向排列
           formatter: function (value: number) {
             // 显示所有等级称谓，根据刻度值匹配对应的等级
             // 刻度值：40, 50, 60, 70, 80, 90
