@@ -853,6 +853,8 @@ export default function Dashboard() {
         min: 0,
         max: 100,
         splitNumber: 10,
+        center: ['50%', '75%'], // 调整图表位置，向下移动
+        radius: '120%', // 增加半径，让图表更大
         axisLine: {
           lineStyle: {
             width: 20,
@@ -898,18 +900,14 @@ export default function Dashboard() {
           color: '#1f2937', // 深灰色
           fontSize: isMobile ? 24 : 32,
           fontWeight: 600,
-          offsetCenter: [0, '70%']
+          offsetCenter: [0, '50%'] // 减小分数和图表的间距
         },
         title: {
-          offsetCenter: [0, '90%'],
-          fontSize: isMobile ? 14 : 16,
-          color: '#4b5563', // 中灰色
-          fontWeight: 500
+          show: false // 隐藏标题，我们将在外部显示
         },
         data: [
           {
-            value: stats.averageScore,
-            name: '平均分'
+            value: stats.averageScore
           }
         ]
       }
@@ -1769,11 +1767,18 @@ export default function Dashboard() {
         {/* 左侧：平均分仪表盘 */}
         <Col xs={24} lg={12}>
           <Card className="p-2" style={{ height: isMobile ? 'auto' : '243px' }}>
-            <ReactECharts
-              option={averageScoreGaugeOption}
-              style={{ height: isMobile ? '200px' : '218px' }}
-              opts={{ renderer: 'svg' }}
-            />
+            <div className="relative h-full">
+              {/* 标题 */}
+              <div className="absolute top-0 left-0 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                平均分
+              </div>
+              {/* 图表 */}
+              <ReactECharts
+                option={averageScoreGaugeOption}
+                style={{ height: isMobile ? '200px' : '218px' }}
+                opts={{ renderer: 'svg' }}
+              />
+            </div>
           </Card>
         </Col>
 
