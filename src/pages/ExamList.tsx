@@ -935,13 +935,13 @@ export default function ExamList() {
                 </Form.Item>
               </Col>
               
-              <Col xs={24} sm={12} md={16} lg={18}>
+              <Col xs={24} sm={12} md={8} lg={9}>
                 <Form.Item 
                   label="考试日期" 
                   name="dateRange" 
                   className="mb-2"
-                  labelCol={{ xs: 24, sm: 4, md: 3 }}
-                  wrapperCol={{ xs: 24, sm: 20, md: 21 }}
+                  labelCol={{ xs: 24, sm: 8 }}
+                  wrapperCol={{ xs: 24, sm: 16 }}
                 >
                   <DateRangeFilter 
                     value={dateRange} 
@@ -949,12 +949,14 @@ export default function ExamList() {
                       setDateRange(dates);
                       // 不需要立即触发筛选，等用户点击搜索按钮
                     }}
+                    showLabel={false}
+                    className="mb-0"
                   />
                 </Form.Item>
               </Col>
               
-              <Col xs={24} sm={24} md={8} lg={6} className="flex items-end justify-end">
-                <Space size="small">
+              <Col xs={24} sm={24} md={8} lg={3} className="flex items-end justify-end">
+                <Space size="small" className="mb-2">
                   <Button 
                     type="primary" 
                     icon={<SearchOutlined />}

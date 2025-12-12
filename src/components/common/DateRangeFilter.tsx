@@ -10,6 +10,7 @@ interface DateRangeFilterProps {
   className?: string;
   minDate?: Dayjs | null; // 最早可选日期
   maxDate?: Dayjs | null; // 最晚可选日期
+  showLabel?: boolean; // 是否显示"时间筛选："标签
 }
 
 /**
@@ -22,6 +23,7 @@ export default function DateRangeFilter({
   className = '',
   minDate = null,
   maxDate = null,
+  showLabel = true,
 }: DateRangeFilterProps) {
   const [isMobile, setIsMobile] = useState(false);
 
@@ -55,14 +57,14 @@ export default function DateRangeFilter({
   return (
     <div className={`mb-6 ${className}`}>
       <div className="flex flex-wrap items-center gap-4">
-        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">时间筛选：</span>
+        {showLabel && <span className="text-sm font-medium text-gray-700 dark:text-gray-300">时间筛选：</span>}
         <RangePicker
             value={value}
             onChange={(dates) => onChange(dates)}
             placeholder={['开始日期', '结束日期']}
             format="YYYY-MM-DD"
             allowClear
-            className="flex-1 max-w-md"
+            className={showLabel ? "flex-1 max-w-md" : "w-full"}
             disabledDate={disabledDate}
             size="middle"
             getPopupContainer={(trigger) => trigger.parentElement || document.body}
