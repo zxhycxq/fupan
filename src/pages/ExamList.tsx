@@ -841,8 +841,8 @@ export default function ExamList() {
             className="filter-form"
           >
             <Row gutter={[16, 8]}>
-              {/* 第一行：5个筛选项 */}
-              <Col xs={24} sm={12} md={8} lg={6}>
+              {/* 第一行：4个筛选项 */}
+              <Col xs={24} sm={12} md={6} lg={6}>
                 <Form.Item 
                   label="考试名称" 
                   name="examName" 
@@ -854,7 +854,7 @@ export default function ExamList() {
                 </Form.Item>
               </Col>
               
-              <Col xs={24} sm={12} md={8} lg={6}>
+              <Col xs={24} sm={12} md={6} lg={6}>
                 <Form.Item 
                   label="考试类型" 
                   name="examType" 
@@ -872,7 +872,7 @@ export default function ExamList() {
                 </Form.Item>
               </Col>
               
-              <Col xs={24} sm={12} md={8} lg={4}>
+              <Col xs={24} sm={12} md={6} lg={6}>
                 <Form.Item 
                   label="总分区间" 
                   name="scoreRange" 
@@ -895,7 +895,7 @@ export default function ExamList() {
                 </Form.Item>
               </Col>
               
-              <Col xs={24} sm={12} md={8} lg={4}>
+              <Col xs={24} sm={12} md={6} lg={6}>
                 <Form.Item 
                   label="击败率区间" 
                   name="passRateRange" 
@@ -918,7 +918,8 @@ export default function ExamList() {
                 </Form.Item>
               </Col>
               
-              <Col xs={24} sm={12} md={8} lg={4}>
+              {/* 第二行：星级、考试日期和按钮 */}
+              <Col xs={24} sm={12} md={6} lg={4}>
                 <Form.Item 
                   label="星级" 
                   name="rating" 
@@ -936,14 +937,13 @@ export default function ExamList() {
                 </Form.Item>
               </Col>
               
-              {/* 第二行：考试日期和按钮 */}
-              <Col xs={24} sm={12} md={12} lg={18}>
+              <Col xs={24} sm={12} md={12} lg={14}>
                 <Form.Item 
                   label="考试日期" 
                   name="dateRange" 
                   className="mb-2"
-                  labelCol={{ xs: 24, sm: 4, md: 3, lg: 2 }}
-                  wrapperCol={{ xs: 24, sm: 20, md: 21, lg: 22 }}
+                  labelCol={{ xs: 24, sm: 8, md: 4, lg: 3 }}
+                  wrapperCol={{ xs: 24, sm: 16, md: 20, lg: 21 }}
                 >
                   <DateRangeFilter 
                     value={dateRange} 
@@ -957,7 +957,7 @@ export default function ExamList() {
                 </Form.Item>
               </Col>
               
-              <Col xs={24} sm={12} md={12} lg={6} className="flex items-end justify-end">
+              <Col xs={24} sm={24} md={6} lg={6} className="flex items-end justify-end">
                 <Space size="small" className="mb-2">
                   <Button 
                     type="primary" 
