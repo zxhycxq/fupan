@@ -532,7 +532,7 @@ export default function ExamList() {
       title: '考试名称',
       dataIndex: 'exam_name',
       key: 'exam_name',
-      width: 200,
+      width: 180,
       ellipsis: {
         showTitle: false,
       },
@@ -549,7 +549,7 @@ export default function ExamList() {
                 style={{ color: '#1890ff' }}
                 onClick={(e) => e.stopPropagation()}
               >
-                <span className="truncate max-w-[160px]">{value}</span>
+                <span className="truncate max-w-[140px]">{value}</span>
                 <LinkOutlined style={{ fontSize: '12px' }} />
               </a>
             </Tooltip>
@@ -567,7 +567,7 @@ export default function ExamList() {
       title: '考试类型',
       dataIndex: 'exam_type',
       key: 'exam_type',
-      width: 120,
+      width: 110,
       render: (value: string | null) => {
         const type = value || '国考模考';
         const color = getExamTypeColor(value);
@@ -684,7 +684,7 @@ export default function ExamList() {
       title: '上传时间',
       dataIndex: 'created_at',
       key: 'created_at',
-      width: 180,
+      width: 160,
       render: (value: string) => formatDate(value),
     },
     {
@@ -926,6 +926,8 @@ export default function ExamList() {
                     format="YYYY-MM-DD"
                     size="middle"
                     getPopupContainer={(trigger) => trigger.parentElement || document.body}
+                    placement={isMobile ? 'bottomLeft' : 'bottomLeft'}
+                    popupClassName="date-range-picker-popup"
                     presets={[
                       { label: '最近一个月', value: [dayjs().subtract(1, 'month'), dayjs()] },
                       { label: '最近三个月', value: [dayjs().subtract(3, 'month'), dayjs()] },

@@ -751,5 +751,30 @@ All colors MUST be HSL.
     min-width: 24px !important;
     padding: 0 2px !important;
   }
+
+  /* presets快捷选项优化 - 移动端 */
+  .date-range-picker-popup .ant-picker-presets {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .date-range-picker-popup .ant-picker-presets ul {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    padding: 8px !important;
+  }
+
+  .date-range-picker-popup .ant-picker-presets li {
+    width: 100% !important;
+    flex: none !important;
+  }
+
+  .date-range-picker-popup .ant-picker-presets li .ant-tag {
+    width: 100% !important;
+    text-align: center !important;
+    padding: 6px 12px !important;
+    margin: 0 !important;
+  }
 }
 
