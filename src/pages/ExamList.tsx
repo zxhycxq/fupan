@@ -841,6 +841,7 @@ export default function ExamList() {
             className="filter-form"
           >
             <Row gutter={[16, 8]}>
+              {/* 第一行：5个筛选项 */}
               <Col xs={24} sm={12} md={8} lg={6}>
                 <Form.Item 
                   label="考试名称" 
@@ -871,7 +872,7 @@ export default function ExamList() {
                 </Form.Item>
               </Col>
               
-              <Col xs={24} sm={12} md={8} lg={6}>
+              <Col xs={24} sm={12} md={8} lg={4}>
                 <Form.Item 
                   label="总分区间" 
                   name="scoreRange" 
@@ -894,7 +895,7 @@ export default function ExamList() {
                 </Form.Item>
               </Col>
               
-              <Col xs={24} sm={12} md={8} lg={6}>
+              <Col xs={24} sm={12} md={8} lg={4}>
                 <Form.Item 
                   label="击败率区间" 
                   name="passRateRange" 
@@ -917,7 +918,7 @@ export default function ExamList() {
                 </Form.Item>
               </Col>
               
-              <Col xs={24} sm={12} md={8} lg={6}>
+              <Col xs={24} sm={12} md={8} lg={4}>
                 <Form.Item 
                   label="星级" 
                   name="rating" 
@@ -935,13 +936,14 @@ export default function ExamList() {
                 </Form.Item>
               </Col>
               
-              <Col xs={24} sm={12} md={8} lg={9}>
+              {/* 第二行：考试日期和按钮 */}
+              <Col xs={24} sm={12} md={12} lg={18}>
                 <Form.Item 
                   label="考试日期" 
                   name="dateRange" 
                   className="mb-2"
-                  labelCol={{ xs: 24, sm: 8 }}
-                  wrapperCol={{ xs: 24, sm: 16 }}
+                  labelCol={{ xs: 24, sm: 4, md: 3, lg: 2 }}
+                  wrapperCol={{ xs: 24, sm: 20, md: 21, lg: 22 }}
                 >
                   <DateRangeFilter 
                     value={dateRange} 
@@ -955,7 +957,7 @@ export default function ExamList() {
                 </Form.Item>
               </Col>
               
-              <Col xs={24} sm={24} md={8} lg={3} className="flex items-end justify-end">
+              <Col xs={24} sm={12} md={12} lg={6} className="flex items-end justify-end">
                 <Space size="small" className="mb-2">
                   <Button 
                     type="primary" 
