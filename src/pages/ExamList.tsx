@@ -7,7 +7,7 @@ const { RangePicker } = DatePicker;
 import type { ColumnsType } from 'antd/es/table';
 import { getAllExamRecords, deleteExamRecord, updateExamRecord, updateExamRating, updateExamNotes } from '@/db/api';
 import type { ExamRecord } from '@/types';
-import { EyeOutlined, DeleteOutlined, PlusOutlined, EditOutlined, InfoCircleOutlined, MenuOutlined, RiseOutlined, WarningOutlined, ClockCircleOutlined, LinkOutlined, DownloadOutlined, SearchOutlined, ReloadOutlined } from '@ant-design/icons';
+import { EyeOutlined, DeleteOutlined, PlusOutlined, EditOutlined, InfoCircleOutlined, MenuOutlined, RiseOutlined, WarningOutlined, ClockCircleOutlined, LinkOutlined, DownloadOutlined, SearchOutlined, ReloadOutlined, FullscreenOutlined } from '@ant-design/icons';
 import { SortableContainer, SortableElement, SortableHandle } from 'react-sortable-hoc';
 import { arrayMoveImmutable } from 'array-move';
 import dayjs from 'dayjs';
@@ -57,6 +57,18 @@ export default function ExamList() {
   const editorRef = useRef<WangEditorRef>(null);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const [isMobile, setIsMobile] = useState(false);
+  const [showLandscapeModal, setShowLandscapeModal] = useState(false);
+
+  // 检测移动端
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // 从URL参数读取页码
   useEffect(() => {
@@ -760,7 +772,19 @@ export default function ExamList() {
       <Card
         title={
           <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
-            <h2 className="text-lg xl:text-xl font-bold m-0">考试记录列表</h2>
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg xl:text-xl font-bold m-0">考试记录列表</h2>
+              {isMobile && filteredRecords.length > 0 && (
+                <Tooltip title="横屏查看">
+                  <Button
+                    type="text"
+                    icon={<FullscreenOutlined />}
+                    onClick={() => setShowLandscapeModal(true)}
+                    className="flex items-center"
+                  />
+                </Tooltip>
+              )}
+            </div>
             <div className="flex flex-wrap items-center gap-2">
               {hasUnsavedSort && (
                 <>
@@ -1136,6 +1160,56 @@ export default function ExamList() {
           </Form.Item>
         </Form>
       </Drawer>
+
+      {/* 横屏查看弹窗 */}
+      <Modal
+        open={showLandscapeModal}
+        onCancel={() => setShowLandscapeModal(false)}
+        footer={null}
+        width="100vw"
+        style={{ 
+          top: 0,
+          maxWidth: '100vw',
+          margin: 0,
+          padding: 0,
+        }}
+        bodyStyle={{
+          height: '100vh',
+          padding: 0,
+          overflow: 'hidden',
+        }}
+        className="landscape-modal"
+      >
+        <div 
+          className="w-full h-full flex items-center justify-center bg-white dark:bg-gray-900"
+          style={{
+            transform: 'rotate(90deg)',
+            transformOrigin: 'center center',
+            width: '100vh',
+            height: '100vw',
+            position: 'absolute',
+            left: '50%',
+            top: '50%',
+            marginLeft: '-50vh',
+            marginTop: '-50vw',
+          }}
+        >
+          <div className="w-full h-full p-4 overflow-auto">
+            <div className="text-xl font-bold mb-4 text-center">考试记录列表</div>
+            <div className="h-[calc(100%-60px)] overflow-auto">
+              <Table
+                columns={columns}
+                dataSource={filteredRecords}
+                rowKey="id"
+                pagination={false}
+                size="small"
+                bordered
+                scroll={{ x: 'max-content' }}
+              />
+            </div>
+          </div>
+        </div>
+      </Modal>
 
       {/* 备注弹窗 */}
       <Modal

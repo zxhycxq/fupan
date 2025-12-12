@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
-import { Card, Row, Col, Skeleton } from 'antd';
+import { Card, Row, Col, Skeleton, Button, Tooltip, Modal } from 'antd';
+import { FullscreenOutlined } from '@ant-design/icons';
 import ReactECharts from 'echarts-for-react';
 import { supabase } from '@/db/supabase';
 import type { ExamRecord } from '@/types';
@@ -88,6 +89,26 @@ export default function ModuleAnalysis() {
   const [examRecords, setExamRecords] = useState<ExamRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [dateRange, setDateRange] = useState<[Dayjs, Dayjs] | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+  const [showLandscapeModal, setShowLandscapeModal] = useState<{
+    visible: boolean;
+    title: string;
+    moduleName: string;
+  }>({
+    visible: false,
+    title: '',
+    moduleName: '',
+  });
+
+  // 检测移动端
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     loadData();
@@ -311,7 +332,7 @@ export default function ModuleAnalysis() {
   };
 
   // 渲染模块图表
-  const ModuleChart = ({ config, filteredRecords }: { config: typeof MODULE_CONFIG[0]; filteredRecords: ExamRecord[] }) => {
+  const ModuleChart = ({ config, filteredRecords, landscapeMode = false }: { config: typeof MODULE_CONFIG[0]; filteredRecords: ExamRecord[]; landscapeMode?: boolean }) => {
     const [chartData, setChartData] = useState<{
       examNumbers: number[];
       examNames: string[];
@@ -352,7 +373,7 @@ export default function ModuleAnalysis() {
           chartData.examDates || [],
           chartData.series
         )}
-        style={{ height: '400px' }}
+        style={{ height: landscapeMode ? 'calc(100% - 60px)' : '400px' }}
       />
     );
   };
@@ -379,12 +400,79 @@ export default function ModuleAnalysis() {
       <Row gutter={[16, 16]}>
         {MODULE_CONFIG.map((config) => (
           <Col xs={24} key={config.name}>
-            <Card>
+            <Card
+              title={
+                <div className="flex items-center justify-between">
+                  <span>{config.name}</span>
+                  {isMobile && (
+                    <Tooltip title="横屏查看">
+                      <Button
+                        type="text"
+                        icon={<FullscreenOutlined />}
+                        onClick={() => setShowLandscapeModal({
+                          visible: true,
+                          title: config.name,
+                          moduleName: config.name,
+                        })}
+                        className="flex items-center"
+                      />
+                    </Tooltip>
+                  )}
+                </div>
+              }
+            >
               <ModuleChart config={config} filteredRecords={filteredExamRecords} />
             </Card>
           </Col>
         ))}
       </Row>
+
+      {/* 横屏查看弹窗 */}
+      <Modal
+        open={showLandscapeModal.visible}
+        onCancel={() => setShowLandscapeModal({ visible: false, title: '', moduleName: '' })}
+        footer={null}
+        width="100vw"
+        style={{ 
+          top: 0,
+          maxWidth: '100vw',
+          margin: 0,
+          padding: 0,
+        }}
+        bodyStyle={{
+          height: '100vh',
+          padding: 0,
+          overflow: 'hidden',
+        }}
+        className="landscape-modal"
+      >
+        <div 
+          className="w-full h-full flex items-center justify-center bg-white dark:bg-gray-900"
+          style={{
+            transform: 'rotate(90deg)',
+            transformOrigin: 'center center',
+            width: '100vh',
+            height: '100vw',
+            position: 'absolute',
+            left: '50%',
+            top: '50%',
+            marginLeft: '-50vh',
+            marginTop: '-50vw',
+          }}
+        >
+          <div className="w-full h-full p-4">
+            <div className="text-xl font-bold mb-4 text-center">{showLandscapeModal.title}</div>
+            {MODULE_CONFIG.filter(c => c.name === showLandscapeModal.moduleName).map(config => (
+              <ModuleChart 
+                key={config.name}
+                config={config} 
+                filteredRecords={filteredExamRecords}
+                landscapeMode={true}
+              />
+            ))}
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
