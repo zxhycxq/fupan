@@ -940,8 +940,8 @@ export default function ExamList() {
                   label="考试日期" 
                   name="dateRange" 
                   className="mb-2"
-                  labelCol={{ xs: 24, sm: 4, md: 3, lg: 4 }}
-                  wrapperCol={{ xs: 24, sm: 20, md: 21, lg: 20 }}
+                  labelCol={{ xs: 24, sm: 8, md: 4, lg: 4 }}
+                  wrapperCol={{ xs: 24, sm: 16, md: 20, lg: 20 }}
                 >
                   <DateRangeFilter 
                     value={dateRange} 
@@ -955,7 +955,7 @@ export default function ExamList() {
                 </Form.Item>
               </Col>
               
-              <Col xs={24} sm={24} md={12} lg={9} className="flex items-end justify-end">
+              <Col xs={24} sm={24} md={12} lg={9} className="flex items-start justify-end">
                 <Space size="small" className="mb-2">
                   <Button 
                     type="primary" 
