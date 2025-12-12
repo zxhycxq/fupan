@@ -1,10 +1,10 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ReactECharts from 'echarts-for-react';
-import { Table, Card, Skeleton, Row, Col, Button, message, Calendar, Badge, Tooltip, Select } from 'antd';
+import { Table, Card, Skeleton, Row, Col, Button, message, Calendar, Badge, Tooltip, Select, Modal } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import type { Dayjs } from 'dayjs';
-import { RiseOutlined, ClockCircleOutlined, AimOutlined, TrophyOutlined, DownloadOutlined, CalendarOutlined, FileTextOutlined } from '@ant-design/icons';
+import { RiseOutlined, ClockCircleOutlined, AimOutlined, TrophyOutlined, DownloadOutlined, CalendarOutlined, FileTextOutlined, FullscreenOutlined } from '@ant-design/icons';
 import { getAllExamRecords, getModuleAverageScores, getModuleTrendData, getModuleTimeTrendData, getModuleDetailedStats, getUserSettings, getExamConfig } from '@/db/api';
 import type { ExamRecord, UserSetting } from '@/types';
 import * as XLSX from 'xlsx';
@@ -77,6 +77,7 @@ export default function Dashboard() {
   const [todayPoem, setTodayPoem] = useState<string>('');
   const [calendarValue, setCalendarValue] = useState<Dayjs>(dayjs()); // 日历当前显示的月份
   const [dateRange, setDateRange] = useState<[Dayjs | null, Dayjs | null] | null>(null); // 日期范围筛选
+  const [showLandscapeModal, setShowLandscapeModal] = useState(false); // 横屏弹窗显示状态
 
   // 安全地获取窗口宽度
   const getWindowWidth = () => {
@@ -1895,7 +1896,21 @@ export default function Dashboard() {
         <Col xs={24}>
           <Card 
             title="总分趋势"
-            extra={<span className="text-sm text-gray-500">查看历次考试总分变化</span>}
+            extra={
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-500">查看历次考试总分变化</span>
+                {isMobile && (
+                  <Tooltip title="横屏查看">
+                    <Button
+                      type="text"
+                      icon={<FullscreenOutlined />}
+                      onClick={() => setShowLandscapeModal(true)}
+                      className="flex items-center"
+                    />
+                  </Tooltip>
+                )}
+              </div>
+            }
           >
             <ReactECharts 
               option={scoreTrendOption} 
@@ -2112,6 +2127,49 @@ export default function Dashboard() {
           </div> */}
         </Card>
       </div>
+
+      {/* 横屏查看弹窗 */}
+      <Modal
+        open={showLandscapeModal}
+        onCancel={() => setShowLandscapeModal(false)}
+        footer={null}
+        width="100vw"
+        style={{ 
+          top: 0,
+          maxWidth: '100vw',
+          margin: 0,
+          padding: 0,
+        }}
+        bodyStyle={{
+          height: '100vh',
+          padding: 0,
+          overflow: 'hidden',
+        }}
+        className="landscape-modal"
+      >
+        <div 
+          className="w-full h-full flex items-center justify-center bg-white dark:bg-gray-900"
+          style={{
+            transform: 'rotate(90deg)',
+            transformOrigin: 'center center',
+            width: '100vh',
+            height: '100vw',
+            position: 'absolute',
+            left: '50%',
+            top: '50%',
+            marginLeft: '-50vh',
+            marginTop: '-50vw',
+          }}
+        >
+          <div className="w-full h-full p-4">
+            <div className="text-xl font-bold mb-4 text-center">总分趋势</div>
+            <ReactECharts 
+              option={scoreTrendOption} 
+              style={{ height: 'calc(100% - 60px)', width: '100%' }} 
+            />
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

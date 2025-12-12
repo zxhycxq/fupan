@@ -671,5 +671,24 @@ All colors MUST be HSL.
   .ant-picker-range-separator {
     padding: 0 4px !important;
   }
+
+  /* 横屏查看弹窗样式 */
+  .landscape-modal .ant-modal-content {
+    height: 100vh;
+    border-radius: 0;
+  }
+
+  .landscape-modal .ant-modal-close {
+    top: 10px;
+    right: 10px;
+    z-index: 1000;
+  }
+
+  .landscape-modal .ant-modal-close-x {
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    font-size: 20px;
+  }
 }
 
