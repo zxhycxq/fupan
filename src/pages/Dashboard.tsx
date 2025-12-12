@@ -77,7 +77,16 @@ export default function Dashboard() {
   const [todayPoem, setTodayPoem] = useState<string>('');
   const [calendarValue, setCalendarValue] = useState<Dayjs>(dayjs()); // 日历当前显示的月份
   const [dateRange, setDateRange] = useState<[Dayjs | null, Dayjs | null] | null>(null); // 日期范围筛选
-  const [showLandscapeModal, setShowLandscapeModal] = useState(false); // 横屏弹窗显示状态
+  const [showLandscapeModal, setShowLandscapeModal] = useState<{
+    visible: boolean;
+    title: string;
+    type: 'chart' | 'table';
+    content?: 'scoreTrend' | 'moduleTrend' | 'moduleTimeTrend' | 'detailTable';
+  }>({
+    visible: false,
+    title: '',
+    type: 'chart',
+  }); // 横屏弹窗显示状态
 
   // 安全地获取窗口宽度
   const getWindowWidth = () => {
@@ -1904,7 +1913,12 @@ export default function Dashboard() {
                     <Button
                       type="text"
                       icon={<FullscreenOutlined />}
-                      onClick={() => setShowLandscapeModal(true)}
+                      onClick={() => setShowLandscapeModal({
+                        visible: true,
+                        title: '总分趋势',
+                        type: 'chart',
+                        content: 'scoreTrend',
+                      })}
                       className="flex items-center"
                     />
                   </Tooltip>
@@ -1923,7 +1937,26 @@ export default function Dashboard() {
         <Col xs={24}>
           <Card
             title="各模块正确率趋势"
-            extra={<span className="text-sm text-gray-500">查看各模块正确率变化</span>}
+            extra={
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-500">查看各模块正确率变化</span>
+                {isMobile && (
+                  <Tooltip title="横屏查看">
+                    <Button
+                      type="text"
+                      icon={<FullscreenOutlined />}
+                      onClick={() => setShowLandscapeModal({
+                        visible: true,
+                        title: '各模块正确率趋势',
+                        type: 'chart',
+                        content: 'moduleTrend',
+                      })}
+                      className="flex items-center"
+                    />
+                  </Tooltip>
+                )}
+              </div>
+            }
           >
             <ReactECharts 
               option={moduleTrendOption} 
@@ -1936,7 +1969,26 @@ export default function Dashboard() {
         <Col xs={24}>
           <Card
             title="各模块用时趋势"
-            extra={<span className="text-sm text-gray-500">查看各模块用时变化</span>}
+            extra={
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-500">查看各模块用时变化</span>
+                {isMobile && (
+                  <Tooltip title="横屏查看">
+                    <Button
+                      type="text"
+                      icon={<FullscreenOutlined />}
+                      onClick={() => setShowLandscapeModal({
+                        visible: true,
+                        title: '各模块用时趋势',
+                        type: 'chart',
+                        content: 'moduleTimeTrend',
+                      })}
+                      className="flex items-center"
+                    />
+                  </Tooltip>
+                )}
+              </div>
+            }
           >
             <ReactECharts 
               option={moduleTimeTrendOption} 
@@ -1977,6 +2029,20 @@ export default function Dashboard() {
           extra={
             <div className="flex items-center gap-4">
               <span className="text-sm text-gray-500">查看所有考试的详细模块数据</span>
+              {isMobile && (
+                <Tooltip title="横屏查看">
+                  <Button
+                    type="text"
+                    icon={<FullscreenOutlined />}
+                    onClick={() => setShowLandscapeModal({
+                      visible: true,
+                      title: '历次考试各模块详细数据表',
+                      type: 'table',
+                      content: 'detailTable',
+                    })}
+                  />
+                </Tooltip>
+              )}
               <Button 
                 type="primary" 
                 icon={<DownloadOutlined />}
@@ -2130,8 +2196,8 @@ export default function Dashboard() {
 
       {/* 横屏查看弹窗 */}
       <Modal
-        open={showLandscapeModal}
-        onCancel={() => setShowLandscapeModal(false)}
+        open={showLandscapeModal.visible}
+        onCancel={() => setShowLandscapeModal({ visible: false, title: '', type: 'chart' })}
         footer={null}
         width="100vw"
         style={{ 
@@ -2161,12 +2227,58 @@ export default function Dashboard() {
             marginTop: '-50vw',
           }}
         >
-          <div className="w-full h-full p-4">
-            <div className="text-xl font-bold mb-4 text-center">总分趋势</div>
-            <ReactECharts 
-              option={scoreTrendOption} 
-              style={{ height: 'calc(100% - 60px)', width: '100%' }} 
-            />
+          <div className="w-full h-full p-4 overflow-auto">
+            <div className="text-xl font-bold mb-4 text-center">{showLandscapeModal.title}</div>
+            {showLandscapeModal.type === 'chart' && (
+              <>
+                {showLandscapeModal.content === 'scoreTrend' && (
+                  <ReactECharts 
+                    option={scoreTrendOption} 
+                    style={{ height: 'calc(100% - 60px)', width: '100%' }} 
+                  />
+                )}
+                {showLandscapeModal.content === 'moduleTrend' && (
+                  <ReactECharts 
+                    option={moduleTrendOption} 
+                    style={{ height: 'calc(100% - 60px)', width: '100%' }} 
+                  />
+                )}
+                {showLandscapeModal.content === 'moduleTimeTrend' && (
+                  <ReactECharts 
+                    option={moduleTimeTrendOption} 
+                    style={{ height: 'calc(100% - 60px)', width: '100%' }} 
+                  />
+                )}
+              </>
+            )}
+            {showLandscapeModal.type === 'table' && showLandscapeModal.content === 'detailTable' && (
+              <div className="h-[calc(100%-60px)] overflow-auto">
+                <Table
+                  columns={columns}
+                  dataSource={tableDataWithSummary}
+                  pagination={false}
+                  size="small"
+                  bordered
+                  scroll={{ x: 'max-content' }}
+                  rowClassName={(record, index) => {
+                    if (record.key === 'total') {
+                      return 'bg-muted/50';
+                    }
+                    if (record.key?.startsWith('summary_')) {
+                      if (record.key === 'summary_score') {
+                        return 'bg-green-50 dark:bg-green-900/20';
+                      }
+                      return 'bg-blue-50 dark:bg-blue-900/20';
+                    }
+                    return index % 2 === 0 ? '' : 'bg-muted/30';
+                  }}
+                  expandable={{
+                    defaultExpandAllRows: false,
+                    rowExpandable: (record) => record.key !== 'total' && !record.key?.startsWith('summary_') && (record.children?.length || 0) > 0,
+                  }}
+                />
+              </div>
+            )}
           </div>
         </div>
       </Modal>
