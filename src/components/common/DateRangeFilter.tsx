@@ -1,4 +1,5 @@
 import { DatePicker, Button } from 'antd';
+import { useState, useEffect } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
 
 const { RangePicker } = DatePicker;
@@ -22,6 +23,18 @@ export default function DateRangeFilter({
   minDate = null,
   maxDate = null,
 }: DateRangeFilterProps) {
+  const [isMobile, setIsMobile] = useState(false);
+
+  // 检测移动端
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   // 禁用日期的函数
   const disabledDate = (current: Dayjs) => {
     if (!current) return false;
@@ -53,10 +66,13 @@ export default function DateRangeFilter({
             disabledDate={disabledDate}
             size="middle"
             getPopupContainer={(trigger) => trigger.parentElement || document.body}
+            placement={isMobile ? 'bottomLeft' : 'bottomLeft'}
+            popupClassName="date-range-picker-popup"
             renderExtraFooter={() => (
-              <div className="flex gap-2 p-2 border-t">
+              <div className={`flex ${isMobile ? 'flex-col' : 'flex-row'} gap-2 p-2 border-t`}>
                 <Button
                   size="small"
+                  block={isMobile}
                   onClick={() => {
                     const end = maxDate || dayjs();
                     const start = end.subtract(1, 'month');
@@ -69,6 +85,7 @@ export default function DateRangeFilter({
                 </Button>
                 <Button
                   size="small"
+                  block={isMobile}
                   onClick={() => {
                     const end = maxDate || dayjs();
                     const start = end.subtract(3, 'month');
@@ -81,6 +98,7 @@ export default function DateRangeFilter({
                 </Button>
                 <Button
                   size="small"
+                  block={isMobile}
                   onClick={() => {
                     const end = maxDate || dayjs();
                     const start = end.subtract(6, 'month');
@@ -91,7 +109,11 @@ export default function DateRangeFilter({
                 >
                   最近半年
                 </Button>
-                <Button size="small" onClick={() => onChange(null)}>
+                <Button 
+                  size="small" 
+                  block={isMobile}
+                  onClick={() => onChange(null)}
+                >
                   全部
                 </Button>
               </div>

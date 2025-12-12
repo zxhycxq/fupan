@@ -690,5 +690,66 @@ All colors MUST be HSL.
     line-height: 40px;
     font-size: 20px;
   }
+
+  /* 日期选择器弹出层位置优化 - 移动端 */
+  .date-range-picker-popup {
+    left: 0 !important;
+    right: 0 !important;
+    margin: 0 auto !important;
+    max-width: 95vw !important;
+  }
+
+  /* 日期选择器面板容器优化 */
+  .date-range-picker-popup .ant-picker-panel-container {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  /* 日期选择器双面板布局优化 */
+  .date-range-picker-popup .ant-picker-panels {
+    flex-direction: column !important;
+    gap: 0 !important;
+  }
+
+  /* 日期选择器面板优化 */
+  .date-range-picker-popup .ant-picker-panel {
+    width: 100% !important;
+    border-right: none !important;
+  }
+
+  /* 日期选择器底部快捷按钮区域优化 */
+  .date-range-picker-popup .ant-picker-footer-extra {
+    width: 100% !important;
+    padding: 8px !important;
+  }
+
+  /* 快捷按钮列布局 */
+  .date-range-picker-popup .ant-picker-footer-extra > div {
+    width: 100% !important;
+  }
+
+  /* 快捷按钮样式 */
+  .date-range-picker-popup .ant-picker-footer-extra .ant-btn {
+    margin-bottom: 8px !important;
+  }
+
+  .date-range-picker-popup .ant-picker-footer-extra .ant-btn:last-child {
+    margin-bottom: 0 !important;
+  }
+
+  /* 确保日历表格完整显示 */
+  .date-range-picker-popup .ant-picker-content {
+    width: 100% !important;
+  }
+
+  .date-range-picker-popup .ant-picker-content table {
+    width: 100% !important;
+  }
+
+  /* 周数列显示优化 */
+  .date-range-picker-popup .ant-picker-cell-week {
+    min-width: 24px !important;
+    padding: 0 2px !important;
+  }
 }
 
