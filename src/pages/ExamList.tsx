@@ -841,26 +841,25 @@ export default function ExamList() {
             className="filter-form"
           >
             <Row gutter={[16, 8]}>
-              {/* 第一行：4个筛选项 */}
-              <Col xs={24} sm={12} md={6} lg={6}>
+              <Col xs={24} sm={12} md={8} lg={6}>
                 <Form.Item 
                   label="考试名称" 
                   name="examName" 
                   className="mb-2"
-                  labelCol={{ xs: 24, sm: 8, md: 8, lg: 8 }}
-                  wrapperCol={{ xs: 24, sm: 16, md: 16, lg: 16 }}
+                  labelCol={{ xs: 24, sm: 8 }}
+                  wrapperCol={{ xs: 24, sm: 16 }}
                 >
                   <Input placeholder="请输入考试名称" allowClear />
                 </Form.Item>
               </Col>
               
-              <Col xs={24} sm={12} md={6} lg={6}>
+              <Col xs={24} sm={12} md={8} lg={6}>
                 <Form.Item 
                   label="考试类型" 
                   name="examType" 
                   className="mb-2"
-                  labelCol={{ xs: 24, sm: 8, md: 8, lg: 8 }}
-                  wrapperCol={{ xs: 24, sm: 16, md: 16, lg: 16 }}
+                  labelCol={{ xs: 24, sm: 8 }}
+                  wrapperCol={{ xs: 24, sm: 16 }}
                 >
                   <Select placeholder="请选择考试类型" allowClear>
                     <Select.Option value="国考真题">国考真题</Select.Option>
@@ -872,13 +871,13 @@ export default function ExamList() {
                 </Form.Item>
               </Col>
               
-              <Col xs={24} sm={12} md={6} lg={6}>
+              <Col xs={24} sm={12} md={8} lg={6}>
                 <Form.Item 
                   label="总分区间" 
                   name="scoreRange" 
                   className="mb-2"
-                  labelCol={{ xs: 24, sm: 8, md: 8, lg: 8 }}
-                  wrapperCol={{ xs: 24, sm: 16, md: 16, lg: 16 }}
+                  labelCol={{ xs: 24, sm: 8 }}
+                  wrapperCol={{ xs: 24, sm: 16 }}
                 >
                   <Select placeholder="请选择总分区间" allowClear>
                     <Select.Option value="0-10">0-10分</Select.Option>
@@ -895,13 +894,13 @@ export default function ExamList() {
                 </Form.Item>
               </Col>
               
-              <Col xs={24} sm={12} md={6} lg={6}>
+              <Col xs={24} sm={12} md={8} lg={6}>
                 <Form.Item 
                   label="击败率区间" 
                   name="passRateRange" 
                   className="mb-2"
-                  labelCol={{ xs: 24, sm: 8, md: 8, lg: 8 }}
-                  wrapperCol={{ xs: 24, sm: 16, md: 16, lg: 16 }}
+                  labelCol={{ xs: 24, sm: 8 }}
+                  wrapperCol={{ xs: 24, sm: 16 }}
                 >
                   <Select placeholder="请选择击败率区间" allowClear>
                     <Select.Option value="0-10">0-10%</Select.Option>
@@ -918,14 +917,13 @@ export default function ExamList() {
                 </Form.Item>
               </Col>
               
-              {/* 第二行：星级、考试日期和按钮 */}
-              <Col xs={24} sm={12} md={6} lg={4}>
+              <Col xs={24} sm={12} md={8} lg={6}>
                 <Form.Item 
                   label="星级" 
                   name="rating" 
                   className="mb-2"
-                  labelCol={{ xs: 24, sm: 8, md: 8, lg: 8 }}
-                  wrapperCol={{ xs: 24, sm: 16, md: 16, lg: 16 }}
+                  labelCol={{ xs: 24, sm: 8 }}
+                  wrapperCol={{ xs: 24, sm: 16 }}
                 >
                   <Select placeholder="请选择星级" allowClear>
                     <Select.Option value={1}>⭐ 1星</Select.Option>
@@ -937,13 +935,13 @@ export default function ExamList() {
                 </Form.Item>
               </Col>
               
-              <Col xs={24} sm={12} md={12} lg={7}>
+              <Col xs={24} sm={12} md={12} lg={9}>
                 <Form.Item 
                   label="考试日期" 
                   name="dateRange" 
                   className="mb-2"
-                  labelCol={{ xs: 24, sm: 8, md: 4, lg: 5 }}
-                  wrapperCol={{ xs: 24, sm: 16, md: 20, lg: 19 }}
+                  labelCol={{ xs: 24, sm: 4, md: 3, lg: 4 }}
+                  wrapperCol={{ xs: 24, sm: 20, md: 21, lg: 20 }}
                 >
                   <DateRangeFilter 
                     value={dateRange} 
@@ -957,7 +955,7 @@ export default function ExamList() {
                 </Form.Item>
               </Col>
               
-              <Col xs={24} sm={24} md={6} lg={13} className="flex items-end justify-end lg:-mt-2">
+              <Col xs={24} sm={24} md={12} lg={9} className="flex items-end justify-end">
                 <Space size="small" className="mb-2">
                   <Button 
                     type="primary" 
