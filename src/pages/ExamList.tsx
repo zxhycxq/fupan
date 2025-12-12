@@ -13,6 +13,7 @@ import { arrayMoveImmutable } from 'array-move';
 import dayjs from 'dayjs';
 import type { Dayjs } from 'dayjs';
 import WangEditor, { type WangEditorRef } from '@/components/common/WangEditor';
+import DateRangeFilter from '@/components/common/DateRangeFilter';
 
 // 拖拽手柄
 const DragHandle = SortableHandle(() => (
@@ -59,6 +60,7 @@ export default function ExamList() {
   const [searchParams] = useSearchParams();
   const [isMobile, setIsMobile] = useState(false);
   const [showLandscapeModal, setShowLandscapeModal] = useState(false);
+  const [dateRange, setDateRange] = useState<[Dayjs, Dayjs] | null>(null);
 
   // 检测移动端
   useEffect(() => {
@@ -123,27 +125,27 @@ export default function ExamList() {
   }, [examRecords, filterParams]);
 
   // 筛选逻辑
-  const applyFilters = () => {
+  const applyFilters = (params = filterParams) => {
     let filtered = [...examRecords];
 
     // 按名称筛选
-    if (filterParams.examName) {
-      const searchText = filterParams.examName.toLowerCase();
+    if (params.examName) {
+      const searchText = params.examName.toLowerCase();
       filtered = filtered.filter(record => 
         record.exam_name.toLowerCase().includes(searchText)
       );
     }
 
     // 按考试类型筛选
-    if (filterParams.examType) {
+    if (params.examType) {
       filtered = filtered.filter(record => 
-        record.exam_type === filterParams.examType
+        record.exam_type === params.examType
       );
     }
 
     // 按总分区间筛选
-    if (filterParams.scoreRange) {
-      const [min, max] = filterParams.scoreRange.split('-').map(Number);
+    if (params.scoreRange) {
+      const [min, max] = params.scoreRange.split('-').map(Number);
       filtered = filtered.filter(record => {
         const score = record.total_score || 0;
         return score >= min && score <= max;
@@ -151,17 +153,17 @@ export default function ExamList() {
     }
 
     // 按击败率区间筛选
-    if (filterParams.passRateRange) {
-      const [min, max] = filterParams.passRateRange.split('-').map(Number);
+    if (params.passRateRange) {
+      const [min, max] = params.passRateRange.split('-').map(Number);
       filtered = filtered.filter(record => {
         const rate = record.pass_rate || 0;
         return rate >= min && rate <= max;
       });
     }
 
-    // 按考试日期筛选
-    if (filterParams.dateRange && filterParams.dateRange.length === 2) {
-      const [startDate, endDate] = filterParams.dateRange;
+    // 按考试日期筛选 - 使用dateRange状态
+    if (params.dateRange && params.dateRange.length === 2) {
+      const [startDate, endDate] = params.dateRange;
       filtered = filtered.filter(record => {
         if (!record.exam_date) return false;
         const examDate = dayjs(record.exam_date);
@@ -171,11 +173,11 @@ export default function ExamList() {
     }
 
     // 按星级筛选
-    if (filterParams.rating !== undefined) {
+    if (params.rating !== undefined) {
       filtered = filtered.filter(record => {
         const rating = record.rating || 0;
         // 四舍五入到整数
-        return Math.round(rating) === filterParams.rating;
+        return Math.round(rating) === params.rating;
       });
     }
 
@@ -187,19 +189,22 @@ export default function ExamList() {
   // 处理搜索
   const handleSearch = () => {
     const values = filterForm.getFieldsValue();
-    setFilterParams({
+    const newParams = {
       examName: values.examName,
       examType: values.examType,
       scoreRange: values.scoreRange,
       passRateRange: values.passRateRange,
-      dateRange: values.dateRange,
+      dateRange: dateRange, // 使用dateRange状态
       rating: values.rating,
-    });
+    };
+    setFilterParams(newParams);
+    applyFilters(newParams);
   };
 
   // 处理重置
   const handleReset = () => {
     filterForm.resetFields();
+    setDateRange(null);
     setFilterParams({});
   };
 
@@ -836,25 +841,25 @@ export default function ExamList() {
             className="filter-form"
           >
             <Row gutter={[16, 8]}>
-              <Col xs={24} sm={12} md={8} lg={6}>
+              <Col xs={24} sm={12} md={6} lg={5}>
                 <Form.Item 
                   label="考试名称" 
                   name="examName" 
                   className="mb-2"
-                  labelCol={{ xs: 24, sm: 8 }}
-                  wrapperCol={{ xs: 24, sm: 16 }}
+                  labelCol={{ xs: 24, sm: 24, md: 8 }}
+                  wrapperCol={{ xs: 24, sm: 24, md: 16 }}
                 >
                   <Input placeholder="请输入考试名称" allowClear />
                 </Form.Item>
               </Col>
               
-              <Col xs={24} sm={12} md={8} lg={6}>
+              <Col xs={24} sm={12} md={6} lg={4}>
                 <Form.Item 
                   label="考试类型" 
                   name="examType" 
                   className="mb-2"
-                  labelCol={{ xs: 24, sm: 8 }}
-                  wrapperCol={{ xs: 24, sm: 16 }}
+                  labelCol={{ xs: 24, sm: 24, md: 8 }}
+                  wrapperCol={{ xs: 24, sm: 24, md: 16 }}
                 >
                   <Select placeholder="请选择考试类型" allowClear>
                     <Select.Option value="国考真题">国考真题</Select.Option>
@@ -866,13 +871,13 @@ export default function ExamList() {
                 </Form.Item>
               </Col>
               
-              <Col xs={24} sm={12} md={8} lg={6}>
+              <Col xs={24} sm={12} md={6} lg={5}>
                 <Form.Item 
                   label="总分区间" 
                   name="scoreRange" 
                   className="mb-2"
-                  labelCol={{ xs: 24, sm: 8 }}
-                  wrapperCol={{ xs: 24, sm: 16 }}
+                  labelCol={{ xs: 24, sm: 24, md: 8 }}
+                  wrapperCol={{ xs: 24, sm: 24, md: 16 }}
                 >
                   <Select placeholder="请选择总分区间" allowClear>
                     <Select.Option value="0-10">0-10分</Select.Option>
@@ -889,13 +894,13 @@ export default function ExamList() {
                 </Form.Item>
               </Col>
               
-              <Col xs={24} sm={12} md={8} lg={6}>
+              <Col xs={24} sm={12} md={6} lg={5}>
                 <Form.Item 
                   label="击败率区间" 
                   name="passRateRange" 
                   className="mb-2"
-                  labelCol={{ xs: 24, sm: 8 }}
-                  wrapperCol={{ xs: 24, sm: 16 }}
+                  labelCol={{ xs: 24, sm: 24, md: 8 }}
+                  wrapperCol={{ xs: 24, sm: 24, md: 16 }}
                 >
                   <Select placeholder="请选择击败率区间" allowClear>
                     <Select.Option value="0-10">0-10%</Select.Option>
@@ -912,39 +917,13 @@ export default function ExamList() {
                 </Form.Item>
               </Col>
               
-              <Col xs={24} sm={12} md={8} lg={6}>
-                <Form.Item 
-                  label="考试日期" 
-                  name="dateRange" 
-                  className="mb-2"
-                  labelCol={{ xs: 24, sm: 8 }}
-                  wrapperCol={{ xs: 24, sm: 16 }}
-                >
-                  <RangePicker 
-                    placeholder={['开始日期', '结束日期']}
-                    className="w-full"
-                    format="YYYY-MM-DD"
-                    size="middle"
-                    getPopupContainer={(trigger) => trigger.parentElement || document.body}
-                    placement={isMobile ? 'bottomLeft' : 'bottomLeft'}
-                    popupClassName="date-range-picker-popup"
-                    presets={[
-                      { label: '最近一个月', value: [dayjs().subtract(1, 'month'), dayjs()] },
-                      { label: '最近三个月', value: [dayjs().subtract(3, 'month'), dayjs()] },
-                      { label: '最近半年', value: [dayjs().subtract(6, 'month'), dayjs()] },
-                      { label: '全部', value: [dayjs().subtract(10, 'year'), dayjs()] },
-                    ]}
-                  />
-                </Form.Item>
-              </Col>
-              
-              <Col xs={24} sm={12} md={8} lg={6}>
+              <Col xs={24} sm={12} md={6} lg={3}>
                 <Form.Item 
                   label="星级" 
                   name="rating" 
                   className="mb-2"
-                  labelCol={{ xs: 24, sm: 8 }}
-                  wrapperCol={{ xs: 24, sm: 16 }}
+                  labelCol={{ xs: 24, sm: 24, md: 8 }}
+                  wrapperCol={{ xs: 24, sm: 24, md: 16 }}
                 >
                   <Select placeholder="请选择星级" allowClear>
                     <Select.Option value={1}>⭐ 1星</Select.Option>
@@ -956,7 +935,7 @@ export default function ExamList() {
                 </Form.Item>
               </Col>
               
-              <Col xs={24} sm={24} md={24} lg={6} className="flex items-end justify-end">
+              <Col xs={24} sm={24} md={24} lg={2} className="flex items-end justify-end">
                 <Space size="small">
                   <Button 
                     type="primary" 
@@ -975,6 +954,17 @@ export default function ExamList() {
               </Col>
             </Row>
           </Form>
+
+          {/* 日期筛选 - 使用DateRangeFilter组件 */}
+          <DateRangeFilter 
+            value={dateRange} 
+            onChange={(dates) => {
+              setDateRange(dates);
+              // 触发筛选
+              applyFilters({ ...filterParams, dateRange: dates });
+            }}
+            className="mt-2"
+          />
         </Card>
 
         {examRecords.length === 0 ? (
