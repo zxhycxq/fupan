@@ -8,7 +8,8 @@ import {
   CloudUploadOutlined,
   LineChartOutlined,
   UserOutlined,
-  SettingOutlined
+  SettingOutlined,
+  ToolOutlined,
 } from '@ant-design/icons';
 import routes from '@/routes';
 import { useState } from 'react';
@@ -19,6 +20,7 @@ const menuIcons: Record<string, React.ReactNode> = {
   '/module-analysis': <LineChartOutlined />,
   '/upload': <CloudUploadOutlined />,
   '/exams': <FileTextOutlined />,
+  '/tools': <ToolOutlined />,
   '/settings': <SettingOutlined />,
   '/profile': <UserOutlined />,
 };

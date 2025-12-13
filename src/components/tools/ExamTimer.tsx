@@ -1,5 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
-import { Card, Button, Input, Switch, Modal, message, Progress, Space, Row, Col, Statistic } from 'antd';
+import React, { useState, useEffect, useRef } from 'react';
+import { Card, Button, Input, Modal, message, Progress, Space, Row, Col, Statistic, Table, InputNumber } from 'antd';
+import type { DragEndEvent } from '@dnd-kit/core';
+import { DndContext, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import {
   PlayCircleOutlined,
   PauseCircleOutlined,
@@ -8,8 +12,13 @@ import {
   SettingOutlined,
   ClockCircleOutlined,
   ExclamationCircleOutlined,
+  DownloadOutlined,
+  HolderOutlined,
+  ArrowUpOutlined,
+  ArrowDownOutlined,
 } from '@ant-design/icons';
 import ReactECharts from 'echarts-for-react';
+import html2canvas from 'html2canvas';
 
 // 模块接口定义
 interface Module {
@@ -46,6 +55,51 @@ const DEFAULT_MODULES: Module[] = [
 
 const STORAGE_KEY = 'exam_timer_state';
 
+// 可拖拽行组件
+interface RowProps extends React.HTMLAttributes<HTMLTableRowElement> {
+  'data-row-key': string;
+}
+
+const DraggableRow = ({ children, ...props }: RowProps) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    setActivatorNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: props['data-row-key'],
+  });
+
+  const style: React.CSSProperties = {
+    ...props.style,
+    transform: CSS.Transform.toString(transform && { ...transform, scaleY: 1 }),
+    transition,
+    ...(isDragging ? { position: 'relative', zIndex: 9999 } : {}),
+  };
+
+  return (
+    <tr {...props} ref={setNodeRef} style={style} {...attributes}>
+      {React.Children.map(children, (child) => {
+        if ((child as React.ReactElement).key === 'sort') {
+          return React.cloneElement(child as React.ReactElement, {
+            children: (
+              <HolderOutlined
+                ref={setActivatorNodeRef}
+                style={{ touchAction: 'none', cursor: 'move' }}
+                {...listeners}
+              />
+            ),
+          });
+        }
+        return child;
+      })}
+    </tr>
+  );
+};
+
 export default function ExamTimer() {
   const [state, setState] = useState<TimerState>({
     totalStartTime: null,
@@ -61,10 +115,20 @@ export default function ExamTimer() {
   const [totalTime, setTotalTime] = useState(0);
   const [showSettings, setShowSettings] = useState(false);
   const [showReport, setShowReport] = useState(false);
-  const [editingModule, setEditingModule] = useState<Module | null>(null);
-  const [showModuleSettings, setShowModuleSettings] = useState(false);
+  const [tempModules, setTempModules] = useState<Module[]>(DEFAULT_MODULES);
+  const [tempCountdown, setTempCountdown] = useState(false);
+  const [tempDuration, setTempDuration] = useState(120);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const reportRef = useRef<HTMLDivElement>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 1,
+      },
+    })
+  );
 
   // 从localStorage恢复状态
   useEffect(() => {
@@ -224,6 +288,9 @@ export default function ExamTimer() {
   // 结束模块
   const handleEndModule = (moduleId: string) => {
     const now = Date.now();
+    const completedModules = state.modules.filter(m => m.status === 'completed').length + 1;
+    const isLastModule = completedModules === state.modules.length;
+
     setState(prev => ({
       ...prev,
       modules: prev.modules.map(m =>
@@ -236,6 +303,13 @@ export default function ExamTimer() {
     
     const module = state.modules.find(m => m.id === moduleId);
     message.success(`完成 ${module?.name}`);
+
+    // 如果是最后一个模块，自动结束考试
+    if (isLastModule) {
+      setTimeout(() => {
+        handleEndExam();
+      }, 500);
+    }
   };
 
   // 结束考试
@@ -271,10 +345,12 @@ export default function ExamTimer() {
           isRunning: false,
           isCountdown: state.isCountdown,
           countdownDuration: state.countdownDuration,
-          modules: DEFAULT_MODULES.map(m => ({
+          modules: state.modules.map(m => ({
             ...m,
-            suggestedTime: state.modules.find(sm => sm.id === m.id)?.suggestedTime || m.suggestedTime,
-            name: state.modules.find(sm => sm.id === m.id)?.name || m.name,
+            startTime: null,
+            endTime: null,
+            duration: 0,
+            status: 'pending' as const,
           })),
           currentModuleId: null,
         });
@@ -285,18 +361,56 @@ export default function ExamTimer() {
     });
   };
 
-  // 保存模块设置
-  const handleSaveModuleSettings = () => {
-    if (editingModule) {
-      setState(prev => ({
-        ...prev,
-        modules: prev.modules.map(m =>
-          m.id === editingModule.id ? editingModule : m
-        ),
-      }));
-      setEditingModule(null);
-      setShowModuleSettings(false);
-      message.success('设置已保存');
+  // 打开设置对话框
+  const handleOpenSettings = () => {
+    setTempModules([...state.modules]);
+    setTempCountdown(state.isCountdown);
+    setTempDuration(Math.floor(state.countdownDuration / 60));
+    setShowSettings(true);
+  };
+
+  // 保存设置
+  const handleSaveSettings = () => {
+    setState(prev => ({
+      ...prev,
+      modules: tempModules,
+      isCountdown: tempCountdown,
+      countdownDuration: tempDuration * 60,
+    }));
+    setShowSettings(false);
+    message.success('设置已保存');
+  };
+
+  // 拖拽结束
+  const onDragEnd = ({ active, over }: DragEndEvent) => {
+    if (active.id !== over?.id) {
+      setTempModules((prev) => {
+        const activeIndex = prev.findIndex((i) => i.id === active.id);
+        const overIndex = prev.findIndex((i) => i.id === over?.id);
+        return arrayMove(prev, activeIndex, overIndex);
+      });
+    }
+  };
+
+  // 保存报告为图片
+  const handleSaveReport = async () => {
+    if (!reportRef.current) return;
+    
+    try {
+      const canvas = await html2canvas(reportRef.current, {
+        backgroundColor: '#ffffff',
+        scale: 2,
+      });
+      
+      const link = document.createElement('a');
+      link.download = `考试报告_${new Date().toLocaleDateString()}.png`;
+      link.href = canvas.toDataURL();
+      link.click();
+      
+      message.success('报告已保存为图片');
+    } catch (error) {
+      console.error('保存图片失败:', error);
+      message.error('保存图片失败');
     }
   };
 
@@ -342,6 +456,46 @@ export default function ExamTimer() {
     ? Math.max(0, state.countdownDuration - totalTime)
     : totalTime;
 
+  // 设置表格列
+  const settingsColumns = [
+    {
+      key: 'sort',
+      width: 50,
+    },
+    {
+      title: '模块名称',
+      dataIndex: 'name',
+      key: 'name',
+      render: (_: any, record: Module, index: number) => (
+        <Input
+          value={record.name}
+          onChange={(e) => {
+            const newModules = [...tempModules];
+            newModules[index].name = e.target.value;
+            setTempModules(newModules);
+          }}
+        />
+      ),
+    },
+    {
+      title: '建议时间（分钟）',
+      dataIndex: 'suggestedTime',
+      key: 'suggestedTime',
+      width: 150,
+      render: (_: any, record: Module, index: number) => (
+        <InputNumber
+          min={0}
+          value={Math.floor(record.suggestedTime / 60)}
+          onChange={(value) => {
+            const newModules = [...tempModules];
+            newModules[index].suggestedTime = (value || 0) * 60;
+            setTempModules(newModules);
+          }}
+        />
+      ),
+    },
+  ];
+
   return (
     <div className="space-y-6">
       {/* 总计时器和控制按钮 */}
@@ -355,7 +509,8 @@ export default function ExamTimer() {
         extra={
           <Button
             icon={<SettingOutlined />}
-            onClick={() => setShowSettings(true)}
+            onClick={handleOpenSettings}
+            disabled={state.isRunning}
           >
             设置
           </Button>
@@ -423,21 +578,12 @@ export default function ExamTimer() {
           return (
             <Col xs={24} sm={12} lg={8} key={module.id}>
               <Card
-                title={module.name}
-                extra={
-                  <Button
-                    size="small"
-                    icon={<SettingOutlined />}
-                    onClick={() => {
-                      setEditingModule(module);
-                      setShowModuleSettings(true);
-                    }}
-                    disabled={state.isRunning}
-                  />
-                }
-                className={module.status === 'running' ? 'border-2 border-blue-500' : ''}
+                className={`${module.status === 'running' ? 'border-2 border-blue-500' : ''} shadow-md hover:shadow-lg transition-shadow`}
+                style={{ height: '100%' }}
               >
                 <div className="space-y-3">
+                  <div className="font-semibold text-base">{module.name}</div>
+                  
                   <div className="text-2xl font-mono font-bold text-center">
                     {formatTime(module.duration)}
                   </div>
@@ -503,77 +649,54 @@ export default function ExamTimer() {
       <Modal
         title="计时器设置"
         open={showSettings}
-        onOk={() => setShowSettings(false)}
+        onOk={handleSaveSettings}
         onCancel={() => setShowSettings(false)}
+        width={800}
       >
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <span>倒计时模式</span>
-            <Switch
-              checked={state.isCountdown}
-              onChange={(checked) =>
-                setState(prev => ({ ...prev, isCountdown: checked }))
-              }
-              disabled={state.isRunning}
-            />
+            <Button
+              type={tempCountdown ? 'primary' : 'default'}
+              onClick={() => setTempCountdown(!tempCountdown)}
+            >
+              {tempCountdown ? '已开启' : '已关闭'}
+            </Button>
           </div>
-          {state.isCountdown && (
+          {tempCountdown && (
             <div className="space-y-2">
               <label>考试总时长（分钟）</label>
-              <Input
-                type="number"
-                value={Math.floor(state.countdownDuration / 60)}
-                onChange={(e) =>
-                  setState(prev => ({
-                    ...prev,
-                    countdownDuration: parseInt(e.target.value) * 60,
-                  }))
-                }
-                disabled={state.isRunning}
+              <InputNumber
                 min={1}
+                value={tempDuration}
+                onChange={(value) => setTempDuration(value || 120)}
+                style={{ width: '100%' }}
               />
             </div>
           )}
-        </div>
-      </Modal>
-
-      {/* 模块设置对话框 */}
-      <Modal
-        title="模块设置"
-        open={showModuleSettings}
-        onOk={handleSaveModuleSettings}
-        onCancel={() => {
-          setEditingModule(null);
-          setShowModuleSettings(false);
-        }}
-      >
-        {editingModule && (
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <label>模块名称</label>
-              <Input
-                value={editingModule.name}
-                onChange={(e) =>
-                  setEditingModule({ ...editingModule, name: e.target.value })
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <label>建议时间（分钟）</label>
-              <Input
-                type="number"
-                value={Math.floor(editingModule.suggestedTime / 60)}
-                onChange={(e) =>
-                  setEditingModule({
-                    ...editingModule,
-                    suggestedTime: parseInt(e.target.value) * 60,
-                  })
-                }
-                min={0}
-              />
-            </div>
+          
+          <div className="space-y-2">
+            <label>模块设置（拖拽排序）</label>
+            <DndContext sensors={sensors} onDragEnd={onDragEnd}>
+              <SortableContext
+                items={tempModules.map((i) => i.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <Table
+                  components={{
+                    body: {
+                      row: DraggableRow,
+                    },
+                  }}
+                  rowKey="id"
+                  columns={settingsColumns}
+                  dataSource={tempModules}
+                  pagination={false}
+                />
+              </SortableContext>
+            </DndContext>
           </div>
-        )}
+        </div>
       </Modal>
 
       {/* 考试报告对话框 */}
@@ -582,13 +705,16 @@ export default function ExamTimer() {
         open={showReport}
         onCancel={() => setShowReport(false)}
         footer={[
+          <Button key="save" icon={<DownloadOutlined />} onClick={handleSaveReport}>
+            保存为图片
+          </Button>,
           <Button key="close" type="primary" onClick={() => setShowReport(false)}>
             关闭
           </Button>,
         ]}
-        width={800}
+        width={900}
       >
-        <div className="space-y-6">
+        <div ref={reportRef} className="space-y-6 p-4 bg-white">
           <Row gutter={16}>
             <Col span={12}>
               <Card>
@@ -618,38 +744,46 @@ export default function ExamTimer() {
 
           <div className="space-y-2">
             <h3 className="font-semibold">各模块详情</h3>
-            <div className="space-y-2">
-              {state.modules.map((module) => (
-                <Card key={module.id} size="small">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="font-medium">{module.name}</div>
-                      <div className="text-sm text-gray-500">
-                        {module.status === 'completed' ? (
-                          <>
-                            用时: {formatTime(module.duration)}
-                            {module.suggestedTime > 0 && (
-                              <span className={module.duration > module.suggestedTime ? 'text-red-500 ml-2' : 'text-green-500 ml-2'}>
-                                ({module.duration > module.suggestedTime ? '+' : '-'}
-                                {formatTime(Math.abs(module.duration - module.suggestedTime))})
-                              </span>
-                            )}
-                          </>
-                        ) : (
-                          '未完成'
+            <Row gutter={[16, 16]}>
+              {state.modules.map((module) => {
+                const isOvertime = module.status === 'completed' && module.duration > module.suggestedTime;
+                const isUndertime = module.status === 'completed' && module.duration < module.suggestedTime;
+                
+                return (
+                  <Col span={8} key={module.id}>
+                    <Card size="small" className="h-full">
+                      <div className="space-y-2">
+                        <div className="font-medium">{module.name}</div>
+                        <div className="text-sm text-gray-500">
+                          {module.status === 'completed' ? (
+                            <>
+                              <div>用时: {formatTime(module.duration)}</div>
+                              {module.suggestedTime > 0 && (
+                                <div className={isOvertime ? 'text-red-500' : isUndertime ? 'text-green-500' : ''}>
+                                  {isOvertime && <ArrowUpOutlined />}
+                                  {isUndertime && <ArrowDownOutlined />}
+                                  {' '}
+                                  {isOvertime ? '+' : '-'}
+                                  {formatTime(Math.abs(module.duration - module.suggestedTime))}
+                                </div>
+                              )}
+                            </>
+                          ) : (
+                            '未完成'
+                          )}
+                        </div>
+                        {module.status === 'completed' && module.startTime && module.endTime && (
+                          <div className="text-xs text-gray-400">
+                            <div>{new Date(module.startTime).toLocaleTimeString()}</div>
+                            <div>{new Date(module.endTime).toLocaleTimeString()}</div>
+                          </div>
                         )}
                       </div>
-                    </div>
-                    {module.status === 'completed' && module.startTime && module.endTime && (
-                      <div className="text-xs text-gray-500 text-right">
-                        <div>{new Date(module.startTime).toLocaleTimeString()}</div>
-                        <div>{new Date(module.endTime).toLocaleTimeString()}</div>
-                      </div>
-                    )}
-                  </div>
-                </Card>
-              ))}
-            </div>
+                    </Card>
+                  </Col>
+                );
+              })}
+            </Row>
           </div>
 
           {state.modules.some(m => m.status === 'completed' && m.duration > m.suggestedTime) && (
