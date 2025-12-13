@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>生成PWA图标</title>
+</head>
+<body>
+  <h1>PWA图标生成器</h1>
+  <canvas id="canvas512" width="512" height="512"></canvas>
+  <canvas id="canvas192" width="192" height="192"></canvas>
+  <br>
+  <button onclick="downloadIcons()">下载图标</button>
+  
+  <script>
+    function drawIcon(canvas) {
+      const ctx = canvas.getContext('2d');
+      const size = canvas.width;
+      const scale = size / 512;
+      
+      // 背景
+      ctx.fillStyle = '#1890ff';
+      ctx.beginPath();
+      ctx.roundRect(0, 0, size, size, 80 * scale);
+      ctx.fill();
+      
+      // 图表柱子
+      ctx.fillStyle = 'white';
+      const barWidth = 60 * scale;
+      const barRadius = 8 * scale;
+      
+      // 第一根柱子
+      ctx.beginPath();
+      ctx.roundRect((256 - 120) * scale, (256 + 20) * scale, barWidth, 100 * scale, barRadius);
+      ctx.fill();
+      
+      // 第二根柱子
+      ctx.beginPath();
+      ctx.roundRect((256 - 40) * scale, (256 - 40) * scale, barWidth, 160 * scale, barRadius);
+      ctx.fill();
+      
+      // 第三根柱子
+      ctx.beginPath();
+      ctx.roundRect((256 + 40) * scale, (256 - 80) * scale, barWidth, 200 * scale, barRadius);
+      ctx.fill();
+      
+      // 对勾
+      ctx.strokeStyle = 'white';
+      ctx.lineWidth = 20 * scale;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.beginPath();
+      ctx.moveTo((256 - 140) * scale, (256 - 100) * scale);
+      ctx.lineTo((256 - 100) * scale, (256 - 60) * scale);
+      ctx.lineTo((256 - 60) * scale, (256 - 120) * scale);
+      ctx.stroke();
+    }
+    
+    drawIcon(document.getElementById('canvas512'));
+    drawIcon(document.getElementById('canvas192'));
+    
+    function downloadIcons() {
+      const canvas512 = document.getElementById('canvas512');
+      const canvas192 = document.getElementById('canvas192');
+      
+      canvas512.toBlob(blob => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'pwa-512x512.png';
+        a.click();
+      });
+      
+      setTimeout(() => {
+        canvas192.toBlob(blob => {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'pwa-192x192.png';
+          a.click();
+        });
+      }, 500);
+    }
+  </script>
+</body>
+</html>

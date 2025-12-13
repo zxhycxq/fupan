@@ -6,6 +6,7 @@ import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
 import Sidebar from '@/components/common/Sidebar';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
+import PWAInstallPrompt from '@/components/common/PWAInstallPrompt';
 import routes from './routes';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -130,6 +131,9 @@ function App() {
               bottom: 24,
             }}
           />
+          
+          {/* PWA安装提示 */}
+          <PWAInstallPrompt />
         </div>
       </ErrorBoundary>
     </ConfigProvider>
