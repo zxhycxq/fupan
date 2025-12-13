@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Card, Button, Input, Modal, message, Progress, Space, Row, Col, Statistic, Table, InputNumber } from 'antd';
+import { Card, Button, Input, Modal, message, Progress, Space, Row, Col, Statistic, InputNumber } from 'antd';
 import type { DragEndEvent } from '@dnd-kit/core';
 import { DndContext, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
@@ -55,48 +55,73 @@ const DEFAULT_MODULES: Module[] = [
 
 const STORAGE_KEY = 'exam_timer_state';
 
-// 可拖拽行组件
-interface RowProps extends React.HTMLAttributes<HTMLTableRowElement> {
-  'data-row-key': string;
+// 可拖拽项组件
+interface DraggableItemProps {
+  module: Module;
+  index: number;
+  onNameChange: (index: number, value: string) => void;
+  onTimeChange: (index: number, value: number) => void;
 }
 
-const DraggableRow = ({ children, ...props }: RowProps) => {
+const DraggableItem = ({ module, index, onNameChange, onTimeChange }: DraggableItemProps) => {
   const {
     attributes,
     listeners,
     setNodeRef,
-    setActivatorNodeRef,
     transform,
     transition,
     isDragging,
   } = useSortable({
-    id: props['data-row-key'],
+    id: module.id,
   });
 
   const style: React.CSSProperties = {
-    ...props.style,
-    transform: CSS.Transform.toString(transform && { ...transform, scaleY: 1 }),
+    transform: CSS.Transform.toString(transform),
     transition,
-    ...(isDragging ? { position: 'relative', zIndex: 9999 } : {}),
+    opacity: isDragging ? 0.5 : 1,
   };
 
+  const minutes = Math.floor(module.suggestedTime / 60);
+  const timeRange = minutes < 10 ? '(5-10分钟)' : 
+                    minutes < 20 ? '(10-20分钟)' : 
+                    minutes < 30 ? '(20-30分钟)' : 
+                    minutes < 40 ? '(30-40分钟)' : '(40-50分钟)';
+
   return (
-    <tr {...props} ref={setNodeRef} style={style} {...attributes}>
-      {React.Children.map(children, (child) => {
-        if ((child as React.ReactElement).key === 'sort') {
-          return React.cloneElement(child as React.ReactElement, {
-            children: (
-              <HolderOutlined
-                ref={setActivatorNodeRef}
-                style={{ touchAction: 'none', cursor: 'move' }}
-                {...listeners}
-              />
-            ),
-          });
-        }
-        return child;
-      })}
-    </tr>
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg mb-2"
+    >
+      <div
+        {...attributes}
+        {...listeners}
+        className="cursor-move text-gray-400 hover:text-gray-600"
+      >
+        <HolderOutlined style={{ fontSize: '16px' }} />
+      </div>
+      
+      <div className="flex-1 flex items-center gap-3">
+        <Input
+          value={module.name}
+          onChange={(e) => onNameChange(index, e.target.value)}
+          maxLength={10}
+          style={{ width: '200px' }}
+          placeholder="模块名称"
+        />
+        
+        <div className="flex items-center gap-2">
+          <InputNumber
+            min={0}
+            value={minutes}
+            onChange={(value) => onTimeChange(index, value || 0)}
+            style={{ width: '80px' }}
+            placeholder="分钟"
+          />
+          <span className="text-xs text-gray-400 whitespace-nowrap">{timeRange}</span>
+        </div>
+      </div>
+    </div>
   );
 };
 
@@ -371,6 +396,15 @@ export default function ExamTimer() {
 
   // 保存设置
   const handleSaveSettings = () => {
+    // 验证总时间
+    if (tempCountdown) {
+      const totalModuleTime = tempModules.reduce((sum, m) => sum + m.suggestedTime, 0);
+      if (totalModuleTime > tempDuration * 60) {
+        message.error(`所有模块时间总和（${Math.ceil(totalModuleTime / 60)}分钟）不能超过考试总时长（${tempDuration}分钟）`);
+        return;
+      }
+    }
+    
     setState(prev => ({
       ...prev,
       modules: tempModules,
@@ -456,45 +490,19 @@ export default function ExamTimer() {
     ? Math.max(0, state.countdownDuration - totalTime)
     : totalTime;
 
-  // 设置表格列
-  const settingsColumns = [
-    {
-      key: 'sort',
-      width: 50,
-    },
-    {
-      title: '模块名称',
-      dataIndex: 'name',
-      key: 'name',
-      render: (_: any, record: Module, index: number) => (
-        <Input
-          value={record.name}
-          onChange={(e) => {
-            const newModules = [...tempModules];
-            newModules[index].name = e.target.value;
-            setTempModules(newModules);
-          }}
-        />
-      ),
-    },
-    {
-      title: '建议时间（分钟）',
-      dataIndex: 'suggestedTime',
-      key: 'suggestedTime',
-      width: 150,
-      render: (_: any, record: Module, index: number) => (
-        <InputNumber
-          min={0}
-          value={Math.floor(record.suggestedTime / 60)}
-          onChange={(value) => {
-            const newModules = [...tempModules];
-            newModules[index].suggestedTime = (value || 0) * 60;
-            setTempModules(newModules);
-          }}
-        />
-      ),
-    },
-  ];
+  // 处理模块名称变更
+  const handleModuleNameChange = (index: number, value: string) => {
+    const newModules = [...tempModules];
+    newModules[index].name = value;
+    setTempModules(newModules);
+  };
+
+  // 处理模块时间变更
+  const handleModuleTimeChange = (index: number, minutes: number) => {
+    const newModules = [...tempModules];
+    newModules[index].suggestedTime = minutes * 60;
+    setTempModules(newModules);
+  };
 
   return (
     <div className="space-y-6">
@@ -651,50 +659,71 @@ export default function ExamTimer() {
         open={showSettings}
         onOk={handleSaveSettings}
         onCancel={() => setShowSettings(false)}
-        width={800}
+        width={700}
       >
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <span>倒计时模式</span>
-            <Button
-              type={tempCountdown ? 'primary' : 'default'}
-              onClick={() => setTempCountdown(!tempCountdown)}
-            >
-              {tempCountdown ? '已开启' : '已关闭'}
-            </Button>
-          </div>
-          {tempCountdown && (
-            <div className="space-y-2">
-              <label>考试总时长（分钟）</label>
-              <InputNumber
-                min={1}
-                value={tempDuration}
-                onChange={(value) => setTempDuration(value || 120)}
-                style={{ width: '100%' }}
-              />
+        <div className="space-y-6">
+          {/* 倒计时模式 */}
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <ClockCircleOutlined className="text-lg" />
+                <span className="font-semibold">倒计时模式</span>
+              </div>
+              <Button
+                type={tempCountdown ? 'primary' : 'default'}
+                onClick={() => setTempCountdown(!tempCountdown)}
+              >
+                {tempCountdown ? '开启' : '关闭'}
+              </Button>
             </div>
-          )}
+            {tempCountdown && (
+              <div className="flex items-center gap-2 pl-7">
+                <span className="text-sm text-gray-600">考试总时长</span>
+                <InputNumber
+                  min={1}
+                  value={tempDuration}
+                  onChange={(value) => setTempDuration(value || 120)}
+                  style={{ width: '100px' }}
+                  addonAfter="分钟"
+                />
+              </div>
+            )}
+          </div>
           
-          <div className="space-y-2">
-            <label>模块设置（拖拽排序）</label>
+          {/* 模块设置 */}
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <SettingOutlined className="text-lg" />
+              <span className="font-semibold">时间设置（拖拽排序）</span>
+            </div>
             <DndContext sensors={sensors} onDragEnd={onDragEnd}>
               <SortableContext
                 items={tempModules.map((i) => i.id)}
                 strategy={verticalListSortingStrategy}
               >
-                <Table
-                  components={{
-                    body: {
-                      row: DraggableRow,
-                    },
-                  }}
-                  rowKey="id"
-                  columns={settingsColumns}
-                  dataSource={tempModules}
-                  pagination={false}
-                />
+                <div className="space-y-2">
+                  {tempModules.map((module, index) => (
+                    <DraggableItem
+                      key={module.id}
+                      module={module}
+                      index={index}
+                      onNameChange={handleModuleNameChange}
+                      onTimeChange={handleModuleTimeChange}
+                    />
+                  ))}
+                </div>
               </SortableContext>
             </DndContext>
+            
+            {/* 总时间提示 */}
+            {tempCountdown && (
+              <div className="mt-3 text-sm text-gray-500 pl-7">
+                当前模块总时间：{Math.ceil(tempModules.reduce((sum, m) => sum + m.suggestedTime, 0) / 60)} 分钟
+                {tempModules.reduce((sum, m) => sum + m.suggestedTime, 0) > tempDuration * 60 && (
+                  <span className="text-red-500 ml-2">（超出考试总时长）</span>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </Modal>
