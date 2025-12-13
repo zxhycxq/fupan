@@ -3,6 +3,7 @@ import Upload from './pages/Upload';
 import ExamList from './pages/ExamList';
 import ExamDetail from './pages/ExamDetail';
 import ModuleAnalysis from './pages/ModuleAnalysis';
+import Tools from './pages/Tools';
 import Settings from './pages/Settings';
 import Profile from './pages/Profile';
 import type { ReactNode } from 'react';
@@ -37,6 +38,12 @@ const routes: RouteConfig[] = [
     name: '考试记录',
     path: '/exams',
     element: <ExamList />,
+    visible: true,
+  },
+  {
+    name: '小工具',
+    path: '/tools',
+    element: <Tools />,
     visible: true,
   },
   {
