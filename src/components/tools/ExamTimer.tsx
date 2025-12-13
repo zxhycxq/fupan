@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Card, Button, Input, Modal, message, Progress, Space, Row, Col, Statistic, InputNumber } from 'antd';
+import { Card, Button, Input, Modal, message, Progress, Space, Row, Col, Statistic, InputNumber, Switch } from 'antd';
 import type { DragEndEvent } from '@dnd-kit/core';
 import { DndContext, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
@@ -54,6 +54,7 @@ const DEFAULT_MODULES: Module[] = [
 ];
 
 const STORAGE_KEY = 'exam_timer_state';
+const SETTINGS_KEY = 'exam_timer_settings'; // 新增：保存设置的键
 
 // 可拖拽项组件
 interface DraggableItemProps {
@@ -132,7 +133,7 @@ export default function ExamTimer() {
     isPaused: false,
     isRunning: false,
     isCountdown: false,
-    countdownDuration: 7200, // 默认120分钟
+    countdownDuration: 6900, // 默认115分钟
     modules: DEFAULT_MODULES,
     currentModuleId: null,
   });
@@ -142,7 +143,7 @@ export default function ExamTimer() {
   const [showReport, setShowReport] = useState(false);
   const [tempModules, setTempModules] = useState<Module[]>(DEFAULT_MODULES);
   const [tempCountdown, setTempCountdown] = useState(false);
-  const [tempDuration, setTempDuration] = useState(120);
+  const [tempDuration, setTempDuration] = useState(115);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const reportRef = useRef<HTMLDivElement>(null);
@@ -154,6 +155,24 @@ export default function ExamTimer() {
       },
     })
   );
+
+  // 初始化时加载保存的设置
+  useEffect(() => {
+    const savedSettings = localStorage.getItem(SETTINGS_KEY);
+    if (savedSettings) {
+      try {
+        const settings = JSON.parse(savedSettings);
+        setState(prev => ({
+          ...prev,
+          modules: settings.modules || DEFAULT_MODULES,
+          isCountdown: settings.isCountdown || false,
+          countdownDuration: settings.countdownDuration || 6900,
+        }));
+      } catch (e) {
+        console.error('加载设置失败:', e);
+      }
+    }
+  }, []);
 
   // 从localStorage恢复状态
   useEffect(() => {
@@ -405,11 +424,18 @@ export default function ExamTimer() {
       }
     }
     
-    setState(prev => ({
-      ...prev,
+    const newSettings = {
       modules: tempModules,
       isCountdown: tempCountdown,
       countdownDuration: tempDuration * 60,
+    };
+    
+    // 保存设置到localStorage
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(newSettings));
+    
+    setState(prev => ({
+      ...prev,
+      ...newSettings,
     }));
     setShowSettings(false);
     message.success('设置已保存');
@@ -669,25 +695,22 @@ export default function ExamTimer() {
                 <ClockCircleOutlined className="text-lg" />
                 <span className="font-semibold">倒计时模式</span>
               </div>
-              <Button
-                type={tempCountdown ? 'primary' : 'default'}
-                onClick={() => setTempCountdown(!tempCountdown)}
-              >
-                {tempCountdown ? '开启' : '关闭'}
-              </Button>
+              <Switch
+                checked={tempCountdown}
+                onChange={setTempCountdown}
+              />
             </div>
-            {tempCountdown && (
-              <div className="flex items-center gap-2 pl-7">
-                <span className="text-sm text-gray-600">考试总时长</span>
-                <InputNumber
-                  min={1}
-                  value={tempDuration}
-                  onChange={(value) => setTempDuration(value || 120)}
-                  style={{ width: '100px' }}
-                  addonAfter="分钟"
-                />
-              </div>
-            )}
+            <div className="flex items-center gap-2 pl-7">
+              <span className="text-sm text-gray-600">考试总时长</span>
+              <InputNumber
+                min={1}
+                value={tempDuration}
+                onChange={(value) => setTempDuration(value || 115)}
+                style={{ width: '100px' }}
+                addonAfter="分钟"
+                disabled={!tempCountdown}
+              />
+            </div>
           </div>
           
           {/* 模块设置 */}
