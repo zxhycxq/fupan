@@ -175,15 +175,16 @@ export function parseExamData(
   for (const module of moduleStructure) {
     console.log(`\n--- 解析模块: ${module.name} ---`);
     
-    // 查找大模块数据 - 支持多种格式，更宽松的匹配
+    // 查找大模块数据 - 支持多种格式，但要精确匹配
     // 格式1（网页版）: "总题数20题 答对15题 正确率75% 用时30秒"
     // 格式2（手机端）: "共20道，答对15道，正确率75%，用时30秒"
-    // 格式3（手机端变体）: "共 20 道 ， 答对 15 道 ， 正确率 75% ， 用时 30 秒"
+    // 
+    // 关键改进：使用更小的搜索范围，确保只匹配紧跟在模块名后的数据
+    // 避免跨越到其他模块或子模块
     
-    // 构建更宽松的手机端格式正则
-    // 允许模块名和数据之间有更多空白字符和换行
-    const mobilePattern = `${module.name}[\\s\\S]{0,300}?` +  // 增加搜索范围
-      `共[\\s，,]*?(\\d+)[\\s]*?道[\\s，,]+?` +  // 共X道（允许更多空格和逗号）
+    // 手机端格式：模块名后面紧跟数据（最多100字符内）
+    const mobilePattern = `${module.name}[\\s\\n]{0,20}` +  // 模块名后最多20个空白字符
+      `共[\\s，,]*?(\\d+)[\\s]*?道[\\s，,]+?` +  // 共X道
       `答对[\\s，,]*?(\\d+)[\\s]*?道[\\s，,]+?` +  // 答对Y道
       `正确率[\\s，,]*?(\\d+)[\\s]*?%[\\s，,]+?` +  // 正确率Z%
       `用时[\\s，,]*?(\\d+)[\\s]*?(?:分[\\s]*?)?(\\d+)?[\\s]*?秒`;  // 用时W分X秒 或 用时W秒
@@ -194,10 +195,10 @@ export function parseExamData(
     
     // 如果手机端格式没匹配到，尝试网页版格式
     if (!moduleMatch) {
-      const webPattern = `${module.name}[\\s\\S]{0,200}?` +
-        `(?:总题数|共计)[：:\\s]*?(\\d+)(?:题|道)?[\\s\\S]{0,50}?` +
-        `(?:答对|正确)[：:\\s]*?(\\d+)(?:题|道)?[\\s\\S]{0,50}?` +
-        `(?:正确率|准确率)[：:\\s]*?(\\d+)%[\\s\\S]{0,50}?` +
+      const webPattern = `${module.name}[\\s\\S]{0,100}?` +  // 减小搜索范围
+        `(?:总题数|共计)[：:\\s]*?(\\d+)(?:题|道)?[\\s\\S]{0,30}?` +
+        `(?:答对|正确)[：:\\s]*?(\\d+)(?:题|道)?[\\s\\S]{0,30}?` +
+        `(?:正确率|准确率)[：:\\s]*?(\\d+)%[\\s\\S]{0,30}?` +
         `(?:用时|时间)[：:\\s]*?(\\d+)(?:秒|分)?`;
       
       const webRegex = new RegExp(webPattern, 'i');
@@ -236,11 +237,19 @@ export function parseExamData(
         }
       }
       
+      // 数据验证：确保数据合理
+      if (totalQuestions < correctAnswers) {
+        console.warn(`警告: ${module.name} 的答对数(${correctAnswers})大于总题数(${totalQuestions})，数据可能有误`);
+      }
+      if (accuracyRate > 100) {
+        console.warn(`警告: ${module.name} 的正确率(${accuracyRate}%)超过100%，数据可能有误`);
+      }
+      
       // 计算答错数和未答数
       const wrongAnswers = totalQuestions - correctAnswers;
       const unanswered = 0; // 默认为0
 
-      console.log(`解析结果: 总题数=${totalQuestions}, 答对=${correctAnswers}, 正确率=${accuracyRate}%, 用时=${timeUsedSec}秒`);
+      console.log(`✓ 解析成功: 总题数=${totalQuestions}, 答对=${correctAnswers}, 正确率=${accuracyRate}%, 用时=${timeUsedSec}秒`);
 
       moduleScores.push({
         module_name: module.name,
@@ -253,15 +262,15 @@ export function parseExamData(
         time_used: timeUsedSec,
       });
     } else {
-      console.log(`未找到模块数据`);
+      console.log(`✗ 未找到模块数据`);
     }
 
     // 查找子模块数据
     for (const childName of module.children) {
       console.log(`  - 解析子模块: ${childName}`);
       
-      // 构建更宽松的手机端格式正则（与大模块相同的策略）
-      const childMobilePattern = `${childName}[\\s\\S]{0,300}?` +  // 增加搜索范围
+      // 手机端格式：子模块名后面紧跟数据（最多100字符内）
+      const childMobilePattern = `${childName}[\\s\\n]{0,20}` +  // 子模块名后最多20个空白字符
         `共[\\s，,]*?(\\d+)[\\s]*?道[\\s，,]+?` +  // 共X道
         `答对[\\s，,]*?(\\d+)[\\s]*?道[\\s，,]+?` +  // 答对Y道
         `正确率[\\s，,]*?(\\d+)[\\s]*?%[\\s，,]+?` +  // 正确率Z%
@@ -273,10 +282,10 @@ export function parseExamData(
       
       // 如果手机端格式没匹配到，尝试网页版格式
       if (!childMatch) {
-        const childWebPattern = `${childName}[\\s\\S]{0,200}?` +
-          `(?:总题数|共计)[：:\\s]*?(\\d+)(?:题|道)?[\\s\\S]{0,50}?` +
-          `(?:答对|正确)[：:\\s]*?(\\d+)(?:题|道)?[\\s\\S]{0,50}?` +
-          `(?:正确率|准确率)[：:\\s]*?(\\d+)%[\\s\\S]{0,50}?` +
+        const childWebPattern = `${childName}[\\s\\S]{0,100}?` +  // 减小搜索范围
+          `(?:总题数|共计)[：:\\s]*?(\\d+)(?:题|道)?[\\s\\S]{0,30}?` +
+          `(?:答对|正确)[：:\\s]*?(\\d+)(?:题|道)?[\\s\\S]{0,30}?` +
+          `(?:正确率|准确率)[：:\\s]*?(\\d+)%[\\s\\S]{0,30}?` +
           `(?:用时|时间)[：:\\s]*?(\\d+)(?:秒|分)?`;
         
         const childWebRegex = new RegExp(childWebPattern, 'i');
@@ -313,6 +322,11 @@ export function parseExamData(
           }
         }
         
+        // 数据验证
+        if (totalQuestions < correctAnswers) {
+          console.warn(`  警告: ${childName} 的答对数(${correctAnswers})大于总题数(${totalQuestions})，数据可能有误`);
+        }
+        
         // 如果总用时小于10分钟,子模块时间设为0
         if (!shouldRecordSubModuleTime) {
           console.log(`  总用时小于10分钟,子模块时间设为0`);
@@ -322,7 +336,7 @@ export function parseExamData(
         const wrongAnswers = totalQuestions - correctAnswers;
         const unanswered = 0;
 
-        console.log(`  解析结果: 总题数=${totalQuestions}, 答对=${correctAnswers}, 正确率=${accuracyRate}%, 用时=${timeUsedSec}秒`);
+        console.log(`  ✓ 解析成功: 总题数=${totalQuestions}, 答对=${correctAnswers}, 正确率=${accuracyRate}%, 用时=${timeUsedSec}秒`);
 
         moduleScores.push({
           module_name: childName,
@@ -335,7 +349,7 @@ export function parseExamData(
           time_used: timeUsedSec,
         });
       } else {
-        console.log(`  未找到子模块数据`);
+        console.log(`  ✗ 未找到子模块数据`);
       }
     }
   }
