@@ -1,5 +1,41 @@
 import type { ExamRecord, ModuleScore } from '@/types';
 
+// 预处理OCR文本，提高解析准确度
+function preprocessOcrText(text: string): string {
+  let processed = text;
+  
+  // 1. 统一标点符号
+  processed = processed
+    .replace(/，/g, ',')  // 中文逗号转英文逗号
+    .replace(/：/g, ':')  // 中文冒号转英文冒号
+    .replace(/（/g, '(')  // 中文括号转英文括号
+    .replace(/）/g, ')')
+    .replace(/％/g, '%'); // 全角百分号转半角
+  
+  // 2. 清理多余空白字符（但保留必要的换行）
+  processed = processed
+    .replace(/[ \t]+/g, ' ')  // 多个空格/制表符合并为一个空格
+    .replace(/\n\s+/g, '\n')  // 删除行首空格
+    .replace(/\s+\n/g, '\n')  // 删除行尾空格
+    .replace(/\n{3,}/g, '\n\n');  // 多个换行合并为两个
+  
+  // 3. 修复常见OCR错误
+  processed = processed
+    .replace(/[oO0]/g, '0')  // 在数字上下文中，o/O可能是0
+    .replace(/[lI1]/g, '1')  // 在数字上下文中，l/I可能是1
+    .replace(/共\s*([0-9]+)\s*([道题])/g, '共$1$2')  // 规范化"共X道"格式
+    .replace(/答对\s*([0-9]+)\s*([道题])/g, '答对$1$2')  // 规范化"答对X道"格式
+    .replace(/正确率\s*([0-9]+)\s*%/g, '正确率$1%')  // 规范化"正确率X%"格式
+    .replace(/用时\s*([0-9]+)\s*(秒|分)/g, '用时$1$2');  // 规范化"用时X秒"格式
+  
+  console.log('=== OCR文本预处理 ===');
+  console.log('原始文本长度:', text.length);
+  console.log('处理后文本长度:', processed.length);
+  console.log('处理后前300字符:', processed.substring(0, 300));
+  
+  return processed;
+}
+
 // 解析OCR识别的文本,提取考试数据
 export function parseExamData(
   ocrText: string,
@@ -10,33 +46,38 @@ export function parseExamData(
   moduleScores: Omit<ModuleScore, 'id' | 'exam_record_id' | 'created_at'>[];
 } {
   console.log('=== 开始解析OCR文本 ===');
-  console.log('OCR文本长度:', ocrText.length);
-  console.log('OCR文本前500字符:', ocrText.substring(0, 500));
+  console.log('OCR原始文本长度:', ocrText.length);
   console.log('用户输入用时:', timeUsedSeconds, '秒');
+  
+  // 预处理OCR文本
+  const processedText = preprocessOcrText(ocrText);
+  
+  // 使用处理后的文本进行解析
+  const textToUse = processedText;
 
   // 提取总分 - 支持多种格式,包括紧凑格式
-  const totalScoreMatch = ocrText.match(/我的得分[：:\s]*(\d+\.?\d*)/i) || 
-                          ocrText.match(/得分[：:\s]*(\d+\.?\d*)/i) ||
-                          ocrText.match(/(\d+\.?\d*)\s*[/／]\s*100/) ||
-                          ocrText.match(/(\d+\.?\d*)[/／]100/);
+  const totalScoreMatch = textToUse.match(/我的得分[：:\s]*(\d+\.?\d*)/i) || 
+                          textToUse.match(/得分[：:\s]*(\d+\.?\d*)/i) ||
+                          textToUse.match(/(\d+\.?\d*)\s*[/／]\s*100/) ||
+                          textToUse.match(/(\d+\.?\d*)[/／]100/);
   const totalScore = totalScoreMatch ? parseFloat(totalScoreMatch[1]) : 0;
   console.log('提取总分:', totalScore, '匹配结果:', totalScoreMatch?.[0]);
 
   // 提取最高分 - 增强匹配
-  const maxScoreMatch = ocrText.match(/最高分[：:\s]*(\d+\.?\d*)/i) ||
-                        ocrText.match(/最高[：:\s]*(\d+\.?\d*)/i);
+  const maxScoreMatch = textToUse.match(/最高分[：:\s]*(\d+\.?\d*)/i) ||
+                        textToUse.match(/最高[：:\s]*(\d+\.?\d*)/i);
   const maxScore = maxScoreMatch ? parseFloat(maxScoreMatch[1]) : undefined;
   console.log('提取最高分:', maxScore, '匹配结果:', maxScoreMatch?.[0]);
 
   // 提取平均分 - 增强匹配
-  const avgScoreMatch = ocrText.match(/平均分[：:\s]*(\d+\.?\d*)/i) ||
-                        ocrText.match(/平均[：:\s]*(\d+\.?\d*)/i);
+  const avgScoreMatch = textToUse.match(/平均分[：:\s]*(\d+\.?\d*)/i) ||
+                        textToUse.match(/平均[：:\s]*(\d+\.?\d*)/i);
   const averageScore = avgScoreMatch ? parseFloat(avgScoreMatch[1]) : undefined;
   console.log('提取平均分:', averageScore, '匹配结果:', avgScoreMatch?.[0]);
 
   // 提取难度系数 - 增强匹配,支持右上角的"难度4.8"格式
-  const difficultyMatch = ocrText.match(/难度[：:\s]*(\d+\.?\d*)/i) ||
-                          ocrText.match(/难度(\d+\.?\d*)/i);
+  const difficultyMatch = textToUse.match(/难度[：:\s]*(\d+\.?\d*)/i) ||
+                          textToUse.match(/难度(\d+\.?\d*)/i);
   let difficulty = difficultyMatch ? parseFloat(difficultyMatch[1]) : undefined;
   // 确保难度系数在 0-5 范围内
   if (difficulty !== undefined && difficulty > 5) {
@@ -46,9 +87,9 @@ export function parseExamData(
   console.log('提取难度:', difficulty, '匹配结果:', difficultyMatch?.[0]);
 
   // 提取已击败考生百分比 - 增强匹配,支持"73.3%"等格式
-  const beatPercentageMatch = ocrText.match(/已击败[考生\s]*[：:\s]*(\d+\.?\d*)%/i) ||
-                              ocrText.match(/击败[考生\s]*[：:\s]*(\d+\.?\d*)%/i) ||
-                              ocrText.match(/已击败(\d+\.?\d*)%/i);
+  const beatPercentageMatch = textToUse.match(/已击败[考生\s]*[：:\s]*(\d+\.?\d*)%/i) ||
+                              textToUse.match(/击败[考生\s]*[：:\s]*(\d+\.?\d*)%/i) ||
+                              textToUse.match(/已击败(\d+\.?\d*)%/i);
   const beatPercentage = beatPercentageMatch ? parseFloat(beatPercentageMatch[1]) : undefined;
   console.log('提取击败百分比:', beatPercentage, '匹配结果:', beatPercentageMatch?.[0]);
 
@@ -98,11 +139,16 @@ export function parseExamData(
       name: '数量关系',
       children: [
         '数学运算',
+        '多位数问题',
+        '平均数问题',
         '工程问题',
+        '溶液问题',
         '最值问题',
+        '计数模型问题',
+        '年龄问题',
+        '和差倍比问题',
         '牛吃草问题',
         '周期问题',
-        '和差倍比问题',
         '数列问题',
         '行程问题',
         '几何问题',
@@ -111,7 +157,8 @@ export function parseExamData(
         '概率问题',
         '经济利润问题',
         '函数最值问题',
-        '钟表问题'
+        '钟表问题',
+        '不定方程问题',
       ],
     },
     {
@@ -128,19 +175,21 @@ export function parseExamData(
   for (const module of moduleStructure) {
     console.log(`\n--- 解析模块: ${module.name} ---`);
     
-    // 查找大模块数据 - 支持两种格式
+    // 查找大模块数据 - 支持多种格式，更宽松的匹配
     // 格式1（网页版）: "总题数20题 答对15题 正确率75% 用时30秒"
     // 格式2（手机端）: "共20道，答对15道，正确率75%，用时30秒"
+    // 格式3（手机端变体）: "共 20 道 ， 答对 15 道 ， 正确率 75% ， 用时 30 秒"
     
-    // 先尝试手机端格式
-    const mobilePattern = `${module.name}[\\s\\S]{0,200}?` +
-      `共\\s*(\\d+)\\s*道[，,\\s]+` + // 共X道
-      `答对\\s*(\\d+)\\s*道[，,\\s]+` + // 答对Y道
-      `正确率\\s*(\\d+)%[，,\\s]+` + // 正确率Z%
-      `用时\\s*(\\d+)\\s*(?:分\\s*)?(\\d+)?\\s*秒`; // 用时W分X秒 或 用时W秒
+    // 构建更宽松的手机端格式正则
+    // 允许模块名和数据之间有更多空白字符和换行
+    const mobilePattern = `${module.name}[\\s\\S]{0,300}?` +  // 增加搜索范围
+      `共[\\s，,]*?(\\d+)[\\s]*?道[\\s，,]+?` +  // 共X道（允许更多空格和逗号）
+      `答对[\\s，,]*?(\\d+)[\\s]*?道[\\s，,]+?` +  // 答对Y道
+      `正确率[\\s，,]*?(\\d+)[\\s]*?%[\\s，,]+?` +  // 正确率Z%
+      `用时[\\s，,]*?(\\d+)[\\s]*?(?:分[\\s]*?)?(\\d+)?[\\s]*?秒`;  // 用时W分X秒 或 用时W秒
     
     const mobileRegex = new RegExp(mobilePattern, 'i');
-    let moduleMatch = ocrText.match(mobileRegex);
+    let moduleMatch = textToUse.match(mobileRegex);
     let isMobileFormat = !!moduleMatch;
     
     // 如果手机端格式没匹配到，尝试网页版格式
@@ -152,11 +201,11 @@ export function parseExamData(
         `(?:用时|时间)[：:\\s]*?(\\d+)(?:秒|分)?`;
       
       const webRegex = new RegExp(webPattern, 'i');
-      moduleMatch = ocrText.match(webRegex);
+      moduleMatch = textToUse.match(webRegex);
     }
 
     if (moduleMatch) {
-      console.log(`找到模块数据:`, moduleMatch[0].substring(0, 100));
+      console.log(`找到模块数据:`, moduleMatch[0].substring(0, 150));
       
       let totalQuestions, correctAnswers, accuracyRate, timeUsedSec;
       
@@ -211,15 +260,15 @@ export function parseExamData(
     for (const childName of module.children) {
       console.log(`  - 解析子模块: ${childName}`);
       
-      // 先尝试手机端格式
-      const childMobilePattern = `${childName}[\\s\\S]{0,200}?` +
-        `共\\s*(\\d+)\\s*道[，,\\s]+` +
-        `答对\\s*(\\d+)\\s*道[，,\\s]+` +
-        `正确率\\s*(\\d+)%[，,\\s]+` +
-        `用时\\s*(\\d+)\\s*(?:分\\s*)?(\\d+)?\\s*秒`;
+      // 构建更宽松的手机端格式正则（与大模块相同的策略）
+      const childMobilePattern = `${childName}[\\s\\S]{0,300}?` +  // 增加搜索范围
+        `共[\\s，,]*?(\\d+)[\\s]*?道[\\s，,]+?` +  // 共X道
+        `答对[\\s，,]*?(\\d+)[\\s]*?道[\\s，,]+?` +  // 答对Y道
+        `正确率[\\s，,]*?(\\d+)[\\s]*?%[\\s，,]+?` +  // 正确率Z%
+        `用时[\\s，,]*?(\\d+)[\\s]*?(?:分[\\s]*?)?(\\d+)?[\\s]*?秒`;  // 用时W分X秒 或 用时W秒
       
       const childMobileRegex = new RegExp(childMobilePattern, 'i');
-      let childMatch = ocrText.match(childMobileRegex);
+      let childMatch = textToUse.match(childMobileRegex);
       let isChildMobileFormat = !!childMatch;
       
       // 如果手机端格式没匹配到，尝试网页版格式
@@ -231,11 +280,11 @@ export function parseExamData(
           `(?:用时|时间)[：:\\s]*?(\\d+)(?:秒|分)?`;
         
         const childWebRegex = new RegExp(childWebPattern, 'i');
-        childMatch = ocrText.match(childWebRegex);
+        childMatch = textToUse.match(childWebRegex);
       }
 
       if (childMatch) {
-        console.log(`  找到子模块数据:`, childMatch[0].substring(0, 80));
+        console.log(`  找到子模块数据:`, childMatch[0].substring(0, 100));
         
         let totalQuestions, correctAnswers, accuracyRate, timeUsedSec;
         
