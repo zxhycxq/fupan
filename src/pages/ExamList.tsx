@@ -1042,6 +1042,7 @@ export default function ExamList() {
           layout="vertical"
           autoComplete="off"
         >
+          {/* 1. 考试名称 */}
           <Form.Item
             label="考试名称"
             name="exam_name"
@@ -1056,22 +1057,7 @@ export default function ExamList() {
             />
           </Form.Item>
 
-          <Form.Item
-            label="考试类型"
-            name="exam_type"
-          >
-            <Select
-              placeholder="请选择考试类型"
-              options={[
-                { value: '国考真题', label: '国考真题' },
-                { value: '国考模考', label: '国考模考' },
-                { value: '省考真题', label: '省考真题' },
-                { value: '省考模考', label: '省考模考' },
-                { value: '其他', label: '其他' }
-              ]}
-            />
-          </Form.Item>
-
+          {/* 2. 总分 */}
           <Form.Item
             label="总分"
             name="total_score"
@@ -1089,43 +1075,7 @@ export default function ExamList() {
             />
           </Form.Item>
 
-          <Form.Item
-            label="用时（分钟）"
-            name="time_used"
-          >
-            <InputNumber
-              min={0}
-              style={{ width: '100%' }}
-              placeholder="请输入用时"
-            />
-          </Form.Item>
-
-          <Form.Item
-            label="平均分"
-            name="average_score"
-          >
-            <InputNumber
-              min={0}
-              max={100}
-              step={0.1}
-              style={{ width: '100%' }}
-              placeholder="请输入平均分"
-            />
-          </Form.Item>
-
-          <Form.Item
-            label="击败率（%）"
-            name="pass_rate"
-          >
-            <InputNumber
-              min={0}
-              max={100}
-              step={0.1}
-              style={{ width: '100%' }}
-              placeholder="请输入击败率"
-            />
-          </Form.Item>
-
+          {/* 3. 考试日期 */}
           <Form.Item
             label="考试日期"
             name="exam_date"
@@ -1144,6 +1094,64 @@ export default function ExamList() {
             />
           </Form.Item>
 
+          {/* 4. 用时（分钟） */}
+          <Form.Item
+            label="用时（分钟）"
+            name="time_used"
+          >
+            <InputNumber
+              min={0}
+              style={{ width: '100%' }}
+              placeholder="请输入用时"
+            />
+          </Form.Item>
+
+          {/* 5. 平均分 */}
+          <Form.Item
+            label="平均分"
+            name="average_score"
+          >
+            <InputNumber
+              min={0}
+              max={100}
+              step={0.1}
+              style={{ width: '100%' }}
+              placeholder="请输入平均分"
+            />
+          </Form.Item>
+
+          {/* 6. 击败率（%） */}
+          <Form.Item
+            label="击败率（%）"
+            name="pass_rate"
+          >
+            <InputNumber
+              min={0}
+              max={100}
+              step={0.1}
+              style={{ width: '100%' }}
+              placeholder="请输入击败率"
+            />
+          </Form.Item>
+
+          {/* 7. 考试类型 */}
+          <Form.Item
+            label="考试类型"
+            name="exam_type"
+          >
+            <Select
+              placeholder="请选择考试类型"
+              options={[
+                { value: '国考真题', label: '国考真题' },
+                { value: '国考模考', label: '国考模考' },
+                { value: '省考真题', label: '省考真题' },
+                { value: '省考模考', label: '省考模考' },
+                { value: '其他', label: '其他' }
+              ]}
+            />
+          </Form.Item>
+
+          {/* 8. 考试报告链接 */}
           <Form.Item
             label="考试报告链接"
             name="report_url"

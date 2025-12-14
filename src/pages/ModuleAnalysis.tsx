@@ -8,6 +8,7 @@ import dayjs, { Dayjs } from 'dayjs';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import DateRangeFilter from '@/components/common/DateRangeFilter';
+import { getSeriesStyle, LEGEND_CONFIG, TOOLTIP_CONFIG } from '@/config/chartStyles';
 
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isSameOrBefore);
@@ -313,21 +314,17 @@ export default function ModuleAnalysis() {
           formatter: '{value}%'
         }
       },
-      series: series.map((s) => ({
-        name: s.name,
-        type: 'line',
-        data: s.data,
-        smooth: true,
-        symbol: 'circle',
-        symbolSize: 6,
-        lineStyle: {
-          width: 2
-        },
-        itemStyle: {
-          color: SUB_MODULE_COLORS[s.name] || color
-        },
-        connectNulls: false
-      }))
+      series: series.map((s, index) => {
+        const style = getSeriesStyle(index);
+        return {
+          name: s.name,
+          type: 'line',
+          data: s.data,
+          smooth: true,
+          ...style,
+          connectNulls: false,
+        };
+      })
     };
   };
 

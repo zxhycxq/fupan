@@ -17,6 +17,7 @@ import { DASHBOARD_GRADIENTS, generateGradientStyle } from '@/config/gradients';
 import DateRangeFilter from '@/components/common/DateRangeFilter';
 import StatCard from '@/components/common/StatCard';
 import { getGradeLabelsByTheme } from '@/config/gradeLabels';
+import { getSeriesStyle, LEGEND_CONFIG, TOOLTIP_CONFIG } from '@/config/chartStyles';
 
 // 扩展dayjs
 dayjs.extend(dayOfYear);
@@ -667,30 +668,17 @@ export default function Dashboard() {
         formatter: '{value}%',
       },
     },
-    series: filteredModuleTrendData.modules.map((module, index) => ({
-      name: module.module_name,
-      type: 'line',
-      data: module.data,
-      smooth: true,
-      connectNulls: true,
-      symbol: 'circle',
-      symbolSize: 6,
-      lineStyle: {
-        width: 2,
-      },
-      itemStyle: {
-        color: [
-          '#5470C6',
-          '#91CC75',
-          '#FAC858',
-          '#EE6666',
-          '#73C0DE',
-          '#3BA272',
-          '#FC8452',
-          '#9A60B4',
-        ][index % 8],
-      },
-    })),
+    series: filteredModuleTrendData.modules.map((module, index) => {
+      const style = getSeriesStyle(index);
+      return {
+        name: module.module_name,
+        type: 'line',
+        data: module.data,
+        smooth: true,
+        connectNulls: true,
+        ...style,
+      };
+    }),
   };
 
   // 模块用时趋势图配置
@@ -762,30 +750,17 @@ export default function Dashboard() {
         formatter: '{value}',
       },
     },
-    series: filteredModuleTimeTrendData.modules.map((module, index) => ({
-      name: module.module_name,
-      type: 'line',
-      data: module.data,
-      smooth: true,
-      connectNulls: true,
-      symbol: 'circle',
-      symbolSize: 6,
-      lineStyle: {
-        width: 2,
-      },
-      itemStyle: {
-        color: [
-          '#5470C6',
-          '#91CC75',
-          '#FAC858',
-          '#EE6666',
-          '#73C0DE',
-          '#3BA272',
-          '#FC8452',
-          '#9A60B4',
-        ][index % 8],
-      },
-    })),
+    series: filteredModuleTimeTrendData.modules.map((module, index) => {
+      const style = getSeriesStyle(index);
+      return {
+        name: module.module_name,
+        type: 'line',
+        data: module.data,
+        smooth: true,
+        connectNulls: true,
+        ...style,
+      };
+    }),
   };
 
   // 得分分布图配置
