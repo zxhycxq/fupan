@@ -9,15 +9,14 @@ import { miaodaDevPlugin } from "miaoda-sc-plugin";
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
-    react(),
+    react(), 
     svgr({
       svgrOptions: {
-        icon: true,
-        exportType: 'named',
-        namedExport: 'ReactComponent',
-      },
-    }),
-    miaodaDevPlugin(),
+        icon: true, 
+        exportType: 'named', 
+        namedExport: 'ReactComponent', 
+      }, 
+    }), 
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'robots.txt', 'apple-touch-icon.png'],
@@ -33,17 +32,17 @@ export default defineConfig({
         start_url: '/',
         icons: [
           {
-            src: '/pwa-192x192.png',
+            src: 'pwa-192x192.png',
             sizes: '192x192',
             type: 'image/png',
           },
           {
-            src: '/pwa-512x512.png',
+            src: 'pwa-512x512.png',
             sizes: '512x512',
             type: 'image/png',
           },
           {
-            src: '/pwa-512x512.png',
+            src: 'pwa-512x512.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any maskable',
@@ -89,6 +88,7 @@ export default defineConfig({
         type: 'module',
       },
     }),
+    miaodaDevPlugin(),
   ],
   resolve: {
     alias: {
