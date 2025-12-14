@@ -515,6 +515,48 @@ export default function Dashboard() {
             ],
           },
         },
+        // 添加最大值和最小值标记
+        markLine: {
+          symbol: ['none', 'circle'],
+          label: {
+            position: 'end',
+            formatter: (params: any) => {
+              if (params.type === 'max') {
+                return `最高: ${params.value.toFixed(2)}分`;
+              } else if (params.type === 'min') {
+                return `最低: ${params.value.toFixed(2)}分`;
+              }
+              return '';
+            },
+            fontSize: isMobile ? 10 : 12,
+          },
+          lineStyle: {
+            type: 'dashed',
+            width: 1.5,
+          },
+          data: [
+            {
+              type: 'max',
+              name: '最高分',
+              lineStyle: {
+                color: '#52C41A',
+              },
+              label: {
+                color: '#52C41A',
+              },
+            },
+            {
+              type: 'min',
+              name: '最低分',
+              lineStyle: {
+                color: '#FF4D4F',
+              },
+              label: {
+                color: '#FF4D4F',
+              },
+            },
+          ],
+        },
       },
       {
         name: '平均分',
@@ -532,7 +574,16 @@ export default function Dashboard() {
     ],
   };
 
-  // 模块平均正确率柱状图配置
+  // 获取目标正确率设置
+  const targetAccuracySetting = useMemo(() => {
+    // 从用户设置中获取目标正确率，如果有多个设置，取第一个
+    if (userSettings.length > 0 && userSettings[0].target_accuracy) {
+      return userSettings[0].target_accuracy;
+    }
+    return null;
+  }, [userSettings]);
+
+  // 模块平均正确率柱状图配置（添加目标正确率折线）
   const moduleAvgOption = {
     title: {
       text: '各模块平均正确率',
@@ -544,19 +595,31 @@ export default function Dashboard() {
     tooltip: {
       trigger: 'axis',
       axisPointer: {
-        type: 'shadow',
+        type: 'cross',
       },
       formatter: (params: any) => {
         if (!params || params.length === 0) return '';
-        const param = params[0];
-        return `${param.axisValue}<br/>${param.marker}${param.seriesName}: ${param.value.toFixed(2)}%`;
+        let result = `${params[0].axisValue}<br/>`;
+        params.forEach((param: any) => {
+          if (param.value !== null && param.value !== undefined) {
+            result += `${param.marker}${param.seriesName}: ${param.value.toFixed(2)}%<br/>`;
+          }
+        });
+        return result;
+      },
+    },
+    legend: {
+      data: targetAccuracySetting ? ['实际正确率', '目标正确率'] : ['实际正确率'],
+      top: 30,
+      textStyle: {
+        fontSize: isMobile ? 10 : 12,
       },
     },
     grid: {
       left: isMobile ? '5%' : '3%',
       right: isMobile ? '5%' : '4%',
       bottom: isMobile ? '15%' : '10%',
-      top: isMobile ? 50 : 60,
+      top: isMobile ? 70 : 80,
       containLabel: true,
     },
     xAxis: {
@@ -583,7 +646,7 @@ export default function Dashboard() {
     },
     series: [
       {
-        name: '正确率',
+        name: '实际正确率',
         type: 'bar',
         data: filteredModuleAvgScores.map(m => m.avg_accuracy),
         itemStyle: {
@@ -595,6 +658,23 @@ export default function Dashboard() {
           },
         },
       },
+      // 添加目标正确率折线（如果设置了目标正确率）
+      ...(targetAccuracySetting ? [{
+        name: '目标正确率',
+        type: 'line',
+        data: filteredModuleAvgScores.map(() => targetAccuracySetting),
+        smooth: true,
+        itemStyle: {
+          color: '#FF4D4F',
+        },
+        lineStyle: {
+          type: 'dashed',
+          width: 2,
+          color: '#FF4D4F',
+        },
+        symbol: 'circle',
+        symbolSize: 6,
+      }] : []),
     ],
   };
 
@@ -2202,7 +2282,14 @@ export default function Dashboard() {
             marginTop: '-50vw',
           }}
         >
-          <div className="w-full h-full p-4 overflow-auto">
+          <div 
+            className="w-full h-full p-4"
+            style={{
+              overflow: 'auto',
+              WebkitOverflowScrolling: 'touch', // iOS平滑滚动
+              overscrollBehavior: 'contain', // 防止滚动穿透
+            }}
+          >
             <div className="text-xl font-bold mb-4 text-center">{showLandscapeModal.title}</div>
             {showLandscapeModal.type === 'chart' && (
               <>
@@ -2227,14 +2314,24 @@ export default function Dashboard() {
               </>
             )}
             {showLandscapeModal.type === 'table' && showLandscapeModal.content === 'detailTable' && (
-              <div className="h-[calc(100%-60px)] overflow-auto">
+              <div 
+                className="h-[calc(100%-60px)]"
+                style={{
+                  overflow: 'auto',
+                  WebkitOverflowScrolling: 'touch', // iOS平滑滚动
+                  overscrollBehavior: 'contain', // 防止滚动穿透
+                }}
+              >
                 <Table
                   columns={columns}
                   dataSource={tableDataWithSummary}
                   pagination={false}
                   size="small"
                   bordered
-                  scroll={{ x: 'max-content' }}
+                  scroll={{ 
+                    x: 'max-content',
+                    y: undefined, // 移除y轴滚动，使用外层容器滚动
+                  }}
                   rowClassName={(record, index) => {
                     if (record.key === 'total') {
                       return 'bg-muted/50';
