@@ -515,47 +515,35 @@ export default function Dashboard() {
             ],
           },
         },
-        // 添加最大值和最小值标记
-        markLine: {
-          symbol: ['none', 'circle'],
-          label: {
-            position: 'end',
-            formatter: (params: any) => {
-              if (params.type === 'max') {
-                return `最高: ${params.value.toFixed(2)}分`;
-              } else if (params.type === 'min') {
-                return `最低: ${params.value.toFixed(2)}分`;
-              }
-              return '';
-            },
-            fontSize: isMobile ? 10 : 12,
-          },
-          lineStyle: {
-            type: 'dashed',
-            width: 1.5,
-          },
+        // 添加最大值和最小值标记点
+        markPoint: {
           data: [
             {
               type: 'max',
               name: '最高分',
-              lineStyle: {
-                color: '#52C41A',
-              },
               label: {
+                formatter: (params: any) => `最高\n${params.value.toFixed(2)}`,
+                fontSize: isMobile ? 10 : 12,
+                color: '#fff',
+              },
+              itemStyle: {
                 color: '#52C41A',
               },
             },
             {
               type: 'min',
               name: '最低分',
-              lineStyle: {
-                color: '#FF4D4F',
-              },
               label: {
+                formatter: (params: any) => `最低\n${params.value.toFixed(2)}`,
+                fontSize: isMobile ? 10 : 12,
+                color: '#fff',
+              },
+              itemStyle: {
                 color: '#FF4D4F',
               },
             },
           ],
+          symbolSize: isMobile ? 50 : 60,
         },
       },
       {
@@ -574,14 +562,19 @@ export default function Dashboard() {
     ],
   };
 
-  // 获取目标正确率设置
-  const targetAccuracySetting = useMemo(() => {
-    // 从用户设置中获取目标正确率，如果有多个设置，取第一个
-    if (userSettings.length > 0 && userSettings[0].target_accuracy) {
-      return userSettings[0].target_accuracy;
-    }
-    return null;
+  // 获取目标正确率设置（按模块）
+  const targetAccuracyMap = useMemo(() => {
+    const map = new Map<string, number>();
+    userSettings.forEach(setting => {
+      if (setting.module_name && setting.target_accuracy) {
+        map.set(setting.module_name, setting.target_accuracy);
+      }
+    });
+    return map;
   }, [userSettings]);
+
+  // 检查是否有任何模块设置了目标正确率
+  const hasTargetAccuracy = targetAccuracyMap.size > 0;
 
   // 模块平均正确率柱状图配置（添加目标正确率折线）
   const moduleAvgOption = {
@@ -609,7 +602,7 @@ export default function Dashboard() {
       },
     },
     legend: {
-      data: targetAccuracySetting ? ['实际正确率', '目标正确率'] : ['实际正确率'],
+      data: hasTargetAccuracy ? ['实际正确率', '目标正确率'] : ['实际正确率'],
       top: 30,
       textStyle: {
         fontSize: isMobile ? 10 : 12,
@@ -659,11 +652,15 @@ export default function Dashboard() {
         },
       },
       // 添加目标正确率折线（如果设置了目标正确率）
-      ...(targetAccuracySetting ? [{
+      ...(hasTargetAccuracy ? [{
         name: '目标正确率',
         type: 'line',
-        data: filteredModuleAvgScores.map(() => targetAccuracySetting),
+        data: filteredModuleAvgScores.map(m => {
+          // 获取该模块的目标正确率，如果没有设置则返回null
+          return targetAccuracyMap.get(m.module_name) || null;
+        }),
         smooth: true,
+        connectNulls: false, // 不连接null值，这样没有设置目标的模块就不会显示
         itemStyle: {
           color: '#FF4D4F',
         },
