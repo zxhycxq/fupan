@@ -136,16 +136,16 @@ export default function Upload() {
         // 压缩图片
         setUploadProgress(((i + 0.3) / totalSteps) * 100);
         let processedFile = file;
+        
+        // 压缩图片以提高OCR识别准确度
+        // 注意：即使图片较小也进行处理，因为会应用图像增强
+        console.log(`图片 ${i + 1} 大小: ${(file.size / 1024 / 1024).toFixed(2)}MB`);
         try {
-          // 如果图片大于2MB,进行压缩
-          if (file.size > 2 * 1024 * 1024) {
-            console.log(`图片 ${i + 1} 大小: ${(file.size / 1024 / 1024).toFixed(2)}MB, 开始压缩...`);
-            processedFile = await compressImage(file, 1920, 0.85);
-          } else {
-            console.log(`图片 ${i + 1} 大小: ${(file.size / 1024 / 1024).toFixed(2)}MB, 无需压缩`);
-          }
+          // 使用默认参数：maxWidth=2400, quality=0.95，并应用图像增强
+          processedFile = await compressImage(file);
+          console.log(`图片 ${i + 1} 处理完成`);
         } catch (error) {
-          console.error('图片压缩失败,使用原图:', error);
+          console.error('图片处理失败,使用原图:', error);
           processedFile = file;
         }
 
