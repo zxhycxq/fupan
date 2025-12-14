@@ -8,22 +8,15 @@ import { miaodaDevPlugin } from "miaoda-sc-plugin";
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [
-    react(), 
-    svgr({
+  plugins: [react(), svgr({
       svgrOptions: {
-        icon: true, 
-        exportType: 'named', 
-        namedExport: 'ReactComponent', 
-      }, 
-    }), 
-    VitePWA({
-      registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'robots.txt', 'apple-touch-icon.png'],
+        icon: true, exportType: 'named', namedExport: 'ReactComponent', }, }), VitePWA({
+      registerType: 'autoUpdate', includeAssets: ['favicon.ico', 'robots.txt', 'apple-touch-icon.png', miaodaDevPlugin()],
       manifest: {
         name: '考试成绩分析系统',
         short_name: '成绩分析',
-        description: '专业的模拟考试成绩分析工具，支持多维度数据分析和可视化展示',
+        description:
+          '专业的模拟考试成绩分析工具，支持多维度数据分析和可视化展示',
         theme_color: '#1890ff',
         background_color: '#ffffff',
         display: 'standalone',
@@ -84,7 +77,7 @@ export default defineConfig({
         ],
       },
       devOptions: {
-        enabled: true,
+        enabled: false, // 开发环境禁用PWA，避免缓存问题
         type: 'module',
       },
     }),

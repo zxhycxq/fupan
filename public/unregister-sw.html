@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>清理Service Worker</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #1890ff;
+      margin-top: 0;
+    }
+    .status {
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 4px;
+      background: #e6f7ff;
+      border: 1px solid #91d5ff;
+      color: #0050b3;
+    }
+    .success {
+      background: #f6ffed;
+      border-color: #b7eb8f;
+      color: #389e0d;
+    }
+    .error {
+      background: #fff2e8;
+      border-color: #ffbb96;
+      color: #d4380d;
+    }
+    button {
+      background: #1890ff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      margin-right: 10px;
+    }
+    button:hover {
+      background: #40a9ff;
+    }
+    button:disabled {
+      background: #d9d9d9;
+      cursor: not-allowed;
+    }
+    .info {
+      margin-top: 20px;
+      padding: 15px;
+      background: #fffbe6;
+      border: 1px solid #ffe58f;
+      border-radius: 4px;
+      color: #ad6800;
+    }
+    .info h3 {
+      margin-top: 0;
+    }
+    .info ul {
+      margin: 10px 0;
+      padding-left: 20px;
+    }
+    .info li {
+      margin: 5px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔧 清理Service Worker</h1>
+    
+    <div id="status" class="status">
+      正在检查Service Worker状态...
+    </div>
+
+    <div style="margin: 20px 0;">
+      <button id="unregisterBtn" onclick="unregisterServiceWorker()">
+        注销Service Worker
+      </button>
+      <button onclick="clearCache()">
+        清理缓存
+      </button>
+      <button onclick="clearAll()">
+        完全清理
+      </button>
+    </div>
+
+    <div class="info">
+      <h3>💡 使用说明</h3>
+      <ul>
+        <li><strong>注销Service Worker</strong>：移除已注册的Service Worker</li>
+        <li><strong>清理缓存</strong>：删除所有PWA缓存数据</li>
+        <li><strong>完全清理</strong>：注销Service Worker + 清理缓存 + 清理localStorage</li>
+      </ul>
+      <p><strong>建议操作：</strong></p>
+      <ol>
+        <li>点击"完全清理"按钮</li>
+        <li>等待操作完成</li>
+        <li>关闭此页面</li>
+        <li>重新打开应用</li>
+      </ol>
+    </div>
+
+    <div class="info" style="margin-top: 20px; background: #fff1f0; border-color: #ffccc7; color: #cf1322;">
+      <h3>⚠️ 注意事项</h3>
+      <ul>
+        <li>清理后需要重新加载应用</li>
+        <li>localStorage数据会被清除（包括用户设置）</li>
+        <li>建议在遇到缓存问题时使用</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    // 检查Service Worker状态
+    async function checkServiceWorkerStatus() {
+      const statusDiv = document.getElementById('status');
+      const unregisterBtn = document.getElementById('unregisterBtn');
+
+      if (!('serviceWorker' in navigator)) {
+        statusDiv.className = 'status error';
+        statusDiv.textContent = '❌ 浏览器不支持Service Worker';
+        unregisterBtn.disabled = true;
+        return;
+      }
+
+      try {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        
+        if (registrations.length === 0) {
+          statusDiv.className = 'status success';
+          statusDiv.textContent = '✅ 没有已注册的Service Worker';
+          unregisterBtn.disabled = true;
+        } else {
+          statusDiv.className = 'status';
+          statusDiv.innerHTML = `
+            <strong>📋 发现 ${registrations.length} 个Service Worker：</strong><br>
+            ${registrations.map((reg, i) => `${i + 1}. ${reg.scope}`).join('<br>')}
+          `;
+          unregisterBtn.disabled = false;
+        }
+      } catch (error) {
+        statusDiv.className = 'status error';
+        statusDiv.textContent = `❌ 检查失败：${error.message}`;
+      }
+    }
+
+    // 注销Service Worker
+    async function unregisterServiceWorker() {
+      const statusDiv = document.getElementById('status');
+      
+      if (!('serviceWorker' in navigator)) {
+        alert('浏览器不支持Service Worker');
+        return;
+      }
+
+      try {
+        statusDiv.className = 'status';
+        statusDiv.textContent = '⏳ 正在注销Service Worker...';
+
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        
+        if (registrations.length === 0) {
+          statusDiv.className = 'status success';
+          statusDiv.textContent = '✅ 没有需要注销的Service Worker';
+          return;
+        }
+
+        let successCount = 0;
+        for (const registration of registrations) {
+          const success = await registration.unregister();
+          if (success) successCount++;
+        }
+
+        statusDiv.className = 'status success';
+        statusDiv.textContent = `✅ 成功注销 ${successCount} 个Service Worker`;
+        
+        setTimeout(() => {
+          checkServiceWorkerStatus();
+        }, 1000);
+      } catch (error) {
+        statusDiv.className = 'status error';
+        statusDiv.textContent = `❌ 注销失败：${error.message}`;
+      }
+    }
+
+    // 清理缓存
+    async function clearCache() {
+      const statusDiv = document.getElementById('status');
+
+      if (!('caches' in window)) {
+        alert('浏览器不支持Cache API');
+        return;
+      }
+
+      try {
+        statusDiv.className = 'status';
+        statusDiv.textContent = '⏳ 正在清理缓存...';
+
+        const cacheNames = await caches.keys();
+        
+        if (cacheNames.length === 0) {
+          statusDiv.className = 'status success';
+          statusDiv.textContent = '✅ 没有需要清理的缓存';
+          return;
+        }
+
+        await Promise.all(
+          cacheNames.map(cacheName => caches.delete(cacheName))
+        );
+
+        statusDiv.className = 'status success';
+        statusDiv.textContent = `✅ 成功清理 ${cacheNames.length} 个缓存`;
+      } catch (error) {
+        statusDiv.className = 'status error';
+        statusDiv.textContent = `❌ 清理缓存失败：${error.message}`;
+      }
+    }
+
+    // 完全清理
+    async function clearAll() {
+      const statusDiv = document.getElementById('status');
+
+      if (!confirm('确定要完全清理吗？这将删除所有Service Worker、缓存和localStorage数据。')) {
+        return;
+      }
+
+      try {
+        statusDiv.className = 'status';
+        statusDiv.textContent = '⏳ 正在执行完全清理...';
+
+        // 1. 注销Service Worker
+        if ('serviceWorker' in navigator) {
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          await Promise.all(
+            registrations.map(registration => registration.unregister())
+          );
+        }
+
+        // 2. 清理缓存
+        if ('caches' in window) {
+          const cacheNames = await caches.keys();
+          await Promise.all(
+            cacheNames.map(cacheName => caches.delete(cacheName))
+          );
+        }
+
+        // 3. 清理localStorage
+        localStorage.clear();
+
+        // 4. 清理sessionStorage
+        sessionStorage.clear();
+
+        statusDiv.className = 'status success';
+        statusDiv.innerHTML = `
+          <strong>✅ 完全清理成功！</strong><br>
+          - Service Worker已注销<br>
+          - 缓存已清理<br>
+          - localStorage已清空<br>
+          - sessionStorage已清空<br>
+          <br>
+          <strong>请关闭此页面并重新打开应用</strong>
+        `;
+
+        // 3秒后自动刷新状态
+        setTimeout(() => {
+          checkServiceWorkerStatus();
+        }, 3000);
+      } catch (error) {
+        statusDiv.className = 'status error';
+        statusDiv.textContent = `❌ 完全清理失败：${error.message}`;
+      }
+    }
+
+    // 页面加载时检查状态
+    window.addEventListener('load', checkServiceWorkerStatus);
+  </script>
+</body>
+</html>
