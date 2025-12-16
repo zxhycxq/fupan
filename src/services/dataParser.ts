@@ -55,11 +55,27 @@ export function parseExamData(
   // 使用处理后的文本进行解析
   const textToUse = processedText;
 
-  // 提取总分 - 支持多种格式,包括紧凑格式
+  // 提取总分 - 支持多种格式,包括紧凑格式和圆形进度条格式
   const totalScoreMatch = textToUse.match(/我的得分[：:\s]*(\d+\.?\d*)/i) || 
                           textToUse.match(/得分[：:\s]*(\d+\.?\d*)/i) ||
                           textToUse.match(/(\d+\.?\d*)\s*[/／]\s*100/) ||
-                          textToUse.match(/(\d+\.?\d*)[/／]100/);
+                          textToUse.match(/(\d+\.?\d*)[/／]100/) ||
+                          // 新增：支持圆形进度条格式，得分在前，/100在后
+                          textToUse.match(/(\d+\.?\d*)\s*\/\s*100/) ||
+                          // 新增：支持单独的得分数字（在"得分"关键字附近）
+                          (() => {
+                            const lines = textToUse.split('\n');
+                            for (let i = 0; i < lines.length; i++) {
+                              if (lines[i].includes('得分') && i + 1 < lines.length) {
+                                const nextLine = lines[i + 1];
+                                const scoreMatch = nextLine.match(/(\d+\.?\d*)/);
+                                if (scoreMatch) {
+                                  return scoreMatch;
+                                }
+                              }
+                            }
+                            return null;
+                          })();
   const totalScore = totalScoreMatch ? parseFloat(totalScoreMatch[1]) : 0;
   console.log('提取总分:', totalScore, '匹配结果:', totalScoreMatch?.[0]);
 
@@ -183,9 +199,10 @@ export function parseExamData(
     // 避免跨越到其他模块或子模块
     
     // 手机端格式：模块名后面紧跟数据（最多100字符内）
+    // 支持"共X题"和"共X道"两种格式
     const mobilePattern = `${module.name}[\\s\\n]{0,20}` +  // 模块名后最多20个空白字符
-      `共[\\s，,]*?(\\d+)[\\s]*?道[\\s，,]+?` +  // 共X道
-      `答对[\\s，,]*?(\\d+)[\\s]*?道[\\s，,]+?` +  // 答对Y道
+      `共[\\s，,]*?(\\d+)[\\s]*?(?:题|道)[\\s，,]+?` +  // 共X题/道
+      `答对[\\s，,]*?(\\d+)[\\s]*?(?:题|道)[\\s，,]+?` +  // 答对Y题/道
       `正确率[\\s，,]*?(\\d+)[\\s]*?%[\\s，,]+?` +  // 正确率Z%
       `用时[\\s，,]*?(\\d+)[\\s]*?(?:分[\\s]*?)?(\\d+)?[\\s]*?秒`;  // 用时W分X秒 或 用时W秒
     
@@ -270,9 +287,10 @@ export function parseExamData(
       console.log(`  - 解析子模块: ${childName}`);
       
       // 手机端格式：子模块名后面紧跟数据（最多100字符内）
+      // 支持"共X题"和"共X道"两种格式
       const childMobilePattern = `${childName}[\\s\\n]{0,20}` +  // 子模块名后最多20个空白字符
-        `共[\\s，,]*?(\\d+)[\\s]*?道[\\s，,]+?` +  // 共X道
-        `答对[\\s，,]*?(\\d+)[\\s]*?道[\\s，,]+?` +  // 答对Y道
+        `共[\\s，,]*?(\\d+)[\\s]*?(?:题|道)[\\s，,]+?` +  // 共X题/道
+        `答对[\\s，,]*?(\\d+)[\\s]*?(?:题|道)[\\s，,]+?` +  // 答对Y题/道
         `正确率[\\s，,]*?(\\d+)[\\s]*?%[\\s，,]+?` +  // 正确率Z%
         `用时[\\s，,]*?(\\d+)[\\s]*?(?:分[\\s]*?)?(\\d+)?[\\s]*?秒`;  // 用时W分X秒 或 用时W秒
       
