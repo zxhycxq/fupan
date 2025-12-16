@@ -1,5 +1,80 @@
 # 更新日志
 
+## 2025-11-22 - 考试记录列表分页优化
+
+### 用户体验改进
+- ✨ **分页状态持久化**
+  - 使用localStorage保存当前页码和每页条数
+  - 删除、编辑、刷新后自动恢复到之前的页码
+  - 智能处理边界情况（删除后当前页没有数据时自动跳转到上一页）
+  - 优先级：localStorage > URL参数
+
+- ✨ **星级筛选增强**
+  - 添加"⚪ 未评定"选项
+  - 支持筛选rating为0或null的记录
+  - 方便用户快速找到未评定的考试记录
+
+- 🔧 **筛选逻辑优化**
+  - 筛选时不再重置页码，保持当前页
+  - 更好的用户体验，无需重新翻页
+
+### 技术实现
+
+#### 分页状态管理
+```typescript
+// localStorage键名
+const PAGINATION_STORAGE_KEY = 'examList_pagination';
+
+// 读取分页状态
+const loadPaginationFromStorage = () => {
+  const stored = localStorage.getItem(PAGINATION_STORAGE_KEY);
+  if (stored) {
+    const { currentPage, pageSize } = JSON.parse(stored);
+    return { currentPage, pageSize };
+  }
+  return { currentPage: 1, pageSize: 10 };
+};
+
+// 保存分页状态
+const savePaginationToStorage = (currentPage, pageSize) => {
+  localStorage.setItem(PAGINATION_STORAGE_KEY, 
+    JSON.stringify({ currentPage, pageSize }));
+};
+```
+
+#### 星级筛选逻辑
+```typescript
+if (params.rating === 'unrated') {
+  // 筛选未评定的记录
+  filtered = filtered.filter(record => {
+    const rating = record.rating || 0;
+    return rating === 0;
+  });
+}
+```
+
+### 使用场景
+
+#### 场景1：删除操作
+- 在第6页删除记录
+- 自动停留在第6页（或跳转到第5页）
+- 无需重新翻页
+
+#### 场景2：刷新页面
+- 在第6页刷新浏览器
+- 自动恢复到第6页
+- 保持用户操作上下文
+
+#### 场景3：筛选未评定记录
+- 选择"未评定"选项
+- 快速找到所有未评定的记录
+- 批量评定星级
+
+### 相关文档
+- `docs/考试记录列表分页优化说明.md` - 详细技术文档
+
+---
+
 ## 2025-11-22 - 安卓截图格式适配和OCR识别增强
 
 ### 数据解析增强

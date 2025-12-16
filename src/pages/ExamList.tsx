@@ -33,8 +33,35 @@ interface FilterParams {
   scoreRange?: string;
   passRateRange?: string;
   dateRange?: [Dayjs, Dayjs] | null;
-  rating?: number;
+  rating?: number | 'unrated'; // 支持"未评定"选项
 }
+
+// localStorage键名
+const PAGINATION_STORAGE_KEY = 'examList_pagination';
+const FILTER_STORAGE_KEY = 'examList_filters';
+
+// 从localStorage读取分页状态
+const loadPaginationFromStorage = () => {
+  try {
+    const stored = localStorage.getItem(PAGINATION_STORAGE_KEY);
+    if (stored) {
+      const { currentPage, pageSize } = JSON.parse(stored);
+      return { currentPage: currentPage || 1, pageSize: pageSize || 10 };
+    }
+  } catch (error) {
+    console.error('读取分页状态失败:', error);
+  }
+  return { currentPage: 1, pageSize: 10 };
+};
+
+// 保存分页状态到localStorage
+const savePaginationToStorage = (currentPage: number, pageSize: number) => {
+  try {
+    localStorage.setItem(PAGINATION_STORAGE_KEY, JSON.stringify({ currentPage, pageSize }));
+  } catch (error) {
+    console.error('保存分页状态失败:', error);
+  }
+};
 
 export default function ExamList() {
   const [examRecords, setExamRecords] = useState<ExamRecord[]>([]);
@@ -50,8 +77,12 @@ export default function ExamList() {
   const [editingRecordId, setEditingRecordId] = useState<string>('');
   const [isSaving, setIsSaving] = useState(false);
   const [isSavingSort, setIsSavingSort] = useState(false); // 新增：保存排序的loading状态
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  
+  // 从localStorage读取初始分页状态
+  const initialPagination = loadPaginationFromStorage();
+  const [currentPage, setCurrentPage] = useState(initialPagination.currentPage);
+  const [pageSize, setPageSize] = useState(initialPagination.pageSize);
+  
   const [filterParams, setFilterParams] = useState<FilterParams>({});
   const [form] = Form.useForm();
   const [filterForm] = Form.useForm();
@@ -72,25 +103,34 @@ export default function ExamList() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // 从URL参数读取页码
+  // 从URL参数读取页码（优先级低于localStorage）
   useEffect(() => {
     const pageParam = searchParams.get('page');
     const pageSizeParam = searchParams.get('pageSize');
     
-    if (pageParam) {
-      const page = parseInt(pageParam, 10);
-      if (!isNaN(page) && page > 0) {
-        setCurrentPage(page);
+    // 只有在localStorage没有保存状态时才使用URL参数
+    const stored = localStorage.getItem(PAGINATION_STORAGE_KEY);
+    if (!stored) {
+      if (pageParam) {
+        const page = parseInt(pageParam, 10);
+        if (!isNaN(page) && page > 0) {
+          setCurrentPage(page);
+        }
       }
-    }
-    
-    if (pageSizeParam) {
-      const size = parseInt(pageSizeParam, 10);
-      if (!isNaN(size) && size > 0) {
-        setPageSize(size);
+      
+      if (pageSizeParam) {
+        const size = parseInt(pageSizeParam, 10);
+        if (!isNaN(size) && size > 0) {
+          setPageSize(size);
+        }
       }
     }
   }, [searchParams]);
+
+  // 监听分页变化，保存到localStorage
+  useEffect(() => {
+    savePaginationToStorage(currentPage, pageSize);
+  }, [currentPage, pageSize]);
 
   useEffect(() => {
     loadExamRecords();
@@ -103,6 +143,13 @@ export default function ExamList() {
       const records = await getAllExamRecords();
       setExamRecords(records);
       setFilteredRecords(records); // 初始化筛选后的记录
+      
+      // 检查当前页是否还有数据，如果没有则跳转到上一页
+      const totalPages = Math.ceil(records.length / pageSize);
+      if (currentPage > totalPages && totalPages > 0) {
+        setCurrentPage(totalPages);
+      }
+      
       if (records.length === 0) {
         console.warn('未获取到考试记录数据');
       }
@@ -174,16 +221,25 @@ export default function ExamList() {
 
     // 按星级筛选
     if (params.rating !== undefined) {
-      filtered = filtered.filter(record => {
-        const rating = record.rating || 0;
-        // 四舍五入到整数
-        return Math.round(rating) === params.rating;
-      });
+      if (params.rating === 'unrated') {
+        // 筛选未评定的记录（rating为0或null）
+        filtered = filtered.filter(record => {
+          const rating = record.rating || 0;
+          return rating === 0;
+        });
+      } else {
+        // 筛选指定星级的记录
+        filtered = filtered.filter(record => {
+          const rating = record.rating || 0;
+          // 四舍五入到整数
+          return Math.round(rating) === params.rating;
+        });
+      }
     }
 
     setFilteredRecords(filtered);
-    // 重置到第一页
-    setCurrentPage(1);
+    // 筛选时不重置页码，保持当前页
+    // setCurrentPage(1); // 注释掉这行
   };
 
   // 处理搜索
@@ -926,6 +982,7 @@ export default function ExamList() {
                   wrapperCol={{ xs: 24, sm: 16 }}
                 >
                   <Select placeholder="请选择星级" allowClear>
+                    <Select.Option value="unrated">⚪ 未评定</Select.Option>
                     <Select.Option value={1}>⭐ 1星</Select.Option>
                     <Select.Option value={2}>⭐ 2星</Select.Option>
                     <Select.Option value={3}>⭐ 3星</Select.Option>
