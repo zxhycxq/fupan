@@ -344,6 +344,17 @@ export default function Upload() {
             <div className="text-sm text-gray-500 mt-1">
               可以一次选择多张图片,每张图片最大10MB。建议按顺序选择图片以便更好地识别。
             </div>
+            <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="text-sm text-blue-800">
+                <div className="font-medium mb-1">💡 长截图识别提示</div>
+                <div className="space-y-1 text-xs">
+                  <div>• 系统已优化安卓长截图识别能力</div>
+                  <div>• 自动检测长截图并应用增强处理</div>
+                  <div>• 建议确保图片清晰、光线充足</div>
+                  <div>• 识别过程中会显示处理进度和质量信息</div>
+                </div>
+              </div>
+            </div>
 
             {selectedFiles.length > 0 && (
               <div className="mt-4 space-y-4">
