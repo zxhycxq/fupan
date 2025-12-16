@@ -1671,6 +1671,69 @@ export default function Dashboard() {
         }
       });
       
+      // 添加汇总统计行（总时长、总答对、总题量、总正确率、得分）
+      const summaryRowsData = [
+        {
+          key: 'summary_time',
+          module_name: '总时长',
+          getValue: (examData: any) => examData?.time_used ? `${(examData.time_used / 60).toFixed(1)}分` : '-'
+        },
+        {
+          key: 'summary_correct',
+          module_name: '总答对',
+          getValue: (examData: any) => examData?.correct_answers || '-'
+        },
+        {
+          key: 'summary_total',
+          module_name: '总题量',
+          getValue: (examData: any) => examData?.total_questions || '-'
+        },
+        {
+          key: 'summary_accuracy',
+          module_name: '总正确率',
+          getValue: (examData: any) => examData?.accuracy ? `${examData.accuracy.toFixed(1)}%` : '-'
+        },
+        {
+          key: 'summary_score',
+          module_name: '得分',
+          getValue: (examNum: number) => {
+            const exam = examRecords.find(r => r.sort_order === examNum);
+            return exam?.total_score ? exam.total_score.toFixed(2) : '-';
+          }
+        }
+      ];
+
+      summaryRowsData.forEach(summaryRow => {
+        const rowData: any = {
+          '模块名称': summaryRow.module_name
+        };
+        
+        allExamNumbers.forEach(examNum => {
+          const examRecord = examRecords.find(r => r.sort_order === examNum);
+          const examName = examRecord?.exam_name || `第${examNum}期`;
+          
+          // 找到总计行的数据
+          const totalRowData = tableDataWithTotal.find(m => m.key === 'total');
+          const examData = totalRowData?.exams.get(examNum);
+          
+          // 根据不同的汇总类型获取值
+          let value: string;
+          if (summaryRow.key === 'summary_score') {
+            value = summaryRow.getValue(examNum);
+          } else {
+            value = summaryRow.getValue(examData);
+          }
+          
+          // 将值填充到所有三列（题目数/答对数、正确率、用时）
+          // 只在第一列显示值，其他列显示空
+          rowData[`${examName}_题目数/答对数`] = value;
+          rowData[`${examName}_正确率`] = '';
+          rowData[`${examName}_用时`] = '';
+        });
+        
+        exportData.push(rowData);
+      });
+      
       // 创建工作表
       const ws = XLSX.utils.json_to_sheet(exportData, { skipHeader: true });
       
