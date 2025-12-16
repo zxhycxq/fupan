@@ -3,7 +3,7 @@ import type { OcrRequest, OcrResponse } from '@/types';
 const APP_ID = import.meta.env.VITE_APP_ID;
 const API_BASE_URL = '/api/miaoda/runtime/apicenter/source/proxy';
 
-// 调用通用文字识别(高精度版)API
+// 调用通用文字识别(高精度版)API（支持长截图分段识别）
 export async function recognizeText(request: OcrRequest): Promise<string> {
   try {
     // 构建表单数据
@@ -21,6 +21,12 @@ export async function recognizeText(request: OcrRequest): Promise<string> {
     
     // 启用段落信息，保持文本结构
     formData.append('paragraph', 'true');
+    
+    // 针对长截图：启用识别颗粒度（big - 更适合长文本）
+    formData.append('recognize_granularity', 'big');
+    
+    // 针对长截图：启用垂直文本检测
+    formData.append('vertexes_location', 'true');
 
     const response = await fetch(`${API_BASE_URL}/6KmAKxK9aE29irAwt32QRk`, {
       method: 'POST',
@@ -62,6 +68,11 @@ export async function recognizeText(request: OcrRequest): Promise<string> {
         .reduce((sum, item) => sum + (item.probability?.average || 0), 0) / 
         result.data.words_result.length;
       console.log('平均识别置信度:', (avgProbability * 100).toFixed(2) + '%');
+      
+      // 如果置信度较低，给出警告
+      if (avgProbability < 0.8) {
+        console.warn('⚠️ 识别置信度较低，可能是长截图或图片质量问题');
+      }
     }
     
     return text;
@@ -86,16 +97,16 @@ export function fileToBase64(file: File): Promise<string> {
   });
 }
 
-// 图片预处理：增强对比度和清晰度
-function enhanceImage(canvas: HTMLCanvasElement): void {
+// 图片预处理：增强对比度和清晰度（针对安卓长截图优化）
+function enhanceImage(canvas: HTMLCanvasElement, isLongScreenshot: boolean = false): void {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
   const data = imageData.data;
 
-  // 1. 增强对比度
-  const contrast = 1.2;  // 对比度系数
+  // 1. 增强对比度（长截图使用更强的对比度）
+  const contrast = isLongScreenshot ? 1.3 : 1.2;  // 对比度系数
   const factor = (259 * (contrast * 255 + 255)) / (255 * (259 - contrast * 255));
 
   for (let i = 0; i < data.length; i += 4) {
@@ -104,8 +115,8 @@ function enhanceImage(canvas: HTMLCanvasElement): void {
     data[i + 2] = factor * (data[i + 2] - 128) + 128; // B
   }
 
-  // 2. 锐化处理（简单的锐化滤波器）
-  const sharpness = 0.5;  // 锐化强度
+  // 2. 锐化处理（长截图使用更强的锐化）
+  const sharpness = isLongScreenshot ? 0.7 : 0.5;  // 锐化强度
   const tempData = new Uint8ClampedArray(data);
 
   for (let y = 1; y < canvas.height - 1; y++) {
@@ -125,10 +136,38 @@ function enhanceImage(canvas: HTMLCanvasElement): void {
     }
   }
 
+  // 3. 针对长截图：降噪处理（去除压缩噪点）
+  if (isLongScreenshot) {
+    const denoiseData = new Uint8ClampedArray(data);
+    const radius = 1;
+    
+    for (let y = radius; y < canvas.height - radius; y++) {
+      for (let x = radius; x < canvas.width - radius; x++) {
+        for (let c = 0; c < 3; c++) {
+          let sum = 0;
+          let count = 0;
+          
+          // 3x3邻域平均
+          for (let dy = -radius; dy <= radius; dy++) {
+            for (let dx = -radius; dx <= radius; dx++) {
+              const i = ((y + dy) * canvas.width + (x + dx)) * 4 + c;
+              sum += denoiseData[i];
+              count++;
+            }
+          }
+          
+          const i = (y * canvas.width + x) * 4 + c;
+          // 轻度降噪：70%原值 + 30%平均值
+          data[i] = denoiseData[i] * 0.7 + (sum / count) * 0.3;
+        }
+      }
+    }
+  }
+
   ctx.putImageData(imageData, 0, 0);
 }
 
-// 压缩图片 - 针对手机截图优化
+// 压缩图片 - 针对手机截图优化（支持安卓长截图）
 export function compressImage(
   file: File, 
   maxWidth: number = 2400,  // 提高最大宽度以保留更多细节
@@ -154,6 +193,14 @@ export function compressImage(
               let height = img.height;
 
               console.log(`原始图片尺寸: ${width}x${height}`);
+              
+              // 判断是否为长截图（高度/宽度比例 > 2.5）
+              const aspectRatio = height / width;
+              const isLongScreenshot = aspectRatio > 2.5;
+              
+              if (isLongScreenshot) {
+                console.log(`检测到长截图，高宽比: ${aspectRatio.toFixed(2)}`);
+              }
 
               // 如果图片宽度超过最大宽度,按比例缩放
               if (width > maxWidth) {
@@ -175,9 +222,9 @@ export function compressImage(
               // 绘制图片
               ctx.drawImage(img, 0, 0, width, height);
 
-              // 对手机截图进行图像增强
-              console.log('应用图像增强处理...');
-              enhanceImage(canvas);
+              // 对手机截图进行图像增强（长截图使用增强参数）
+              console.log(isLongScreenshot ? '应用长截图增强处理...' : '应用图像增强处理...');
+              enhanceImage(canvas, isLongScreenshot);
 
               // 转换为blob
               canvas.toBlob(
