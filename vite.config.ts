@@ -12,7 +12,7 @@ export default defineConfig({
       svgrOptions: {
         icon: true, exportType: 'named', namedExport: 'ReactComponent', }, }), VitePWA({
       registerType: 'autoUpdate', includeAssets: [
-        'favicon.ico', 'robots.txt', 'apple-touch-icon.png', miaodaDevPlugin()],
+        'favicon.ico', 'robots.txt', 'apple-touch-icon.png'],
       manifest: {
         name: '考试成绩分析系统',
         short_name: '成绩分析',
