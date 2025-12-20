@@ -127,6 +127,7 @@ export default function Upload() {
 
       const totalSteps = selectedFiles.length + 2;
       const allRecognizedTexts: string[] = [];
+      const allImageUrls: string[] = []; // 保存所有图片的base64
 
       // 处理每张图片
       for (let i = 0; i < selectedFiles.length; i++) {
@@ -156,6 +157,9 @@ export default function Upload() {
         try {
           // 将图片转换为base64
           const base64Image = await fileToBase64(processedFile);
+          
+          // 保存图片的base64（用于显示）
+          allImageUrls.push(base64Image);
           
           // 调用OCR识别
           const ocrText = await recognizeText({
@@ -195,7 +199,7 @@ export default function Upload() {
       const nextIndexNumber = await getNextIndexNumber();
       console.log('获取到的索引号:', nextIndexNumber);
 
-      // 添加考试名称、排序号、索引号和考试类型
+      // 添加考试名称、排序号、索引号、考试类型和图片URL
       const recordWithNameAndSortOrder = {
         ...examRecord,
         exam_name: examName,
@@ -203,6 +207,7 @@ export default function Upload() {
         sort_order: sortOrder,
         index_number: nextIndexNumber, // 使用自动生成的唯一索引号
         rating: 0, // 默认星级为 0
+        image_url: allImageUrls.length > 0 ? allImageUrls[0] : null, // 保存第一张图片的base64
       };
 
       // 保存到数据库
