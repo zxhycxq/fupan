@@ -99,10 +99,9 @@ export default function Settings() {
         return;
       }
 
-      // 转换为 UserSetting 数组
-      const settingsArray: Omit<UserSetting, 'id' | 'created_at' | 'updated_at'>[] = 
+      // 转换为设置数组（不包含user_id）
+      const settingsArray: Array<{ module_name: string; target_accuracy: number }> = 
         Object.entries(settings).map(([module_name, target_accuracy]) => ({
-          user_id: 'default',
           module_name,
           target_accuracy,
         }));
