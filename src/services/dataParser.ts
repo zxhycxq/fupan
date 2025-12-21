@@ -212,11 +212,17 @@ export function parseExamData(
     
     // 如果手机端格式没匹配到，尝试网页版格式
     if (!moduleMatch) {
-      const webPattern = `${module.name}[\\s\\S]{0,100}?` +  // 减小搜索范围
-        `(?:总题数|共计)[：:\\s]*?(\\d+)(?:题|道)?[\\s\\S]{0,30}?` +
-        `(?:答对|正确)[：:\\s]*?(\\d+)(?:题|道)?[\\s\\S]{0,30}?` +
-        `(?:正确率|准确率)[：:\\s]*?(\\d+)%[\\s\\S]{0,30}?` +
-        `(?:用时|时间)[：:\\s]*?(\\d+)(?:秒|分)?`;
+      // PC端格式：总题数 15题  答对 10题  正确率 67%  用时 23秒
+      // 关键改进：
+      // 1. 支持"总题数"和"共计"
+      // 2. 关键词和数字之间可以有多个空格
+      // 3. 字段之间可以有多个空格
+      // 4. 用时支持"X秒"、"X分"、"X分Y秒"
+      const webPattern = `${module.name}[\\s\\S]{0,100}?` +
+        `(?:总题数|共计)[：:\\s]+?(\\d+)(?:题|道)?[\\s]+?` +  // 总题数 X题
+        `答对[：:\\s]+?(\\d+)(?:题|道)?[\\s]+?` +  // 答对 Y题
+        `正确率[：:\\s]+?(\\d+)%[\\s]+?` +  // 正确率 Z%
+        `用时[：:\\s]+?(\\d+)(?:分[\\s]*(\\d+))?(?:秒|分)?`;  // 用时 W秒 或 W分 或 W分X秒
       
       const webRegex = new RegExp(webPattern, 'i');
       moduleMatch = textToUse.match(webRegex);
@@ -246,11 +252,20 @@ export function parseExamData(
         totalQuestions = parseInt(moduleMatch[1]);
         correctAnswers = parseInt(moduleMatch[2]);
         accuracyRate = parseInt(moduleMatch[3]);
-        timeUsedSec = parseInt(moduleMatch[4]);
         
-        // 检查用时单位
-        if (moduleMatch[0].includes('分')) {
-          timeUsedSec = timeUsedSec * 60;
+        // 处理用时：moduleMatch[4]是分钟或秒，moduleMatch[5]是秒（如果有分钟）
+        const timeValue = parseInt(moduleMatch[4]);
+        const secondsValue = moduleMatch[5] ? parseInt(moduleMatch[5]) : 0;
+        
+        if (moduleMatch[5]) {
+          // 格式：X分Y秒
+          timeUsedSec = timeValue * 60 + secondsValue;
+        } else if (moduleMatch[0].includes('分')) {
+          // 格式：X分
+          timeUsedSec = timeValue * 60;
+        } else {
+          // 格式：X秒
+          timeUsedSec = timeValue;
         }
       }
       
@@ -300,11 +315,12 @@ export function parseExamData(
       
       // 如果手机端格式没匹配到，尝试网页版格式
       if (!childMatch) {
-        const childWebPattern = `${childName}[\\s\\S]{0,100}?` +  // 减小搜索范围
-          `(?:总题数|共计)[：:\\s]*?(\\d+)(?:题|道)?[\\s\\S]{0,30}?` +
-          `(?:答对|正确)[：:\\s]*?(\\d+)(?:题|道)?[\\s\\S]{0,30}?` +
-          `(?:正确率|准确率)[：:\\s]*?(\\d+)%[\\s\\S]{0,30}?` +
-          `(?:用时|时间)[：:\\s]*?(\\d+)(?:秒|分)?`;
+        // PC端格式：总题数 15题  答对 10题  正确率 67%  用时 23秒
+        const childWebPattern = `${childName}[\\s\\S]{0,100}?` +
+          `(?:总题数|共计)[：:\\s]+?(\\d+)(?:题|道)?[\\s]+?` +  // 总题数 X题
+          `答对[：:\\s]+?(\\d+)(?:题|道)?[\\s]+?` +  // 答对 Y题
+          `正确率[：:\\s]+?(\\d+)%[\\s]+?` +  // 正确率 Z%
+          `用时[：:\\s]+?(\\d+)(?:分[\\s]*(\\d+))?(?:秒|分)?`;  // 用时 W秒 或 W分 或 W分X秒
         
         const childWebRegex = new RegExp(childWebPattern, 'i');
         childMatch = textToUse.match(childWebRegex);
@@ -332,11 +348,20 @@ export function parseExamData(
           totalQuestions = parseInt(childMatch[1]);
           correctAnswers = parseInt(childMatch[2]);
           accuracyRate = parseInt(childMatch[3]);
-          timeUsedSec = parseInt(childMatch[4]);
           
-          // 检查用时单位
-          if (childMatch[0].includes('分')) {
-            timeUsedSec = timeUsedSec * 60;
+          // 处理用时：childMatch[4]是分钟或秒，childMatch[5]是秒（如果有分钟）
+          const timeValue = parseInt(childMatch[4]);
+          const secondsValue = childMatch[5] ? parseInt(childMatch[5]) : 0;
+          
+          if (childMatch[5]) {
+            // 格式：X分Y秒
+            timeUsedSec = timeValue * 60 + secondsValue;
+          } else if (childMatch[0].includes('分')) {
+            // 格式：X分
+            timeUsedSec = timeValue * 60;
+          } else {
+            // 格式：X秒
+            timeUsedSec = timeValue;
           }
         }
         
