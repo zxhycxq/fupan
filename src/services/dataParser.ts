@@ -191,6 +191,18 @@ export function parseExamData(
   for (const module of moduleStructure) {
     console.log(`\n--- 解析模块: ${module.name} ---`);
     
+    // 先查找模块名称在文本中的位置
+    const moduleIndex = textToUse.indexOf(module.name);
+    if (moduleIndex === -1) {
+      console.log(`✗ 未找到模块名称: ${module.name}`);
+      continue;
+    }
+    
+    // 提取模块名称后的200个字符，用于调试
+    const contextAfterModule = textToUse.substring(moduleIndex, moduleIndex + 200);
+    console.log(`找到模块位置: ${moduleIndex}`);
+    console.log(`模块后的内容（前200字符）:`, contextAfterModule);
+    
     // 查找大模块数据 - 支持多种格式，但要精确匹配
     // 格式1（网页版）: "总题数20题 答对15题 正确率75% 用时30秒"
     // 格式2（手机端）: "共20道，答对15道，正确率75%，用时30秒"
