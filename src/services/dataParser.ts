@@ -245,6 +245,50 @@ export function parseExamData(
       console.log(`正则表达式: ${webPattern}`);
       console.log(`匹配结果:`, moduleMatch ? moduleMatch[0].substring(0, 100) : '未匹配');
     }
+    
+    // 如果还是没匹配到，尝试简化格式（只有数字和百分比）
+    if (!moduleMatch) {
+      // 简化格式：模块名称后面直接是数字、百分比、数字
+      // 例如：
+      // 言语理解与表达
+      // 21
+      // 70%
+      // 25
+      const simplePattern = `${module.name}[\\s\\S]{0,50}?` +  // 模块名称后最多50个字符
+        `(\\d+)[\\s\\S]{0,20}?` +  // 第一个数字（总题数）
+        `(\\d+)%[\\s\\S]{0,20}?` +  // 百分比（正确率）
+        `(\\d+)`;  // 第二个数字（用时）
+      
+      const simpleRegex = new RegExp(simplePattern, 'i');
+      moduleMatch = textToUse.match(simpleRegex);
+      
+      console.log(`尝试简化格式匹配: ${module.name}`);
+      console.log(`正则表达式: ${simplePattern}`);
+      console.log(`匹配结果:`, moduleMatch ? moduleMatch[0].substring(0, 100) : '未匹配');
+      
+      if (moduleMatch) {
+        // 标记为简化格式
+        isMobileFormat = false;
+        // 重新组织匹配结果，使其与标准格式兼容
+        // 简化格式：[完整匹配, 总题数, 正确率, 用时]
+        // 标准格式：[完整匹配, 总题数, 答对数, 正确率, 用时]
+        // 需要根据总题数和正确率计算答对数
+        const totalQuestions = parseInt(moduleMatch[1]);
+        const accuracyRate = parseInt(moduleMatch[2]);
+        const correctAnswers = Math.round(totalQuestions * accuracyRate / 100);
+        
+        // 重新构造匹配结果
+        moduleMatch = [
+          moduleMatch[0],  // 完整匹配
+          moduleMatch[1],  // 总题数
+          correctAnswers.toString(),  // 答对数（计算得出）
+          moduleMatch[2],  // 正确率
+          moduleMatch[3],  // 用时
+        ];
+        
+        console.log(`简化格式解析: 总题数=${totalQuestions}, 正确率=${accuracyRate}%, 计算答对数=${correctAnswers}`);
+      }
+    }
 
     if (moduleMatch) {
       console.log(`找到模块数据:`, moduleMatch[0].substring(0, 150));
@@ -346,6 +390,40 @@ export function parseExamData(
         
         console.log(`  尝试网页版格式匹配: ${childName}`);
         console.log(`  匹配结果:`, childMatch ? childMatch[0].substring(0, 100) : '未匹配');
+      }
+      
+      // 如果还是没匹配到，尝试简化格式（只有数字和百分比）
+      if (!childMatch) {
+        // 简化格式：子模块名称后面直接是数字、百分比、数字
+        const childSimplePattern = `${childName}[\\s\\S]{0,50}?` +  // 子模块名称后最多50个字符
+          `(\\d+)[\\s\\S]{0,20}?` +  // 第一个数字（总题数）
+          `(\\d+)%[\\s\\S]{0,20}?` +  // 百分比（正确率）
+          `(\\d+)`;  // 第二个数字（用时）
+        
+        const childSimpleRegex = new RegExp(childSimplePattern, 'i');
+        childMatch = textToUse.match(childSimpleRegex);
+        
+        console.log(`  尝试简化格式匹配: ${childName}`);
+        console.log(`  匹配结果:`, childMatch ? childMatch[0].substring(0, 100) : '未匹配');
+        
+        if (childMatch) {
+          // 标记为简化格式
+          isChildMobileFormat = false;
+          // 重新组织匹配结果
+          const totalQuestions = parseInt(childMatch[1]);
+          const accuracyRate = parseInt(childMatch[2]);
+          const correctAnswers = Math.round(totalQuestions * accuracyRate / 100);
+          
+          childMatch = [
+            childMatch[0],
+            childMatch[1],
+            correctAnswers.toString(),
+            childMatch[2],
+            childMatch[3],
+          ];
+          
+          console.log(`  简化格式解析: 总题数=${totalQuestions}, 正确率=${accuracyRate}%, 计算答对数=${correctAnswers}`);
+        }
       }
 
       if (childMatch) {
