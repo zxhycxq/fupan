@@ -25,7 +25,24 @@
 
 ---
 
-### 2. [部署文档](./DEPLOYMENT.md)
+### 2. [腾讯云部署指南](./TENCENT_CLOUD_DEPLOYMENT.md) ⭐ 推荐
+
+**适合人群**: 腾讯云用户、快速部署
+
+**内容概要**:
+- ✅ 服务器购买和配置
+- ✅ OCR服务配置（百度/腾讯云）
+- ✅ 应用部署步骤
+- ✅ 域名和HTTPS配置
+- ✅ 监控和维护
+- ✅ 安全加固
+- ✅ 快速命令参考
+
+**阅读时间**: 20分钟
+
+---
+
+### 3. [部署文档](./DEPLOYMENT.md)
 
 **适合人群**: 运维人员、部署工程师
 
@@ -42,7 +59,7 @@
 
 ---
 
-### 3. [OCR集成文档](./OCR_INTEGRATION.md)
+### 4. [OCR集成文档](./OCR_INTEGRATION.md)
 
 **适合人群**: 后端开发者、OCR集成工程师
 
@@ -60,7 +77,7 @@
 
 ---
 
-### 4. [API接口文档](./API_REFERENCE.md)
+### 5. [API接口文档](./API_REFERENCE.md)
 
 **适合人群**: 前端开发者、后端开发者
 
@@ -82,14 +99,17 @@
 
 ### 我想...
 
-#### 快速部署系统
+#### 快速部署到腾讯云
+→ 阅读 [腾讯云部署指南](./TENCENT_CLOUD_DEPLOYMENT.md) ⭐
+
+#### 快速部署系统（通用）
 → 阅读 [快速开始指南](./QUICK_START.md)
 
 #### 了解系统架构
 → 阅读 [部署文档 - 技术架构](./DEPLOYMENT.md#技术架构)
 
 #### 配置OCR服务
-→ 阅读 [快速开始指南 - 配置OCR服务](./QUICK_START.md#配置ocr服务)
+→ 阅读 [腾讯云部署指南 - OCR服务配置](./TENCENT_CLOUD_DEPLOYMENT.md#ocr服务配置)
 
 #### 迁移到腾讯云OCR
 → 阅读 [OCR集成文档 - 迁移指南](./OCR_INTEGRATION.md#迁移指南)
@@ -104,7 +124,7 @@
 → 阅读 [OCR集成文档 - 识别流程](./OCR_INTEGRATION.md#识别流程)
 
 #### 排查问题
-→ 阅读 [部署文档 - 常见问题](./DEPLOYMENT.md#常见问题)
+→ 阅读 [腾讯云部署指南 - 常见问题](./TENCENT_CLOUD_DEPLOYMENT.md#常见问题)
 
 ---
 
