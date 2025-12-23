@@ -82,7 +82,7 @@ export default function ExamDetail() {
   const [isLoading, setIsLoading] = useState(true);
   const [editingTimeModuleId, setEditingTimeModuleId] = useState<string | null>(null); // 正在编辑用时的模块ID
   const [editTime, setEditTime] = useState<string>(''); // 编辑中的用时值
-  const [editingField, setEditingField] = useState<{ moduleId: string; field: 'total' | 'correct' | 'wrong' } | null>(null); // 正在编辑的字段
+  const [editingField, setEditingField] = useState<{ moduleId: string; field: 'total' | 'correct' } | null>(null); // 正在编辑的字段（答错题不再支持编辑）
   const [editValue, setEditValue] = useState<string>(''); // 编辑中的值
   const [isEditingNotes, setIsEditingNotes] = useState(false);
   const [editingNoteType, setEditingNoteType] = useState<'improvements' | 'mistakes' | 'both'>('both'); // 新增：区分编辑类型
@@ -204,12 +204,11 @@ export default function ExamDetail() {
     }
   };
 
-  // 开始编辑字段（总题数、答对、答错）
-  const handleEditField = (module: ModuleScore, field: 'total' | 'correct' | 'wrong') => {
+  // 开始编辑字段（总题数、答对）
+  // 注意：答错题数量不再支持编辑，由系统自动计算
+  const handleEditField = (module: ModuleScore, field: 'total' | 'correct') => {
     setEditingField({ moduleId: module.id, field });
-    const value = field === 'total' ? module.total_questions : 
-                  field === 'correct' ? module.correct_answers : 
-                  module.wrong_answers;
+    const value = field === 'total' ? module.total_questions : module.correct_answers;
     setEditValue(value.toString());
   };
 
@@ -228,34 +227,26 @@ export default function ExamDetail() {
     const updateData: Partial<ModuleScore> = {};
     if (editingField.field === 'total') {
       updateData.total_questions = value;
-      // 验证总题数不能小于答对+答错
-      if (value < module.correct_answers + module.wrong_answers) {
-        message.error("总题数不能小于答对数和答错数之和");
+      // 验证答对数不能超过总题数
+      if (module.correct_answers > value) {
+        message.error("答对数不能超过总题数");
         setEditingField(null);
         return;
       }
-      // 自动计算未答题数
-      updateData.unanswered = value - module.correct_answers - module.wrong_answers;
+      // 自动计算答错数和未答题数
+      updateData.wrong_answers = value - module.correct_answers;
+      updateData.unanswered = 0; // 默认未答题数为0
     } else if (editingField.field === 'correct') {
       updateData.correct_answers = value;
-      // 验证答对数不能大于总题数
-      if (value + module.wrong_answers > module.total_questions) {
-        message.error("答对数和答错数之和不能大于总题数");
+      // 验证答对数不能超过总题数
+      if (value > module.total_questions) {
+        message.error("答对数不能超过总题数");
         setEditingField(null);
         return;
       }
-      // 自动计算未答题数
-      updateData.unanswered = module.total_questions - value - module.wrong_answers;
-    } else if (editingField.field === 'wrong') {
-      updateData.wrong_answers = value;
-      // 验证答错数不能大于总题数
-      if (module.correct_answers + value > module.total_questions) {
-        message.error("答对数和答错数之和不能大于总题数");
-        setEditingField(null);
-        return;
-      }
-      // 自动计算未答题数
-      updateData.unanswered = module.total_questions - module.correct_answers - value;
+      // 自动计算答错数和未答题数
+      updateData.wrong_answers = module.total_questions - value;
+      updateData.unanswered = 0; // 默认未答题数为0
     }
 
     // 重新计算正确率
@@ -1000,47 +991,10 @@ export default function ExamDetail() {
                     <div className="flex items-center gap-1">
                       <CloseCircleOutlined className="text-red-600" />
                       <span className="text-muted-foreground">答错:</span>
-                      {editingField?.moduleId === mainModule.id && editingField.field === 'wrong' ? (
-                        <Input
-                          type="number"
-                          min="0"
-                          step="1"
-                          value={editValue}
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            if (value === '' || /^\d+$/.test(value)) {
-                              setEditValue(value);
-                            }
-                          }}
-                          onBlur={() => {
-                            if (editValue) {
-                              handleSaveField(mainModule);
-                            } else {
-                              setEditingField(null);
-                            }
-                          }}
-                          onPressEnter={() => {
-                            if (editValue) {
-                              handleSaveField(mainModule);
-                            }
-                          }}
-                          autoFocus
-                          className="ml-2 w-16 h-8 text-sm"
-                          disabled={isSaving}
-                        />
-                      ) : (
-                        <>
-                          <span className="ml-2 font-medium text-red-600">{mainModule.wrong_answers}</span>
-                          <Button
-                            type="text"
-                            size="small"
-                            className="ml-1 h-6 w-6 p-0"
-                            onClick={() => handleEditField(mainModule, 'wrong')}
-                          >
-                            <EditOutlined className="h-3 w-3" />
-                          </Button>
-                        </>
-                      )}
+                      <span className="ml-2 font-medium text-red-600">{mainModule.wrong_answers}</span>
+                      <Tooltip title="答错题数由系统自动计算（总题数 - 答对数）">
+                        <InfoCircleOutlined className="ml-1 h-3 w-3 text-muted-foreground cursor-help" />
+                      </Tooltip>
                     </div>
                     <div className="flex items-center gap-1">
                       <ClockCircleOutlined className="text-muted-foreground" />
@@ -1095,17 +1049,73 @@ export default function ExamDetail() {
                   {subModules.length > 0 && (
                     <div className="mt-4 space-y-2">
                       {subModules.map(subModule => (
-                        <div key={subModule.id} className="bg-muted/50 rounded-md p-3 text-sm">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="font-medium">{subModule.module_name}</span>
-                            <Tag className="text-xs">
-                              {subModule.accuracy_rate?.toFixed(1)}%
+                        <div 
+                          key={subModule.id} 
+                          className="bg-gradient-to-r from-muted/30 to-muted/50 rounded-md p-4 text-sm border-l-4 border-primary/30 shadow-sm hover:shadow-md transition-all"
+                        >
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                              <div className="w-1.5 h-1.5 rounded-full bg-primary/60"></div>
+                              <span className="font-medium text-base">{subModule.module_name}</span>
+                            </div>
+                            <Tag 
+                              className="text-xs"
+                              color={
+                                (subModule.accuracy_rate || 0) >= 80 ? 'green' :
+                                (subModule.accuracy_rate || 0) >= 60 ? 'blue' :
+                                'red'
+                              }
+                            >
+                              正确率: {subModule.accuracy_rate?.toFixed(1)}%
                             </Tag>
                           </div>
-                          <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
+                          
+                          {/* 第一行：总题数、答对 */}
+                          <div className="grid grid-cols-2 gap-4 mb-2">
                             <div className="flex items-center gap-1">
                               <FileOutlined className="text-muted-foreground" />
-                              <span>总题数: {subModule.total_questions}</span>
+                              <span className="text-muted-foreground">总题数:</span>
+                              {editingField?.moduleId === subModule.id && editingField.field === 'total' ? (
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  step="1"
+                                  value={editValue}
+                                  onChange={(e) => {
+                                    const value = e.target.value;
+                                    if (value === '' || /^\d+$/.test(value)) {
+                                      setEditValue(value);
+                                    }
+                                  }}
+                                  onBlur={() => {
+                                    if (editValue) {
+                                      handleSaveField(subModule);
+                                    } else {
+                                      setEditingField(null);
+                                    }
+                                  }}
+                                  onPressEnter={() => {
+                                    if (editValue) {
+                                      handleSaveField(subModule);
+                                    }
+                                  }}
+                                  autoFocus
+                                  className="ml-2 w-16 h-7 text-sm"
+                                  disabled={isSaving}
+                                />
+                              ) : (
+                                <>
+                                  <span className="ml-2 font-medium">{subModule.total_questions}</span>
+                                  <Button
+                                    type="text"
+                                    size="small"
+                                    className="ml-1 h-6 w-6 p-0"
+                                    onClick={() => handleEditField(subModule, 'total')}
+                                  >
+                                    <EditOutlined className="h-3 w-3" />
+                                  </Button>
+                                </>
+                              )}
                             </div>
                             <div className={`flex items-center gap-1 ${
                               shouldHighlightRed(subModule.module_name, subModule.accuracy_rate)
@@ -1117,15 +1127,108 @@ export default function ExamDetail() {
                                   ? 'text-red-600'
                                   : 'text-green-600'
                               } />
-                              <span>答对: {subModule.correct_answers}</span>
+                              <span className="text-muted-foreground">答对:</span>
+                              {editingField?.moduleId === subModule.id && editingField.field === 'correct' ? (
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  step="1"
+                                  value={editValue}
+                                  onChange={(e) => {
+                                    const value = e.target.value;
+                                    if (value === '' || /^\d+$/.test(value)) {
+                                      setEditValue(value);
+                                    }
+                                  }}
+                                  onBlur={() => {
+                                    if (editValue) {
+                                      handleSaveField(subModule);
+                                    } else {
+                                      setEditingField(null);
+                                    }
+                                  }}
+                                  onPressEnter={() => {
+                                    if (editValue) {
+                                      handleSaveField(subModule);
+                                    }
+                                  }}
+                                  autoFocus
+                                  className="ml-2 w-16 h-7 text-sm"
+                                  disabled={isSaving}
+                                />
+                              ) : (
+                                <>
+                                  <span className="ml-2 font-medium text-green-600">{subModule.correct_answers}</span>
+                                  <Button
+                                    type="text"
+                                    size="small"
+                                    className="ml-1 h-6 w-6 p-0"
+                                    onClick={() => handleEditField(subModule, 'correct')}
+                                  >
+                                    <EditOutlined className="h-3 w-3" />
+                                  </Button>
+                                </>
+                              )}
                             </div>
+                          </div>
+                          
+                          {/* 第二行：答错、用时 */}
+                          <div className="grid grid-cols-2 gap-4">
                             <div className="flex items-center gap-1">
                               <CloseCircleOutlined className="text-red-600" />
-                              <span>答错: {subModule.wrong_answers}</span>
+                              <span className="text-muted-foreground">答错:</span>
+                              <span className="ml-2 font-medium text-red-600">{subModule.wrong_answers}</span>
+                              <Tooltip title="答错题数由系统自动计算（总题数 - 答对数）">
+                                <InfoCircleOutlined className="ml-1 h-3 w-3 text-muted-foreground cursor-help" />
+                              </Tooltip>
                             </div>
                             <div className="flex items-center gap-1">
                               <ClockCircleOutlined className="text-muted-foreground" />
-                              <span>用时: {formatTime(subModule.time_used)}</span>
+                              <span className="text-muted-foreground">用时:</span>
+                              {editingTimeModuleId === subModule.id ? (
+                                <div className="ml-2 flex items-center gap-2">
+                                  <Input
+                                    type="number"
+                                    min="0"
+                                    step="1"
+                                    value={editTime}
+                                    onChange={(e) => {
+                                      const value = e.target.value;
+                                      if (value === '' || /^\d+$/.test(value)) {
+                                        setEditTime(value);
+                                      }
+                                    }}
+                                    onBlur={() => {
+                                      if (editTime) {
+                                        handleSaveTime(subModule);
+                                      } else {
+                                        setEditingTimeModuleId(null);
+                                      }
+                                    }}
+                                    onPressEnter={() => {
+                                      if (editTime) {
+                                        handleSaveTime(subModule);
+                                      }
+                                    }}
+                                    autoFocus
+                                    className="w-16 h-7 text-sm"
+                                    disabled={isSaving}
+                                  />
+                                  <span className="text-xs">分钟</span>
+                                </div>
+                              ) : (
+                                <>
+                                  <span className="ml-2 font-medium">{formatTime(subModule.time_used)}</span>
+                                  <Button
+                                    type="text"
+                                    size="small"
+                                    className="ml-1 h-6 w-6 p-0"
+                                    onClick={() => handleEditTime(subModule)}
+                                  >
+                                    <EditOutlined className="h-3 w-3" />
+                                  </Button>
+                                </>
+                              )}
                             </div>
                           </div>
                         </div>

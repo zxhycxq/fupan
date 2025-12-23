@@ -1,5 +1,45 @@
 import type { ExamRecord, ModuleScore } from '@/types';
 
+// 验证是否为有效的成绩截图
+function validateExamScreenshot(text: string): { isValid: boolean; reason?: string } {
+  console.log('=== 验证成绩截图格式 ===');
+  
+  // 必须包含的关键词
+  const requiredKeywords = ['得分', '正确率'];
+  const moduleKeywords = ['政治理论', '常识判断', '言语理解', '数量关系', '判断推理', '资料分析'];
+  
+  // 检查是否包含"得分"关键词
+  const hasScore = requiredKeywords.some(keyword => text.includes(keyword));
+  if (!hasScore) {
+    return {
+      isValid: false,
+      reason: '未识别到成绩信息，请确保上传的是考试成绩截图',
+    };
+  }
+  
+  // 检查是否包含至少一个模块名称
+  const hasModule = moduleKeywords.some(keyword => text.includes(keyword));
+  if (!hasModule) {
+    return {
+      isValid: false,
+      reason: '未识别到考试模块信息，请确保上传的是完整的成绩截图',
+    };
+  }
+  
+  // 检查是否包含题数信息
+  const hasQuestions = /(?:共|总题数)[：:\s]*\d+[：:\s]*(?:题|道)/i.test(text) ||
+                       /\d+[：:\s]*(?:题|道)/i.test(text);
+  if (!hasQuestions) {
+    return {
+      isValid: false,
+      reason: '未识别到题目数量信息，请确保上传的是完整的成绩截图',
+    };
+  }
+  
+  console.log('✓ 成绩截图格式验证通过');
+  return { isValid: true };
+}
+
 // 预处理OCR文本，提高解析准确度
 function preprocessOcrText(text: string): string {
   let processed = text;
@@ -49,6 +89,12 @@ export function parseExamData(
   console.log('OCR原始文本长度:', ocrText.length);
   console.log('用户输入用时:', timeUsedSeconds, '秒');
   
+  // 验证成绩截图格式
+  const validation = validateExamScreenshot(ocrText);
+  if (!validation.isValid) {
+    throw new Error(validation.reason || '无效的成绩截图');
+  }
+  
   // 预处理OCR文本
   const processedText = preprocessOcrText(ocrText);
   
@@ -76,7 +122,36 @@ export function parseExamData(
                             }
                             return null;
                           })();
-  const totalScore = totalScoreMatch ? parseFloat(totalScoreMatch[1]) : 0;
+  let totalScore = totalScoreMatch ? parseFloat(totalScoreMatch[1]) : 0;
+  
+  // 验证总分不能超过100分
+  if (totalScore > 100) {
+    console.warn(`⚠️ 总分 ${totalScore} 超过100分，可能是识别错误`);
+    // 尝试修正：如果是613.0这种，可能是61.3
+    if (totalScore >= 1000) {
+      const corrected = totalScore / 10;
+      if (corrected <= 100) {
+        console.log(`✓ 自动修正: ${totalScore} → ${corrected}`);
+        totalScore = corrected;
+      } else {
+        console.log(`✗ 无法自动修正，设置为100分`);
+        totalScore = 100;
+      }
+    } else if (totalScore > 100 && totalScore < 1000) {
+      // 如果是613.0，可能是61.3
+      const corrected = totalScore / 10;
+      if (corrected <= 100) {
+        console.log(`✓ 自动修正: ${totalScore} → ${corrected}`);
+        totalScore = corrected;
+      } else {
+        console.log(`✗ 无法自动修正，设置为100分`);
+        totalScore = 100;
+      }
+    } else {
+      totalScore = 100;
+    }
+  }
+  
   console.log('提取总分:', totalScore, '匹配结果:', totalScoreMatch?.[0]);
 
   // 提取最高分 - 增强匹配
@@ -331,9 +406,17 @@ export function parseExamData(
         }
       }
       
+      // 验证用时不能小于1分钟（60秒）
+      if (timeUsedSec < 60) {
+        console.warn(`⚠️ ${module.name} 用时 ${timeUsedSec}秒 小于1分钟，设置为60秒`);
+        timeUsedSec = 60;
+      }
+      
       // 数据验证：确保数据合理
       if (totalQuestions < correctAnswers) {
         console.warn(`警告: ${module.name} 的答对数(${correctAnswers})大于总题数(${totalQuestions})，数据可能有误`);
+        // 自动修正：答对数不能超过总题数
+        correctAnswers = totalQuestions;
       }
       if (accuracyRate > 100) {
         console.warn(`警告: ${module.name} 的正确率(${accuracyRate}%)超过100%，数据可能有误`);
@@ -465,9 +548,17 @@ export function parseExamData(
           }
         }
         
+        // 验证用时不能小于1分钟（60秒）
+        if (timeUsedSec < 60) {
+          console.warn(`⚠️ ${childName} 用时 ${timeUsedSec}秒 小于1分钟，设置为60秒`);
+          timeUsedSec = 60;
+        }
+        
         // 数据验证
         if (totalQuestions < correctAnswers) {
           console.warn(`  警告: ${childName} 的答对数(${correctAnswers})大于总题数(${totalQuestions})，数据可能有误`);
+          // 自动修正：答对数不能超过总题数
+          correctAnswers = totalQuestions;
         }
         
         // 如果总用时小于10分钟,子模块时间设为0
