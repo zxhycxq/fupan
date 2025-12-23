@@ -1200,14 +1200,14 @@ export default function ExamDetail() {
                                     }}
                                     onBlur={() => {
                                       if (editTime) {
-                                        handleSaveTime(subModule);
+                                        handleSaveTime(subModule, editTime);
                                       } else {
                                         setEditingTimeModuleId(null);
                                       }
                                     }}
                                     onPressEnter={() => {
                                       if (editTime) {
-                                        handleSaveTime(subModule);
+                                        handleSaveTime(subModule, editTime);
                                       }
                                     }}
                                     autoFocus
