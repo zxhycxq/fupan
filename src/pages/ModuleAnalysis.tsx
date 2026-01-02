@@ -165,6 +165,16 @@ export default function ModuleAnalysis() {
       // 获取过滤后的考试记录的 ID 列表
       const filteredExamIds = filteredRecords.map(r => r.id);
 
+      // 如果没有考试记录，直接返回空数据
+      if (filteredExamIds.length === 0) {
+        return {
+          examNumbers: [],
+          examNames: [],
+          examDates: [],
+          series: subModules.map(name => ({ name, data: [] }))
+        };
+      }
+
       // 获取所有模块分数记录，只查询过滤后的考试
       const { data: moduleScores, error } = await supabase
         .from('module_scores')
@@ -193,6 +203,20 @@ export default function ModuleAnalysis() {
       }
 
       console.log('查询到的模块分数数据:', moduleScores);
+      console.log('过滤后的考试记录数:', filteredRecords.length);
+      console.log('查询到的模块分数记录数:', moduleScores?.length || 0);
+
+      // 检查哪些考试记录没有模块数据
+      const examIdsWithModuleScores = new Set(moduleScores?.map((s: any) => s.exam_record_id) || []);
+      const examRecordsWithoutModuleScores = filteredRecords.filter(r => !examIdsWithModuleScores.has(r.id));
+      
+      if (examRecordsWithoutModuleScores.length > 0) {
+        console.warn('以下考试记录没有模块数据:', examRecordsWithoutModuleScores.map(r => ({
+          id: r.id,
+          exam_name: r.exam_name,
+          sort_order: r.sort_order
+        })));
+      }
 
       // 按考试期数分组
       const examMap = new Map<number, { exam_name?: string; exam_date?: string | null; modules: Map<string, number> }>();
@@ -253,15 +277,6 @@ export default function ModuleAnalysis() {
     series: { name: string; data: (number | null)[] }[]
   ) => {
     return {
-      title: {
-        text: title,
-        left: 'center',
-        textStyle: {
-          color: color,
-          fontSize: 18,
-          fontWeight: 'bold'
-        }
-      },
       tooltip: {
         trigger: 'axis',
         formatter: (params: any) => {

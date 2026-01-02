@@ -435,13 +435,6 @@ export default function Dashboard() {
 
   // 总分趋势图配置
   const scoreTrendOption = {
-    title: {
-      text: '总分趋势',
-      left: 'center',
-      textStyle: {
-        fontSize: isMobile ? 14 : 16,
-      },
-    },
     tooltip: {
       trigger: 'axis',
       formatter: (params: any) => {
@@ -578,13 +571,6 @@ export default function Dashboard() {
 
   // 模块平均正确率柱状图配置（添加目标正确率折线）
   const moduleAvgOption = {
-    title: {
-      text: '各模块平均正确率',
-      left: 'center',
-      textStyle: {
-        fontSize: isMobile ? 14 : 16,
-      },
-    },
     tooltip: {
       trigger: 'axis',
       axisPointer: {
@@ -677,13 +663,6 @@ export default function Dashboard() {
 
   // 模块趋势图配置
   const moduleTrendOption = {
-    title: {
-      text: '各模块正确率趋势',
-      left: 'center',
-      textStyle: {
-        fontSize: isMobile ? 14 : 16,
-      },
-    },
     tooltip: {
       trigger: 'axis',
       formatter: (params: any) => {
@@ -760,13 +739,6 @@ export default function Dashboard() {
 
   // 模块用时趋势图配置
   const moduleTimeTrendOption = {
-    title: {
-      text: '各模块用时趋势',
-      left: 'center',
-      textStyle: {
-        fontSize: isMobile ? 14 : 16,
-      },
-    },
     tooltip: {
       trigger: 'axis',
       formatter: (params: any) => {
@@ -842,13 +814,6 @@ export default function Dashboard() {
 
   // 得分分布图配置
   const scoreDistributionOption = {
-    title: {
-      text: '得分分布',
-      left: 'center',
-      textStyle: {
-        fontSize: isMobile ? 14 : 16,
-      },
-    },
     tooltip: {
       trigger: 'item',
       formatter: (params: any) => {

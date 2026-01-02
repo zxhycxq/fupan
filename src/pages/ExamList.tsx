@@ -557,17 +557,17 @@ export default function ExamList() {
     const type = examType || '国考模考';
     switch (type) {
       case '国考真题':
-        return '#f50'; // 红色
+        return 'red'; // 红色
       case '国考模考':
-        return '#2db7f5'; // 青色
+        return 'blue'; // 蓝色
       case '省考真题':
-        return '#87d068'; // 绿色
+        return 'orange'; // 橙色
       case '省考模考':
-        return '#108ee9'; // 蓝色
+        return 'green'; // 绿色
       case '其他':
         return 'default'; // 默认灰色
       default:
-        return '#2db7f5'; // 默认青色
+        return 'blue'; // 默认蓝色
     }
   };
 
