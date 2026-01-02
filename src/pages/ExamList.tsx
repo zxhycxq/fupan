@@ -14,6 +14,7 @@ import dayjs from 'dayjs';
 import type { Dayjs } from 'dayjs';
 import WangEditor, { type WangEditorRef } from '@/components/common/WangEditor';
 import DateRangeFilter from '@/components/common/DateRangeFilter';
+import { PERCENTAGE_RANGE_OPTIONS, RATING_OPTIONS } from '@/config/formOptions';
 
 // 拖拽手柄
 const DragHandle = SortableHandle(() => (
@@ -64,34 +65,34 @@ const savePaginationToStorage = (currentPage: number, pageSize: number) => {
 };
 
 export default function ExamList() {
-  const [examRecords, setExamRecords] = useState<ExamRecord[]>([]);
-  const [filteredRecords, setFilteredRecords] = useState<ExamRecord[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const [drawerVisible, setDrawerVisible] = useState(false);
-  const [editingRecord, setEditingRecord] = useState<Partial<ExamRecord> | null>(null);
-  const [hasUnsavedSort, setHasUnsavedSort] = useState(false);
-  const [notesModalVisible, setNotesModalVisible] = useState(false);
-  const [notesModalType, setNotesModalType] = useState<'improvements' | 'mistakes'>('improvements');
-  const [notesModalContent, setNotesModalContent] = useState<string>('');
-  const [editingRecordId, setEditingRecordId] = useState<string>('');
-  const [isSaving, setIsSaving] = useState(false);
-  const [isSavingSort, setIsSavingSort] = useState(false); // 新增：保存排序的loading状态
+  const [examRecords, setExamRecords] = useState<ExamRecord[]>([]); // 所有考试记录
+  const [filteredRecords, setFilteredRecords] = useState<ExamRecord[]>([]); // 筛选后的考试记录
+  const [isLoading, setIsLoading] = useState(true); // 加载状态
+  const [loadError, setLoadError] = useState<string | null>(null); // 加载错误信息
+  const [drawerVisible, setDrawerVisible] = useState(false); // 编辑抽屉显示状态
+  const [editingRecord, setEditingRecord] = useState<Partial<ExamRecord> | null>(null); // 正在编辑的记录
+  const [hasUnsavedSort, setHasUnsavedSort] = useState(false); // 是否有未保存的排序
+  const [notesModalVisible, setNotesModalVisible] = useState(false); // 笔记弹窗显示状态
+  const [notesModalType, setNotesModalType] = useState<'improvements' | 'mistakes'>('improvements'); // 笔记类型（改进点/错题）
+  const [notesModalContent, setNotesModalContent] = useState<string>(''); // 笔记内容
+  const [editingRecordId, setEditingRecordId] = useState<string>(''); // 正在编辑笔记的记录ID
+  const [isSaving, setIsSaving] = useState(false); // 保存状态
+  const [isSavingSort, setIsSavingSort] = useState(false); // 保存排序的loading状态
   
   // 从localStorage读取初始分页状态
   const initialPagination = loadPaginationFromStorage();
-  const [currentPage, setCurrentPage] = useState(initialPagination.currentPage);
-  const [pageSize, setPageSize] = useState(initialPagination.pageSize);
+  const [currentPage, setCurrentPage] = useState(initialPagination.currentPage); // 当前页码
+  const [pageSize, setPageSize] = useState(initialPagination.pageSize); // 每页显示数量
   
-  const [filterParams, setFilterParams] = useState<FilterParams>({});
+  const [filterParams, setFilterParams] = useState<FilterParams>({}); // 筛选参数
   const [form] = Form.useForm();
   const [filterForm] = Form.useForm();
   const editorRef = useRef<WangEditorRef>(null);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [isMobile, setIsMobile] = useState(false);
-  const [showLandscapeModal, setShowLandscapeModal] = useState(false);
-  const [dateRange, setDateRange] = useState<[Dayjs, Dayjs] | null>(null);
+  const [isMobile, setIsMobile] = useState(false); // 是否为移动端
+  const [showLandscapeModal, setShowLandscapeModal] = useState(false); // 横屏弹窗显示状态
+  const [dateRange, setDateRange] = useState<[Dayjs, Dayjs] | null>(null); // 日期范围筛选
 
   // 检测移动端
   useEffect(() => {
@@ -939,16 +940,9 @@ export default function ExamList() {
                   wrapperCol={{ xs: 24, sm: 16 }}
                 >
                   <Select placeholder="请选择总分区间" allowClear>
-                    <Select.Option value="0-10">0-10分</Select.Option>
-                    <Select.Option value="11-20">11-20分</Select.Option>
-                    <Select.Option value="21-30">21-30分</Select.Option>
-                    <Select.Option value="31-40">31-40分</Select.Option>
-                    <Select.Option value="41-50">41-50分</Select.Option>
-                    <Select.Option value="51-60">51-60分</Select.Option>
-                    <Select.Option value="61-70">61-70分</Select.Option>
-                    <Select.Option value="71-80">71-80分</Select.Option>
-                    <Select.Option value="81-90">81-90分</Select.Option>
-                    <Select.Option value="91-100">91-100分</Select.Option>
+                    {PERCENTAGE_RANGE_OPTIONS.map(opt => (
+                      <Select.Option key={opt.value} value={opt.value}>{opt.label.replace('%', '分')}</Select.Option>
+                    ))}
                   </Select>
                 </Form.Item>
               </Col>
@@ -962,16 +956,9 @@ export default function ExamList() {
                   wrapperCol={{ xs: 24, sm: 16 }}
                 >
                   <Select placeholder="请选择击败率区间" allowClear>
-                    <Select.Option value="0-10">0-10%</Select.Option>
-                    <Select.Option value="11-20">11-20%</Select.Option>
-                    <Select.Option value="21-30">21-30%</Select.Option>
-                    <Select.Option value="31-40">31-40%</Select.Option>
-                    <Select.Option value="41-50">41-50%</Select.Option>
-                    <Select.Option value="51-60">51-60%</Select.Option>
-                    <Select.Option value="61-70">61-70%</Select.Option>
-                    <Select.Option value="71-80">71-80%</Select.Option>
-                    <Select.Option value="81-90">81-90%</Select.Option>
-                    <Select.Option value="91-100">91-100%</Select.Option>
+                    {PERCENTAGE_RANGE_OPTIONS.map(opt => (
+                      <Select.Option key={opt.value} value={opt.value}>{opt.label}</Select.Option>
+                    ))}
                   </Select>
                 </Form.Item>
               </Col>
@@ -985,12 +972,9 @@ export default function ExamList() {
                   wrapperCol={{ xs: 24, sm: 16 }}
                 >
                   <Select placeholder="请选择星级" allowClear>
-                    <Select.Option value="unrated">⚪ 未评定</Select.Option>
-                    <Select.Option value={1}>⭐ 1星</Select.Option>
-                    <Select.Option value={2}>⭐ 2星</Select.Option>
-                    <Select.Option value={3}>⭐ 3星</Select.Option>
-                    <Select.Option value={4}>⭐ 4星</Select.Option>
-                    <Select.Option value={5}>⭐ 5星</Select.Option>
+                    {RATING_OPTIONS.map(opt => (
+                      <Select.Option key={opt.value} value={opt.value}>{opt.label}</Select.Option>
+                    ))}
                   </Select>
                 </Form.Item>
               </Col>

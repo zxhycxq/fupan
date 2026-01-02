@@ -18,47 +18,29 @@ import DateRangeFilter from '@/components/common/DateRangeFilter';
 import StatCard from '@/components/common/StatCard';
 import { getGradeLabelsByTheme } from '@/config/gradeLabels';
 import { getSeriesStyle, LEGEND_CONFIG, TOOLTIP_CONFIG } from '@/config/chartStyles';
+import { MOTIVATIONAL_POEMS } from '@/config/constants';
 
 // 扩展dayjs
 dayjs.extend(dayOfYear);
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isSameOrBefore);
 
-// 励志古诗词数组
-const MOTIVATIONAL_POEMS = [
-  '长风破浪会有时，直挂云帆济沧海。',
-  '千淘万漉虽辛苦，吹尽狂沙始到金。',
-  '大鹏一日同风起，扶摇直上九万里。',
-  '千磨万击还坚劲，任尔东西南北风。',
-  '功崇惟志，业广于勤。',
-  '为有牺牲多壮志，敢教日月换新天。',
-  '少年负壮气，奋烈自有时。',
-  '苔花如米小，也学牡丹开。',
-  '空谈误国，实干兴邦。',
-  '自信人生二百年，会当水击三千里。',
-  '路漫漫其修远兮，吾将上下而求索。',
-  '不经一番寒彻骨，怎得梅花扑鼻香。',
-  '人生在勤，勤则不匮。',
-  '臣心一片磁针石，不指南方不肯休。',
-  '时人不识凌云木，直待凌云始道高。',
-];
-
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [examRecords, setExamRecords] = useState<ExamRecord[]>([]);
-  const [moduleAvgScores, setModuleAvgScores] = useState<{ module_name: string; avg_accuracy: number }[]>([]);
+  const [examRecords, setExamRecords] = useState<ExamRecord[]>([]); // 考试记录列表
+  const [moduleAvgScores, setModuleAvgScores] = useState<{ module_name: string; avg_accuracy: number }[]>([]); // 模块平均分数
   const [moduleTrendData, setModuleTrendData] = useState<{
     exam_numbers: number[];
-    exam_names?: string[]; // 添加考试名称数组
-    exam_dates?: (string | null)[]; // 添加考试日期数组
+    exam_names?: string[];
+    exam_dates?: (string | null)[];
     modules: { module_name: string; data: (number | null)[] }[];
-  }>({ exam_numbers: [], exam_names: [], exam_dates: [], modules: [] });
+  }>({ exam_numbers: [], exam_names: [], exam_dates: [], modules: [] }); // 模块正确率趋势数据
   const [moduleTimeTrendData, setModuleTimeTrendData] = useState<{
     exam_numbers: number[];
     exam_names?: string[];
     exam_dates?: (string | null)[];
     modules: { module_name: string; data: (number | null)[] }[];
-  }>({ exam_numbers: [], exam_names: [], exam_dates: [], modules: [] });
+  }>({ exam_numbers: [], exam_names: [], exam_dates: [], modules: [] }); // 模块用时趋势数据
   const [moduleDetailedStats, setModuleDetailedStats] = useState<{
     exam_number: number;
     exam_name: string;
@@ -68,14 +50,14 @@ export default function Dashboard() {
     total_questions: number;
     correct_answers: number;
     accuracy: number;
-    time_used: number; // 用时（秒）
-  }[]>([]);
-  const [userSettings, setUserSettings] = useState<UserSetting[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isMobile, setIsMobile] = useState(false);
-  const [examConfig, setExamConfig] = useState<{ exam_type?: string; exam_name?: string; exam_date?: string; grade_label_theme?: string } | null>(null);
-  const [countdown, setCountdown] = useState<{ days: number; hours: number; minutes: number } | null>(null);
-  const [todayPoem, setTodayPoem] = useState<string>('');
+    time_used: number;
+  }[]>([]); // 模块详细统计数据
+  const [userSettings, setUserSettings] = useState<UserSetting[]>([]); // 用户设置
+  const [isLoading, setIsLoading] = useState(true); // 加载状态
+  const [isMobile, setIsMobile] = useState(false); // 是否为移动端
+  const [examConfig, setExamConfig] = useState<{ exam_type?: string; exam_name?: string; exam_date?: string; grade_label_theme?: string } | null>(null); // 考试配置
+  const [countdown, setCountdown] = useState<{ days: number; hours: number; minutes: number } | null>(null); // 考试倒计时
+  const [todayPoem, setTodayPoem] = useState<string>(''); // 每日励志古诗词
   const [calendarValue, setCalendarValue] = useState<Dayjs>(dayjs()); // 日历当前显示的月份
   const [dateRange, setDateRange] = useState<[Dayjs | null, Dayjs | null] | null>(null); // 日期范围筛选
   const [showLandscapeModal, setShowLandscapeModal] = useState<{

@@ -77,19 +77,19 @@ function secondsToMinutes(seconds: number): number {
 
 export default function ExamDetail() {
   const { id } = useParams<{ id: string }>();
-  const [examDetail, setExamDetail] = useState<ExamRecordDetail | null>(null);
-  const [userSettings, setUserSettings] = useState<UserSetting[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [examDetail, setExamDetail] = useState<ExamRecordDetail | null>(null); // 考试详情数据
+  const [userSettings, setUserSettings] = useState<UserSetting[]>([]); // 用户设置
+  const [isLoading, setIsLoading] = useState(true); // 加载状态
   const [editingTimeModuleId, setEditingTimeModuleId] = useState<string | null>(null); // 正在编辑用时的模块ID
   const [editTime, setEditTime] = useState<string>(''); // 编辑中的用时值
-  const [editingField, setEditingField] = useState<{ moduleId: string; field: 'total' | 'correct' } | null>(null); // 正在编辑的字段（答错题不再支持编辑）
+  const [editingField, setEditingField] = useState<{ moduleId: string; field: 'total' | 'correct' } | null>(null); // 正在编辑的字段（总题数/答对数）
   const [editValue, setEditValue] = useState<string>(''); // 编辑中的值
-  const [isEditingNotes, setIsEditingNotes] = useState(false);
-  const [editingNoteType, setEditingNoteType] = useState<'improvements' | 'mistakes' | 'both'>('both'); // 新增：区分编辑类型
-  const [improvements, setImprovements] = useState<string>('');
-  const [mistakes, setMistakes] = useState<string>('');
-  const [isSaving, setIsSaving] = useState(false);
-  const [timeChartType, setTimeChartType] = useState<'pie' | 'bar'>('pie'); // 用时图表类型，默认饼图
+  const [isEditingNotes, setIsEditingNotes] = useState(false); // 是否正在编辑笔记
+  const [editingNoteType, setEditingNoteType] = useState<'improvements' | 'mistakes' | 'both'>('both'); // 编辑笔记类型（改进点/错题/全部）
+  const [improvements, setImprovements] = useState<string>(''); // 改进点内容
+  const [mistakes, setMistakes] = useState<string>(''); // 错题内容
+  const [isSaving, setIsSaving] = useState(false); // 保存状态
+  const [timeChartType, setTimeChartType] = useState<'pie' | 'bar'>('pie'); // 用时图表类型（饼图/柱状图）
   // 使用 antd message
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
