@@ -395,10 +395,6 @@ export default function ExamDetail() {
 
   // 模块正确率雷达图配置
   const radarOption = {
-    title: {
-      text: '各模块正确率对比',
-      left: 'center',
-    },
     tooltip: {
       trigger: 'item',
       formatter: (params: any) => {
@@ -481,10 +477,6 @@ export default function ExamDetail() {
 
   // 模块用时对比图配置
   const timeComparisonOption = {
-    title: {
-      text: '各模块用时对比',
-      left: 'center',
-    },
     tooltip: {
       trigger: 'axis',
       axisPointer: {
@@ -527,10 +519,6 @@ export default function ExamDetail() {
 
   // 模块用时饼图配置
   const timeComparisonPieOption = {
-    title: {
-      text: '各模块用时对比',
-      left: 'center',
-    },
     tooltip: {
       trigger: 'item',
       formatter: (params: any) => {
@@ -799,16 +787,9 @@ export default function ExamDetail() {
       {/* 图表 */}
       <div className="grid gap-6 md:grid-cols-2 mb-8">
         <Card className="shadow-md hover:shadow-lg transition-shadow duration-300">
-          
-            
-              <TitleWithTooltip 
-                title="各模块正确率" 
-                tooltip="雷达图展示各个考试模块的正确率分布情况，可以直观地看出各模块的强弱项。正确率越高，该模块掌握越好。"
-              />
-            
-            雷达图展示各模块的正确率分布
-          
-          
+            <div className="mb-4">
+              <h3 className="text-lg font-bold">各模块正确率</h3>
+            </div>
             {mainModules.length > 0 ? (
               <ReactECharts option={radarOption} style={{ height: '400px' }} />
             ) : (
@@ -821,10 +802,7 @@ export default function ExamDetail() {
         <Card
           className="shadow-md hover:shadow-lg transition-shadow duration-300"
           title={
-            <TitleWithTooltip 
-              title="各模块用时对比" 
-              tooltip="展示各模块的答题用时统计，帮助分析时间分配是否合理。饼图显示用时占比，柱状图显示具体用时。"
-            />
+            <h3 className="text-lg font-bold m-0">各模块用时对比</h3>
           }
           extra={
             <Tabs
@@ -862,17 +840,10 @@ export default function ExamDetail() {
 
       {/* 模块详情表格 */}
       <Card className="shadow-md">
-        
-          
-            <TitleWithTooltip 
-              title="模块详细数据" 
-              tooltip="详细展示各个模块和子模块的答题情况，包括总题数、答对题数、正确率和用时。可以点击编辑按钮修改数据。"
-            />
-          
-          各模块的详细答题情况
-        
-        
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <div className="mb-4">
+          <h3 className="text-lg font-bold">模块详细数据</h3>
+        </div>
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
             {mainModules.map(mainModule => {
               const subModules = examDetail.module_scores.filter(
                 m => m.parent_module === mainModule.module_name

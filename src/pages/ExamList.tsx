@@ -828,55 +828,58 @@ export default function ExamList() {
   }
 
   return (
-    <div className="container mx-auto py-4 px-2 xl:py-8 xl:px-4">
+    <div className="container mx-auto py-4 px-2 xl:py-8 xl:px-4 bg-gray-50 min-h-screen">
+
+      <div className="mb-6">
+        <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 mb-4">
+          <div className="flex items-center gap-2">
+            <h2 className="text-2xl xl:text-3xl font-bold m-0 text-gray-800">考试记录列表</h2>
+            <p className="text-sm text-gray-500 m-0">智能管理您的所有考试成绩与模拟分析</p>
+            {isMobile && filteredRecords.length > 0 && (
+              <Tooltip title="横屏查看">
+                <Button
+                  type="text"
+                  icon={<FullscreenOutlined />}
+                  onClick={() => setShowLandscapeModal(true)}
+                  className="flex items-center"
+                />
+              </Tooltip>
+            )}
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {hasUnsavedSort && (
+              <>
+                <Button 
+                  type="primary" 
+                  onClick={handleSaveSort} 
+                  loading={isSavingSort}
+                  disabled={isSavingSort}
+                >
+                  保存排序
+                </Button>
+                <Button 
+                  onClick={handleCancelSort} 
+                  disabled={isSavingSort}
+                >
+                  取消排序
+                </Button>
+              </>
+            )}
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => navigate('/upload')}
+              disabled={isSavingSort}
+              size="large"
+            >
+              上传新记录
+            </Button>
+          </div>
+        </div>
+      </div>
 
       <Card
-        title={
-          <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <h2 className="text-lg xl:text-xl font-bold m-0">考试记录列表</h2>
-              {isMobile && filteredRecords.length > 0 && (
-                <Tooltip title="横屏查看">
-                  <Button
-                    type="text"
-                    icon={<FullscreenOutlined />}
-                    onClick={() => setShowLandscapeModal(true)}
-                    className="flex items-center"
-                  />
-                </Tooltip>
-              )}
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              {hasUnsavedSort && (
-                <>
-                  <Button 
-                    type="primary" 
-                    onClick={handleSaveSort} 
-                    loading={isSavingSort}
-                    disabled={isSavingSort}
-                  >
-                    保存排序
-                  </Button>
-                  <Button 
-                    onClick={handleCancelSort} 
-                    disabled={isSavingSort}
-                  >
-                    取消排序
-                  </Button>
-                </>
-              )}
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={() => navigate('/upload')}
-                disabled={isSavingSort}
-              >
-                上传新记录
-              </Button>
-            </div>
-          </div>
-        }
-        className="shadow-sm"
+        className="shadow-sm mb-4"
       >
         {hasUnsavedSort && (
           <Alert
@@ -890,7 +893,7 @@ export default function ExamList() {
         )}
 
         {/* 筛选表单 */}
-        <Card className="mb-4" size="small">
+        <div className="bg-white rounded-lg p-6 mb-4 shadow-sm border border-gray-200">
           <Form
             form={filterForm}
             onFinish={handleSearch}
@@ -1031,7 +1034,7 @@ export default function ExamList() {
               </Col>
             </Row>
           </Form>
-        </Card>
+        </div>
 
         {examRecords.length === 0 ? (
           <div className="text-center py-12">
@@ -1041,7 +1044,7 @@ export default function ExamList() {
             </Button>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto bg-white rounded-lg shadow-sm">
             <Table
               columns={columns}
               dataSource={filteredRecords}

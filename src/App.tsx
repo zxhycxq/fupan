@@ -73,24 +73,45 @@ function App() {
     algorithm: antdTheme.defaultAlgorithm,
     token: {
       ...themeColors[currentTheme],
-      borderRadius: 8,
+      borderRadius: 10,
       fontSize: 14,
     },
     components: {
       Button: {
         controlHeight: 36,
-        borderRadius: 6,
+        borderRadius: 10,
       },
       Input: {
         controlHeight: 36,
-        borderRadius: 6,
+        borderRadius: 10,
       },
       Select: {
         controlHeight: 36,
-        borderRadius: 6,
+        borderRadius: 10,
       },
       Card: {
-        borderRadius: 12,
+        borderRadius: 10,
+      },
+      Modal: {
+        borderRadius: 10,
+      },
+      Drawer: {
+        borderRadius: 10,
+      },
+      Table: {
+        borderRadius: 10,
+      },
+      Tag: {
+        borderRadius: 10,
+      },
+      Alert: {
+        borderRadius: 10,
+      },
+      Message: {
+        borderRadius: 10,
+      },
+      Notification: {
+        borderRadius: 10,
       },
     },
   }), [currentTheme]);
