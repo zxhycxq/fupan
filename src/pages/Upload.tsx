@@ -279,6 +279,30 @@ export default function Upload() {
         title="上传考试成绩"
         className="max-w-4xl mx-auto"
       >
+        {/* 上传方式说明 - 放在最前面 */}
+        <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <div className="flex items-start">
+            <span className="text-yellow-600 text-lg mr-2">💡</span>
+            <div className="flex-1">
+              <div className="font-semibold text-gray-800 mb-2">上传方式说明</div>
+              <div className="space-y-2 text-sm text-gray-600">
+                <div>
+                  <span className="font-medium">• 成绩截图：</span>
+                  <span className="ml-1">上传考试成绩截图，系统将自动识别并分析数据。支持一次上传多张图片。</span>
+                </div>
+                <div>
+                  <span className="font-medium">• 表单录入：</span>
+                  <span className="ml-1">手动填写各模块的成绩数据。展开对应模块填写题目数量、答对数量和用时。</span>
+                </div>
+                <div className="mt-2 text-orange-600">
+                  <span className="font-medium">注意：</span>
+                  <span className="ml-1">表单录入时，如果某个模块没有填写数据，该模块在各模块分析页面将不会显示。建议优先使用成绩截图方式上传。</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <Tabs
           activeKey={activeTab}
           onChange={setActiveTab}
@@ -293,9 +317,6 @@ export default function Upload() {
               ),
               children: (
                 <div>
-                  <div className="mb-4 text-gray-500">
-                    上传考试成绩截图,系统将自动识别并分析数据。支持一次上传多张图片。
-                  </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
@@ -444,10 +465,6 @@ export default function Upload() {
               ),
               children: (
                 <div>
-                  <div className="mb-4 text-gray-500">
-                    手动填写各模块的成绩数据。展开对应模块填写题目数量、答对数量和用时。
-                  </div>
-                  
                   <div className="mb-4 grid grid-cols-1 xl:grid-cols-3 gap-4">
                     <div>
                       <div className="mb-2 text-sm font-medium">考试名称 <span className="text-red-500">*</span></div>

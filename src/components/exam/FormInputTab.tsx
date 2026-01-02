@@ -79,6 +79,7 @@ export default function FormInputTab({ examName, sortOrder, examType, onSubmitSt
       const moduleScores: any[] = [];
       let totalScore = 0;
       let totalTime = 0;
+      let hasValidationError = false;
 
       MODULE_CONFIG.forEach(parentModule => {
         // 先检查大模块总计
@@ -88,7 +89,15 @@ export default function FormInputTab({ examName, sortOrder, examType, onSubmitSt
         if (parentData && parentData.total_questions > 0) {
           const correctAnswers = parentData.correct_answers || 0;
           const totalQs = parentData.total_questions;
-          const timeUsedMinutes = parentData.time_used || 0;
+          const timeUsedMinutes = parentData.time_used || 1; // 默认1分钟
+          
+          // 验证答对数量不能超过题目数量
+          if (correctAnswers > totalQs) {
+            message.error(`${parentModule.name}总计：答对数量(${correctAnswers})不能超过题目数量(${totalQs})`);
+            hasValidationError = true;
+            return;
+          }
+          
           const timeUsedSeconds = timeUsedMinutes * 60; // 分钟转秒
           const accuracyRate = totalQs > 0 ? (correctAnswers / totalQs) * 100 : 0;
 
@@ -120,7 +129,15 @@ export default function FormInputTab({ examName, sortOrder, examType, onSubmitSt
           if (data && data.total_questions > 0) {
             const correctAnswers = data.correct_answers || 0;
             const totalQs = data.total_questions;
-            const timeUsedMinutes = data.time_used || 0;
+            const timeUsedMinutes = data.time_used || 1; // 默认1分钟
+            
+            // 验证答对数量不能超过题目数量
+            if (correctAnswers > totalQs) {
+              message.error(`${subModule}：答对数量(${correctAnswers})不能超过题目数量(${totalQs})`);
+              hasValidationError = true;
+              return;
+            }
+            
             const timeUsedSeconds = timeUsedMinutes * 60; // 分钟转秒
             const accuracyRate = totalQs > 0 ? (correctAnswers / totalQs) * 100 : 0;
 
@@ -143,6 +160,11 @@ export default function FormInputTab({ examName, sortOrder, examType, onSubmitSt
           }
         });
       });
+      
+      // 如果有验证错误，停止提交
+      if (hasValidationError) {
+        return;
+      }
 
       console.log('总共收集到', moduleScores.length, '个模块');
       console.log('总分:', totalScore);
@@ -206,13 +228,17 @@ export default function FormInputTab({ examName, sortOrder, examType, onSubmitSt
               <div className="space-y-3">
                 {/* 大模块总计 */}
                 <div className="bg-blue-50 p-3 rounded border-b-2 border-blue-200">
-                  <div className="font-medium mb-2 text-blue-700">总计</div>
+                  <div className="font-medium mb-2 text-blue-700">总计 <span className="text-red-500">*</span></div>
                   <Row gutter={12}>
                     <Col span={8}>
                       <Form.Item
                         name={[`${parentModule.name}_总计`, 'total_questions']}
                         label="题目数量"
                         className="mb-0"
+                        rules={[
+                          { required: true, message: '必填' },
+                          { type: 'number', min: 0, message: '不能小于0' }
+                        ]}
                       >
                         <InputNumber
                           min={0}
@@ -226,6 +252,9 @@ export default function FormInputTab({ examName, sortOrder, examType, onSubmitSt
                         name={[`${parentModule.name}_总计`, 'correct_answers']}
                         label="答对数量"
                         className="mb-0"
+                        rules={[
+                          { type: 'number', min: 0, message: '不能小于0' }
+                        ]}
                       >
                         <InputNumber
                           min={0}
@@ -239,10 +268,11 @@ export default function FormInputTab({ examName, sortOrder, examType, onSubmitSt
                         name={[`${parentModule.name}_总计`, 'time_used']}
                         label="用时(分钟)"
                         className="mb-0"
+                        initialValue={1}
                       >
                         <InputNumber
                           min={0}
-                          placeholder="用时"
+                          placeholder="默认1分钟"
                           style={{ width: '100%' }}
                         />
                       </Form.Item>
@@ -288,10 +318,11 @@ export default function FormInputTab({ examName, sortOrder, examType, onSubmitSt
                             name={[fieldKey, 'time_used']}
                             label="用时(分钟)"
                             className="mb-0"
+                            initialValue={1}
                           >
                             <InputNumber
                               min={0}
-                              placeholder="用时"
+                              placeholder="默认1分钟"
                               style={{ width: '100%' }}
                             />
                           </Form.Item>
@@ -305,6 +336,25 @@ export default function FormInputTab({ examName, sortOrder, examType, onSubmitSt
           ))}
         </Collapse>
       </Form>
+
+      {/* 表单填写提示 */}
+      <div className="my-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+        <div className="flex items-start">
+          <span className="text-yellow-600 text-lg mr-2">💡</span>
+          <div className="flex-1">
+            <div className="font-semibold text-gray-800 mb-2">填写说明</div>
+            <div className="space-y-1 text-sm text-gray-600">
+              <div>• 每个模块的<span className="font-medium text-red-600">总计题目数量为必填项</span></div>
+              <div>• 答对数量不能超过题目数量</div>
+              <div>• 用时默认为1分钟</div>
+              <div className="mt-2 text-orange-600">
+                <span className="font-medium">注意：</span>
+                <span className="ml-1">如果某个模块没有填写数据，该模块在各模块分析页面将不会显示。</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <Button
         type="primary"

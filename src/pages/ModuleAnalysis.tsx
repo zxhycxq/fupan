@@ -422,7 +422,12 @@ export default function ModuleAnalysis() {
 
       <div className="mb-6">
         <h1 className="text-2xl font-bold">各模块分析</h1>
-        <p className="text-gray-500 mt-2">查看各个模块的正确率趋势变化</p>
+        <p className="text-gray-500 mt-2">
+          查看各个模块的正确率趋势变化
+          <span className="text-orange-500 ml-2">
+            （注意：仅显示包含模块数据的考试记录。如果某些考试记录未显示，请通过图片上传方式补充数据）
+          </span>
+        </p>
       </div>
 
       {/* 日期范围筛选器 */}
