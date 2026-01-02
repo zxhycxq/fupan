@@ -6,6 +6,7 @@ import ModuleAnalysis from './pages/ModuleAnalysis';
 import Tools from './pages/Tools';
 import Settings from './pages/Settings';
 import Profile from './pages/Profile';
+import DebugData from './pages/DebugData';
 import type { ReactNode } from 'react';
 
 interface RouteConfig {
@@ -62,6 +63,12 @@ const routes: RouteConfig[] = [
     name: '考试详情',
     path: '/exam/:id',
     element: <ExamDetail />,
+    visible: false,
+  },
+  {
+    name: '数据调试',
+    path: '/debug',
+    element: <DebugData />,
     visible: false,
   },
 ];

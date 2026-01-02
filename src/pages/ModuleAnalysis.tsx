@@ -143,9 +143,28 @@ export default function ModuleAnalysis() {
     
     const [startDate, endDate] = dateRange;
     return examRecords.filter(record => {
-      if (!record.exam_date) return false;
-      const examDate = dayjs(record.exam_date);
-      return examDate.isSameOrAfter(startDate, 'day') && examDate.isSameOrBefore(endDate, 'day');
+      // 如果没有exam_date，使用created_at作为默认日期
+      const dateToUse = record.exam_date || record.created_at;
+      if (!dateToUse) {
+        console.warn('考试记录没有日期信息:', record);
+        return false;
+      }
+      const examDate = dayjs(dateToUse);
+      const isInRange = examDate.isSameOrAfter(startDate, 'day') && examDate.isSameOrBefore(endDate, 'day');
+      
+      // 添加调试日志
+      if (!isInRange) {
+        console.log('考试记录不在日期范围内:', {
+          exam_name: record.exam_name,
+          exam_date: record.exam_date,
+          created_at: record.created_at,
+          dateToUse,
+          startDate: startDate.format('YYYY-MM-DD'),
+          endDate: endDate.format('YYYY-MM-DD'),
+        });
+      }
+      
+      return isInRange;
     });
   }, [examRecords, dateRange]);
 
