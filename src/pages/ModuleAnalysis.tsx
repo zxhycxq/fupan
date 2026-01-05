@@ -48,14 +48,17 @@ export default function ModuleAnalysis() {
       setIsLoading(true);
       
       // 获取所有考试记录
-      const { data: exams, error: examsError } = await supabase
+      const { data: allExams, error: examsError } = await supabase
         .from('exam_records')
         .select('*')
         .order('sort_order', { ascending: true });
 
       if (examsError) throw examsError;
       
-      setExamRecords(exams || []);
+      // 过滤出参与统计的记录（include_in_stats !== false）
+      const exams = (allExams || []).filter(record => record.include_in_stats !== false);
+      
+      setExamRecords(exams);
     } catch (error) {
       console.error('加载数据失败:', error);
     } finally {

@@ -5,9 +5,9 @@ import { Card, Button, Skeleton, Alert, Table, Modal, Rate, message, Space, Draw
 const { TextArea } = Input;
 const { RangePicker } = DatePicker;
 import type { ColumnsType } from 'antd/es/table';
-import { getAllExamRecords, deleteExamRecord, updateExamRecord, updateExamRating, updateExamNotes } from '@/db/api';
+import { getAllExamRecords, deleteExamRecord, updateExamRecord, updateExamRating, updateExamNotes, updateExamIncludeInStats } from '@/db/api';
 import type { ExamRecord } from '@/types';
-import { EyeOutlined, DeleteOutlined, PlusOutlined, EditOutlined, InfoCircleOutlined, MenuOutlined, RiseOutlined, WarningOutlined, ClockCircleOutlined, LinkOutlined, DownloadOutlined, SearchOutlined, ReloadOutlined, FullscreenOutlined } from '@ant-design/icons';
+import { EyeOutlined, DeleteOutlined, PlusOutlined, EditOutlined, InfoCircleOutlined, MenuOutlined, RiseOutlined, WarningOutlined, ClockCircleOutlined, LinkOutlined, DownloadOutlined, SearchOutlined, ReloadOutlined, FullscreenOutlined, CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
 import { SortableContainer, SortableElement, SortableHandle } from 'react-sortable-hoc';
 import { arrayMoveImmutable } from 'array-move';
 import dayjs from 'dayjs';
@@ -325,6 +325,22 @@ export default function ExamList() {
     } catch (error) {
       console.error('更新星级失败:', error);
       message.error('更新星级失败，请重试');
+    }
+  };
+
+  // 处理参与统计状态变更
+  const handleIncludeInStatsChange = async (id: string, includeInStats: boolean) => {
+    try {
+      await updateExamIncludeInStats(id, includeInStats);
+      message.success(includeInStats ? '已开启参与统计' : '已关闭参与统计');
+      setExamRecords(prev => 
+        prev.map(record => 
+          record.id === id ? { ...record, include_in_stats: includeInStats } : record
+        )
+      );
+    } catch (error) {
+      console.error('更新参与统计状态失败:', error);
+      message.error('更新参与统计状态失败，请重试');
     }
   };
 
@@ -673,6 +689,34 @@ export default function ExamList() {
           <span className={isOvertime ? 'text-red-600 font-semibold' : ''}>
             {minutes}m
           </span>
+        );
+      },
+    },
+    {
+      title: (
+        <Space size={4}>
+          <span>参与统计</span>
+          <Tooltip title="默认开启，关闭代表不参与数据总览和各模块分析的统计分析">
+            <InfoCircleOutlined className="text-gray-400 text-xs" />
+          </Tooltip>
+        </Space>
+      ),
+      dataIndex: 'include_in_stats',
+      key: 'include_in_stats',
+      width: 110,
+      render: (value: boolean | null | undefined, record: ExamRecord) => {
+        const isIncluded = value !== false; // 默认为 true
+        return (
+          <Button
+            type="text"
+            size="small"
+            icon={isIncluded ? <CheckCircleOutlined /> : <CloseCircleOutlined />}
+            onClick={() => handleIncludeInStatsChange(record.id, !isIncluded)}
+            className={isIncluded ? 'text-green-600' : 'text-gray-400'}
+            disabled={isSavingSort}
+          >
+            {isIncluded ? '开启' : '关闭'}
+          </Button>
         );
       },
     },

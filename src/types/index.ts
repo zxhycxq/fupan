@@ -27,6 +27,7 @@ export interface ExamRecord {
   exam_date?: string; // 考试日期(YYYY-MM-DD格式)
   report_url?: string; // 考试报告链接地址
   sort_order: number; // 排序顺序
+  include_in_stats?: boolean; // 是否参与统计分析，默认true
   created_at: string;
   updated_at: string;
 }

@@ -117,7 +117,7 @@ export default function Dashboard() {
   const loadData = async () => {
     try {
       setIsLoading(true);
-      const [records, avgScores, trendData, timeTrendData, detailedStats, settings, config] = await Promise.all([
+      const [allRecords, avgScores, trendData, timeTrendData, detailedStats, settings, config] = await Promise.all([
         getAllExamRecords(),
         getModuleAverageScores(),
         getModuleTrendData(),
@@ -127,8 +127,12 @@ export default function Dashboard() {
         getExamConfig(),
       ]);
       
+      // 过滤出参与统计的记录（include_in_stats !== false）
+      const records = allRecords.filter(record => record.include_in_stats !== false);
+      
       console.log('=== Dashboard 数据加载完成 ===');
-      console.log('考试记录数量:', records.length);
+      console.log('所有考试记录数量:', allRecords.length);
+      console.log('参与统计的考试记录数量:', records.length);
       console.log('考试记录列表:', records.map(r => `索引${r.sort_order} - ${r.exam_name}`).join(', '));
       
       console.log('\n模块详细统计数量:', detailedStats.length);

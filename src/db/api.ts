@@ -536,6 +536,19 @@ export async function updateExamRating(id: string, rating: number): Promise<void
   }
 }
 
+// 更新考试记录的参与统计状态
+export async function updateExamIncludeInStats(id: string, includeInStats: boolean): Promise<void> {
+  const { error } = await supabase
+    .from('exam_records')
+    .update({ include_in_stats: includeInStats })
+    .eq('id', id);
+
+  if (error) {
+    console.error('更新参与统计状态失败:', error);
+    throw error;
+  }
+}
+
 // 获取下一个可用的排序号
 export async function getNextSortOrder(): Promise<number> {
   const { data, error } = await supabase
