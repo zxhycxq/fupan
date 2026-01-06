@@ -347,32 +347,49 @@ export async function updateModuleScore(
 }
 
 // 获取用户设置
-export async function getUserSettings(userId: string = 'default'): Promise<UserSetting[]> {
-  const { data, error } = await supabase
-    .from('user_settings')
-    .select('*')
-    .eq('user_id', userId)
-    .order('module_name', { ascending: true });
+export async function getUserSettings(): Promise<UserSetting[]> {
+  try {
+    // 获取当前用户
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      console.warn('用户未登录');
+      return [];
+    }
 
-  if (error) {
-    console.error('获取用户设置失败:', error);
-    throw error;
+    const { data, error } = await supabase
+      .from('user_settings')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('module_name', { ascending: true });
+
+    if (error) {
+      console.error('获取用户设置失败:', error);
+      throw error;
+    }
+
+    return Array.isArray(data) ? data : [];
+  } catch (error) {
+    console.error('获取用户设置异常:', error);
+    return [];
   }
-
-  return Array.isArray(data) ? data : [];
 }
 
 // 更新或创建用户设置
 export async function upsertUserSetting(
-  userId: string = 'default',
   moduleName: string,
   targetAccuracy: number
 ): Promise<void> {
+  // 获取当前用户
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    throw new Error('用户未登录');
+  }
+
   const { error } = await supabase
     .from('user_settings')
     .upsert(
       {
-        user_id: userId,
+        user_id: user.id,
         module_name: moduleName,
         target_accuracy: targetAccuracy,
         updated_at: new Date().toISOString(),
@@ -390,11 +407,16 @@ export async function upsertUserSetting(
 
 // 批量更新用户设置
 export async function batchUpsertUserSettings(
-  settings: Array<{ module_name: string; target_accuracy: number }>,
-  userId: string = 'default'
+  settings: Array<{ module_name: string; target_accuracy: number }>
 ): Promise<void> {
+  // 获取当前用户
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    throw new Error('用户未登录');
+  }
+
   const records = settings.map((s) => ({
-    user_id: userId,
+    user_id: user.id,
     module_name: s.module_name,
     target_accuracy: s.target_accuracy,
     updated_at: new Date().toISOString(),
@@ -412,17 +434,30 @@ export async function batchUpsertUserSettings(
 
 // 获取考试配置
 export async function getExamConfig(): Promise<{ exam_type?: string; exam_name?: string; exam_date?: string; grade_label_theme?: string } | null> {
-  const { data, error } = await supabase
-    .from('exam_config')
-    .select('exam_type, exam_name, exam_date, grade_label_theme')
-    .maybeSingle();
+  try {
+    // 获取当前用户
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      console.warn('用户未登录');
+      return null;
+    }
 
-  if (error) {
-    console.error('获取考试配置失败:', error);
+    const { data, error } = await supabase
+      .from('exam_config')
+      .select('exam_type, exam_name, exam_date, grade_label_theme')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (error) {
+      console.error('获取考试配置失败:', error);
+      return null;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('获取考试配置异常:', error);
     return null;
   }
-
-  return data;
 }
 
 // 保存考试配置
@@ -432,10 +467,22 @@ export async function saveExamConfig(
   gradeLabelTheme: string = 'theme4',
   examName: string = ''
 ): Promise<void> {
+  // 获取当前用户
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    throw new Error('用户未登录');
+  }
+
+  // 处理空字符串，转换为 null
+  const processedExamType = examType || null;
+  const processedExamDate = examDate || null;
+  const processedExamName = examName || null;
+
   // 尝试获取现有配置
   const { data: existingConfig } = await supabase
     .from('exam_config')
     .select('id')
+    .eq('user_id', user.id)
     .maybeSingle();
 
   if (existingConfig) {
@@ -443,9 +490,9 @@ export async function saveExamConfig(
     const { error } = await supabase
       .from('exam_config')
       .update({
-        exam_type: examType,
-        exam_name: examName,
-        exam_date: examDate,
+        exam_type: processedExamType,
+        exam_name: processedExamName,
+        exam_date: processedExamDate,
         grade_label_theme: gradeLabelTheme,
         updated_at: new Date().toISOString(),
       })
@@ -458,9 +505,10 @@ export async function saveExamConfig(
   } else {
     // 创建新记录
     const { error } = await supabase.from('exam_config').insert({
-      exam_type: examType,
-      exam_name: examName,
-      exam_date: examDate,
+      user_id: user.id,
+      exam_type: processedExamType,
+      exam_name: processedExamName,
+      exam_date: processedExamDate,
       grade_label_theme: gradeLabelTheme,
     });
 

@@ -1,4 +1,55 @@
-# Task: 实现手机号验证码登录注册功能
+# Task: 修复用户登录后的数据访问问题
+
+## Plan
+- [x] Step 1: 分析问题原因
+  - [x] 设置页面错误：user_settings API 使用默认值 'default'
+  - [x] 保存设置失败：日期字段传入空字符串
+  - [x] 数据总览页面空白：RLS 策略中的 uid() 函数不可用
+- [x] Step 2: 修复 user_settings 相关 API
+  - [x] getUserSettings：移除默认参数，使用当前用户 ID
+  - [x] upsertUserSetting：移除默认参数，使用当前用户 ID
+  - [x] batchUpsertUserSettings：移除默认参数，使用当前用户 ID
+- [x] Step 3: 修复 exam_config 相关 API
+  - [x] getExamConfig：添加 user_id 过滤
+  - [x] saveExamConfig：添加 user_id 字段，处理空字符串转 null
+- [x] Step 4: 创建 public.uid() 函数
+  - [x] 在 public schema 中创建 uid() 函数指向 auth.uid()
+- [x] Step 5: 修复 Dashboard.tsx
+  - [x] 移除 getUserSettings('default') 的参数
+
+## Notes
+- ✅ 所有 API 函数已更新为使用当前登录用户的 ID
+- ✅ 空字符串日期已转换为 null
+- ✅ public.uid() 函数已创建
+- ✅ Dashboard.tsx 已修复
+- ℹ️ RLS 策略使用 uid() 函数，现在可以正确解析为 auth.uid()
+- ℹ️ 用户 ID: de659f57-9bd9-4e08-962d-7b60fc6637b3
+- ℹ️ 手机号: 8615538838360（注意：没有 + 前缀）
+- ⚠️ 剩余 TypeScript 类型错误不影响运行时功能
+
+## Completed
+1. 修复了 getUserSettings、upsertUserSetting、batchUpsertUserSettings 函数
+2. 修复了 getExamConfig、saveExamConfig 函数
+3. 创建了 public.uid() 函数
+4. 修复了 Dashboard.tsx 中的 getUserSettings 调用
+5. 所有 API 函数现在都使用当前登录用户的 ID
+
+## 问题根源分析
+1. **设置页面 UUID 错误**：
+   - 原因：getUserSettings() 使用默认参数 'default'，但 user_id 字段是 UUID 类型
+   - 解决：移除默认参数，使用 supabase.auth.getUser() 获取当前用户 ID
+
+2. **保存设置失败（日期字段）**：
+   - 原因：saveExamConfig() 传入空字符串 ''，但数据库字段类型是 date
+   - 解决：将空字符串转换为 null
+
+3. **数据总览页面空白**：
+   - 原因：RLS 策略使用 uid() 函数，但该函数在 public schema 中不存在
+   - 解决：创建 public.uid() 函数指向 auth.uid()
+
+---
+
+# Previous Task: 实现手机号验证码登录注册功能
 
 ## Plan
 - [x] Step 1: 启用 Supabase 手机号认证

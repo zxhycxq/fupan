@@ -129,7 +129,7 @@ export default function Dashboard() {
         getModuleTrendData(),
         getModuleTimeTrendData(),
         getModuleDetailedStats(),
-        getUserSettings('default'),
+        getUserSettings(),
         getExamConfig(),
       ]);
       
