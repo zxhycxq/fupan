@@ -1,4 +1,61 @@
-# Task: 为考试记录列表添加星级列，修改期数为考试名称和索引号
+# Task: 实现手机号验证码登录注册功能
+
+## Plan
+- [x] Step 1: 启用 Supabase 手机号认证
+- [x] Step 2: 创建数据库迁移脚本
+  - [x] 创建 profiles 表
+  - [x] 创建 auth.uid() 函数
+  - [x] 创建触发器 on_auth_user_confirmed
+  - [x] 为现有表添加 user_id 字段
+  - [x] 修改 user_settings 表 user_id 类型
+  - [x] 启用 RLS 并创建访问策略
+  - [x] 创建绑定数据函数
+- [x] Step 3: 应用数据库迁移
+- [x] Step 4: 创建认证上下文 (AuthContext.tsx)
+- [x] Step 5: 创建路由守卫 (RouteGuard.tsx)
+- [x] Step 6: 创建登录页面 (Login.tsx)
+- [x] Step 7: 创建注册页面 (Register.tsx)
+- [x] Step 8: 更新 App.tsx 集成认证
+- [x] Step 9: 更新 routes.tsx 添加登录注册路由
+- [x] Step 10: 更新 Sidebar 添加用户信息和退出按钮
+- [x] Step 11: 创建 shadcn/ui 基础组件 (Button, Input, Card)
+- [x] Step 12: 更新类型定义添加 user_id 字段
+- [ ] Step 13: 测试登录注册流程
+- [ ] Step 14: 验证手机号 15538838360 数据绑定
+
+## Notes
+- ✅ 数据库迁移已成功应用
+- ✅ 手机号认证已启用
+- ✅ 现有数据将在手机号 15538838360 登录时自动绑定
+- ⚠️ 存在一些现有代码的类型错误（与登录功能无关）
+- ℹ️ 登录页面使用手机号+验证码方式
+- ℹ️ 注册页面支持设置用户名（可选，仅字母数字下划线）
+- ℹ️ 用户信息显示在侧边栏底部
+- ℹ️ 未登录用户访问受保护路由会自动跳转到登录页
+- ℹ️ 登录/注册页面路径：/login 和 /register
+- ℹ️ 手机号格式：+86 + 11位手机号
+- ℹ️ 验证码：6位数字
+
+## Completed
+1. 数据库迁移成功应用，包含：
+   - profiles 表（id, phone, username, created_at, updated_at）
+   - auth.uid() 函数
+   - handle_new_user() 触发器函数
+   - bind_existing_data_to_user() 绑定函数
+   - RLS 策略
+2. 认证上下文 AuthContext 创建完成
+3. 路由守卫 RouteGuard 创建完成
+4. 登录页面 Login 创建完成
+5. 注册页面 Register 创建完成
+6. App.tsx 集成认证组件
+7. routes.tsx 添加登录注册路由
+8. Sidebar 添加用户信息和退出按钮
+9. shadcn/ui 基础组件创建完成
+10. 类型定义更新完成
+
+---
+
+# Previous Task: 为考试记录列表添加星级列，修改期数为考试名称和索引号
 
 ## Plan
 - [x] Step 1: 创建数据库迁移文件，添加 rating、exam_name 和 index_number 字段

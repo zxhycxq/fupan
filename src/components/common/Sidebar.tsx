@@ -10,9 +10,12 @@ import {
   UserOutlined,
   SettingOutlined,
   ToolOutlined,
+  LogoutOutlined,
 } from '@ant-design/icons';
 import routes from '@/routes';
 import { useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { message } from 'antd';
 
 // 菜单图标映射
 const menuIcons: Record<string, React.ReactNode> = {
@@ -33,6 +36,20 @@ export default function Sidebar() {
   const location = useLocation();
   const navigation = routes.filter((route) => route.visible !== false);
   const [isOpen, setIsOpen] = useState(false);
+  const { user, profile, signOut } = useAuth();
+
+  /**
+   * 退出登录
+   */
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      message.success('已退出登录');
+      setIsOpen(false);
+    } catch (error: any) {
+      message.error(error.message || '退出登录失败');
+    }
+  };
 
   return (
     <>
@@ -99,7 +116,21 @@ export default function Sidebar() {
         </nav>
 
         {/* 底部信息 */}
-        <div className="p-2 border-t border-gray-200 dark:border-gray-700">
+        <div className="p-2 border-t border-gray-200 dark:border-gray-700 space-y-2">
+          {user && (
+            <>
+              <div className="text-xs text-gray-600 dark:text-gray-400 text-center leading-tight truncate px-1">
+                {profile?.username || profile?.phone || '用户'}
+              </div>
+              <button
+                onClick={handleSignOut}
+                className="w-full flex flex-col items-center gap-1 px-2 py-2 rounded-lg text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200"
+              >
+                <LogoutOutlined className="text-lg" />
+                <span>退出</span>
+              </button>
+            </>
+          )}
           <div className="text-xs text-gray-500 dark:text-gray-400 text-center leading-tight">
             © 2025
           </div>

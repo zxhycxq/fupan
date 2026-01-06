@@ -7,6 +7,8 @@ import 'dayjs/locale/zh-cn';
 import Sidebar from '@/components/common/Sidebar';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import PWAInstallPrompt from '@/components/common/PWAInstallPrompt';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { RouteGuard } from '@/components/common/RouteGuard';
 import routes from './routes';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -121,42 +123,46 @@ function App() {
       locale={zhCN}
       theme={antdThemeConfig}
     >
-      <ErrorBoundary>
-        <div className="flex h-screen overflow-hidden bg-gray-50">
-          {/* 左侧导航栏 */}
-          <Sidebar />
-          
-          {/* 右侧主内容区域 */}
-          <div className="flex-1 flex flex-col overflow-hidden">
-            {/* 主内容 */}
-            <main className="flex-1 overflow-auto pb-8 lg:pb-0">
-              <Routes>
-                {routes.map((route, index) => (
-                  <Route
-                    key={index}
-                    path={route.path}
-                    element={route.element}
-                  />
-                ))}
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
-            </main>
-          </div>
-          
-          {/* 全局返回顶部按钮 */}
-          <FloatButton.BackTop
-            tooltip="返回顶部"
-            visibilityHeight={300}
-            style={{
-              right: 24,
-              bottom: 24,
-            }}
-          />
-          
-          {/* PWA安装提示 */}
-          <PWAInstallPrompt />
-        </div>
-      </ErrorBoundary>
+      <AuthProvider>
+        <ErrorBoundary>
+          <RouteGuard>
+            <div className="flex h-screen overflow-hidden bg-gray-50">
+              {/* 左侧导航栏 */}
+              <Sidebar />
+              
+              {/* 右侧主内容区域 */}
+              <div className="flex-1 flex flex-col overflow-hidden">
+                {/* 主内容 */}
+                <main className="flex-1 overflow-auto pb-8 lg:pb-0">
+                  <Routes>
+                    {routes.map((route, index) => (
+                      <Route
+                        key={index}
+                        path={route.path}
+                        element={route.element}
+                      />
+                    ))}
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                  </Routes>
+                </main>
+              </div>
+              
+              {/* 全局返回顶部按钮 */}
+              <FloatButton.BackTop
+                tooltip="返回顶部"
+                visibilityHeight={300}
+                style={{
+                  right: 24,
+                  bottom: 24,
+                }}
+              />
+              
+              {/* PWA安装提示 */}
+              <PWAInstallPrompt />
+            </div>
+          </RouteGuard>
+        </ErrorBoundary>
+      </AuthProvider>
     </ConfigProvider>
   );
 }

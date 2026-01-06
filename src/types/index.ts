@@ -8,6 +8,7 @@ export interface Option {
 // 考试记录类型
 export interface ExamRecord {
   id: string;
+  user_id?: string; // 用户ID
   exam_number: number; // 保留用于向后兼容
   exam_name: string; // 考试名称
   exam_type?: string; // 考试类型：国考真题、国考模考、省考真题、省考模考、其他
@@ -35,6 +36,7 @@ export interface ExamRecord {
 // 模块得分类型
 export interface ModuleScore {
   id: string;
+  user_id?: string; // 用户ID
   exam_record_id: string;
   module_name: string;
   parent_module?: string;

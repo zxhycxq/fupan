@@ -7,6 +7,8 @@ import Tools from './pages/Tools';
 import Settings from './pages/Settings';
 import Profile from './pages/Profile';
 import DebugData from './pages/DebugData';
+import Login from './pages/Login';
+import Register from './pages/Register';
 import type { ReactNode } from 'react';
 
 interface RouteConfig {
@@ -17,6 +19,18 @@ interface RouteConfig {
 }
 
 const routes: RouteConfig[] = [
+  {
+    name: '登录',
+    path: '/login',
+    element: <Login />,
+    visible: false,
+  },
+  {
+    name: '注册',
+    path: '/register',
+    element: <Register />,
+    visible: false,
+  },
   {
     name: '数据总览',
     path: '/',
