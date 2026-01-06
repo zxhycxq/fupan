@@ -1,13 +1,13 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Card, Button, Skeleton, Alert, Table, Modal, Rate, message, Space, Drawer, Form, Input, InputNumber, DatePicker, Tooltip, Select, Tag, Row, Col } from 'antd';
+import { Card, Button, Skeleton, Alert, Table, Modal, Rate, message, Space, Drawer, Form, Input, InputNumber, DatePicker, Tooltip, Select, Tag, Row, Col, Switch } from 'antd';
 
 const { TextArea } = Input;
 const { RangePicker } = DatePicker;
 import type { ColumnsType } from 'antd/es/table';
 import { getAllExamRecords, deleteExamRecord, updateExamRecord, updateExamRating, updateExamNotes, updateExamIncludeInStats } from '@/db/api';
 import type { ExamRecord } from '@/types';
-import { EyeOutlined, DeleteOutlined, PlusOutlined, EditOutlined, InfoCircleOutlined, MenuOutlined, RiseOutlined, WarningOutlined, ClockCircleOutlined, LinkOutlined, DownloadOutlined, SearchOutlined, ReloadOutlined, FullscreenOutlined, CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
+import { EyeOutlined, DeleteOutlined, PlusOutlined, EditOutlined, InfoCircleOutlined, MenuOutlined, RiseOutlined, WarningOutlined, ClockCircleOutlined, LinkOutlined, DownloadOutlined, SearchOutlined, ReloadOutlined, FullscreenOutlined } from '@ant-design/icons';
 import { SortableContainer, SortableElement, SortableHandle } from 'react-sortable-hoc';
 import { arrayMoveImmutable } from 'array-move';
 import dayjs from 'dayjs';
@@ -328,11 +328,21 @@ export default function ExamList() {
     }
   };
 
-  // 处理参与统计状态变更
+  /**
+   * 处理参与统计状态变更
+   * @param id 考试记录ID
+   * @param includeInStats 是否参与统计（true=参与，false=不参与）
+   * @description 更新考试记录的参与统计状态，影响数据总览和各模块分析的统计结果
+   */
   const handleIncludeInStatsChange = async (id: string, includeInStats: boolean) => {
     try {
+      // 调用API更新数据库
       await updateExamIncludeInStats(id, includeInStats);
+      
+      // 显示成功提示
       message.success(includeInStats ? '已开启参与统计' : '已关闭参与统计');
+      
+      // 更新本地状态
       setExamRecords(prev => 
         prev.map(record => 
           record.id === id ? { ...record, include_in_stats: includeInStats } : record
@@ -703,20 +713,17 @@ export default function ExamList() {
       ),
       dataIndex: 'include_in_stats',
       key: 'include_in_stats',
-      width: 110,
+      width: 90,
       render: (value: boolean | null | undefined, record: ExamRecord) => {
         const isIncluded = value !== false; // 默认为 true
         return (
-          <Button
-            type="text"
-            size="small"
-            icon={isIncluded ? <CheckCircleOutlined /> : <CloseCircleOutlined />}
-            onClick={() => handleIncludeInStatsChange(record.id, !isIncluded)}
-            className={isIncluded ? 'text-green-600' : 'text-gray-400'}
+          <Switch
+            checked={isIncluded}
+            onChange={(checked) => handleIncludeInStatsChange(record.id, checked)}
             disabled={isSavingSort}
-          >
-            {isIncluded ? '开启' : '关闭'}
-          </Button>
+            checkedChildren="开启"
+            unCheckedChildren="关闭"
+          />
         );
       },
     },

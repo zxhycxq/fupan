@@ -114,9 +114,15 @@ export default function Dashboard() {
     loadData();
   }, []);
 
+  /**
+   * 加载数据总览页面所需的所有数据
+   * @description 并行加载考试记录、模块平均分、趋势数据等，并过滤出参与统计的记录
+   */
   const loadData = async () => {
     try {
       setIsLoading(true);
+      
+      // 并行加载所有数据
       const [allRecords, avgScores, trendData, timeTrendData, detailedStats, settings, config] = await Promise.all([
         getAllExamRecords(),
         getModuleAverageScores(),
@@ -127,7 +133,8 @@ export default function Dashboard() {
         getExamConfig(),
       ]);
       
-      // 过滤出参与统计的记录（include_in_stats !== false）
+      // 【重要】过滤出参与统计的记录（include_in_stats !== false）
+      // 只有参与统计的记录才会在数据总览中显示和计算
       const records = allRecords.filter(record => record.include_in_stats !== false);
       
       console.log('=== Dashboard 数据加载完成 ===');

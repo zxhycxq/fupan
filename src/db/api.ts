@@ -536,7 +536,14 @@ export async function updateExamRating(id: string, rating: number): Promise<void
   }
 }
 
-// 更新考试记录的参与统计状态
+/**
+ * 更新考试记录的参与统计状态
+ * @param id 考试记录ID
+ * @param includeInStats 是否参与统计（true=参与，false=不参与）
+ * @description 更新 exam_records 表的 include_in_stats 字段
+ * @description 影响数据总览和各模块分析页面的统计结果
+ * @throws 更新失败时抛出错误
+ */
 export async function updateExamIncludeInStats(id: string, includeInStats: boolean): Promise<void> {
   const { error } = await supabase
     .from('exam_records')

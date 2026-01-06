@@ -43,6 +43,10 @@ export default function ModuleAnalysis() {
     loadData();
   }, []);
 
+  /**
+   * 加载各模块分析页面所需的考试记录数据
+   * @description 从数据库加载所有考试记录，并过滤出参与统计的记录
+   */
   const loadData = async () => {
     try {
       setIsLoading(true);
@@ -55,7 +59,8 @@ export default function ModuleAnalysis() {
 
       if (examsError) throw examsError;
       
-      // 过滤出参与统计的记录（include_in_stats !== false）
+      // 【重要】过滤出参与统计的记录（include_in_stats !== false）
+      // 只有参与统计的记录才会在各模块分析中显示和计算
       const exams = (allExams || []).filter(record => record.include_in_stats !== false);
       
       setExamRecords(exams);
