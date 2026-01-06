@@ -14,38 +14,48 @@
   - [x] 获取验证码前检查是否同意条款
 - [x] Step 4: 优化注册页面
   - [x] 昵称实时验证（长度、字符、唯一性）
-  - [x] 禁用常见用户名
+  - [x] 禁用常见用户名（前后端判断，不显示文案）
   - [x] 显示验证结果提示
   - [x] 添加条款勾选框
   - [x] 添加未注册提示文案
 - [x] Step 5: 更新 Sidebar
   - [x] 显示用户昵称而非手机号
   - [x] 添加默认昵称逻辑
+  - [x] 昵称超过8个字符显示省略号
+  - [x] 移除版权字样
 - [x] Step 6: 创建昵称检查 API
   - [x] checkUsernameAvailability 函数
-  - [x] 黑名单检查
+  - [x] 黑名单检查（23个常见用户名）
   - [x] 格式验证
 - [x] Step 7: 创建条款和隐私页面
   - [x] Terms.tsx 用户条款页面
   - [x] Privacy.tsx 隐私协议页面
   - [x] 添加路由配置
-- [ ] Step 8: 测试所有功能
+- [x] Step 8: 修复 RLS 策略问题
+  - [x] 修复 exam_records 表的 INSERT 策略
+  - [x] 修复 module_scores 表的策略
+  - [x] 修复 user_settings 表的策略
+  - [x] 修复 exam_config 表的策略
+- [ ] Step 9: 测试所有功能
   - [ ] 登录页面条款勾选测试
   - [ ] 注册页面昵称实时验证测试
-  - [ ] Sidebar昵称显示测试
+  - [ ] Sidebar昵称显示测试（超过8字符省略号）
   - [ ] 个人中心页面测试
+  - [ ] 上传成绩功能测试（验证RLS修复）
   - [ ] 完整流程集成测试
 
 ## Notes
 - ✅ 昵称规则：字母、数字、下划线，3-20位
-- ✅ 黑名单：admin、root、user、test、123456 等23个
+- ✅ 黑名单：admin、root、user、test、123456 等23个（前后端判断，不显示文案）
 - ✅ 条款链接：新窗口打开，内容待定
 - ✅ 默认昵称：用户未设置时显示"用户_手机号后4位"
 - ✅ 登录页面添加条款勾选框，默认不勾选
 - ✅ 注册页面添加昵称实时验证，显示可用性提示
-- ✅ Sidebar显示昵称优先，否则显示格式化手机号
+- ✅ Sidebar显示昵称优先，超过8字符显示省略号，否则显示格式化手机号
 - ✅ 个人中心显示完整用户信息，支持昵称编辑
 - ✅ 创建 Terms 和 Privacy 页面，内容待定
+- ✅ 移除版权字样 "© 2025"
+- ✅ **严重bug已修复**：RLS 策略的 WITH CHECK 子句缺失导致新用户无法插入数据
 - ⚠️ 存在一些现有代码的类型错误（与新功能无关）
 
 ## Completed
@@ -53,12 +63,40 @@
 2. ✅ 创建个人中心页面：显示用户信息、昵称编辑、会员和订单预留
 3. ✅ 优化登录页面：添加条款勾选框、提示文案、验证逻辑
 4. ✅ 优化注册页面：昵称实时验证、条款勾选、提示文案
-5. ✅ 更新 Sidebar：显示昵称或格式化手机号
+5. ✅ 更新 Sidebar：显示昵称或格式化手机号、超过8字符省略号、移除版权
 6. ✅ 创建昵称检查 API：checkUsernameAvailability、updateUsername
 7. ✅ 创建条款和隐私页面：Terms.tsx、Privacy.tsx
 8. ✅ 更新路由配置：添加 /terms 和 /privacy 路由
 9. ✅ 创建 Checkbox 组件：基于 Radix UI
 10. ✅ 安装依赖：@radix-ui/react-checkbox
+11. ✅ **修复严重bug**：修复所有表的 RLS 策略，添加 WITH CHECK 子句
+
+## 问题修复记录
+
+### RLS 策略导致上传失败（已修复）
+**问题描述：**
+新用户上传成绩时报错：`'new row violates row-level security policy for table "exam_records"'`
+
+**问题原因：**
+1. exam_records 表的 RLS 策略只有 USING 子句，没有 WITH CHECK 子句
+2. USING 子句用于 SELECT、UPDATE、DELETE 操作
+3. INSERT 操作需要 WITH CHECK 子句来验证新行是否符合策略
+4. 缺少 WITH CHECK 导致所有 INSERT 操作都被拒绝
+
+**解决方案：**
+为所有表的 RLS 策略添加 WITH CHECK 子句：
+- exam_records: `WITH CHECK (auth.uid() = user_id)`
+- module_scores: `WITH CHECK (EXISTS (SELECT 1 FROM exam_records WHERE ...))`
+- user_settings: `WITH CHECK (auth.uid() = user_id)`
+- exam_config: `WITH CHECK (auth.uid() = user_id)`
+
+**最终效果：**
+- 新用户可以正常上传成绩
+- 数据安全性得到保障（只能插入自己的数据）
+- 所有 CRUD 操作都受到正确的 RLS 保护
+
+**修改文件：**
+- 数据库迁移：fix_exam_records_rls_policy
 
 ---
 

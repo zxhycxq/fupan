@@ -119,8 +119,13 @@ export default function Sidebar() {
         <div className="p-2 border-t border-gray-200 dark:border-gray-700 space-y-2">
           {user && (
             <>
-              <div className="text-xs text-gray-600 dark:text-gray-400 text-center leading-tight truncate px-1">
-                {profile?.username || (profile?.phone ? `用户_${profile.phone.replace(/^\+?86/, '').slice(-4)}` : '默认用户')}
+              <div className="text-xs text-gray-600 dark:text-gray-400 text-center leading-tight px-1">
+                <div className="truncate" title={profile?.username || (profile?.phone ? `用户_${profile.phone.replace(/^\+?86/, '').slice(-4)}` : '默认用户')}>
+                  {(() => {
+                    const displayName = profile?.username || (profile?.phone ? `用户_${profile.phone.replace(/^\+?86/, '').slice(-4)}` : '默认用户');
+                    return displayName.length > 8 ? `${displayName.slice(0, 8)}...` : displayName;
+                  })()}
+                </div>
               </div>
               <button
                 onClick={handleSignOut}
@@ -131,9 +136,6 @@ export default function Sidebar() {
               </button>
             </>
           )}
-          <div className="text-xs text-gray-500 dark:text-gray-400 text-center leading-tight">
-            © 2025
-          </div>
         </div>
       </aside>
     </>
