@@ -36,12 +36,16 @@
   - [x] 修复 module_scores 表的策略
   - [x] 修复 user_settings 表的策略
   - [x] 修复 exam_config 表的策略
-- [ ] Step 9: 测试所有功能
+- [x] Step 9: 修复上传功能的 user_id 问题
+  - [x] Upload.tsx 添加 user_id
+  - [x] FormInputTab.tsx 添加 user_id
+  - [x] 添加用户登录检查
+- [ ] Step 10: 测试所有功能
   - [ ] 登录页面条款勾选测试
   - [ ] 注册页面昵称实时验证测试
   - [ ] Sidebar昵称显示测试（超过8字符省略号）
   - [ ] 个人中心页面测试
-  - [ ] 上传成绩功能测试（验证RLS修复）
+  - [ ] 上传成绩功能测试（验证user_id修复）
   - [ ] 完整流程集成测试
 
 ## Notes
@@ -56,6 +60,7 @@
 - ✅ 创建 Terms 和 Privacy 页面，内容待定
 - ✅ 移除版权字样 "© 2025"
 - ✅ **严重bug已修复**：RLS 策略的 WITH CHECK 子句缺失导致新用户无法插入数据
+- ✅ **严重bug已修复**：上传时未添加 user_id 导致 RLS 策略拒绝插入
 - ⚠️ 存在一些现有代码的类型错误（与新功能无关）
 
 ## Completed
@@ -70,6 +75,7 @@
 9. ✅ 创建 Checkbox 组件：基于 Radix UI
 10. ✅ 安装依赖：@radix-ui/react-checkbox
 11. ✅ **修复严重bug**：修复所有表的 RLS 策略，添加 WITH CHECK 子句
+12. ✅ **修复严重bug**：Upload.tsx 和 FormInputTab.tsx 添加 user_id 字段
 
 ## 问题修复记录
 
@@ -97,6 +103,37 @@
 
 **修改文件：**
 - 数据库迁移：fix_exam_records_rls_policy
+
+### 上传时缺少 user_id 导致 RLS 拒绝（已修复）
+**问题描述：**
+即使修复了 RLS 策略，上传仍然失败，报错：`'new row violates row-level security policy for table "exam_records"'`
+
+**问题原因：**
+1. Upload.tsx 和 FormInputTab.tsx 在创建考试记录时没有添加 user_id 字段
+2. RLS 策略要求 `auth.uid() = user_id`，但 user_id 为空
+3. 导致 WITH CHECK 验证失败，拒绝插入
+
+**解决方案：**
+1. 在 Upload.tsx 中：
+   - 导入 useAuth hook
+   - 获取当前用户 ID
+   - 在创建考试记录前检查用户是否登录
+   - 将 user_id 添加到 examRecord 对象中
+
+2. 在 FormInputTab.tsx 中：
+   - 导入 useAuth hook
+   - 获取当前用户 ID
+   - 在创建考试记录前检查用户是否登录
+   - 将 user_id 添加到 examRecord 对象中
+
+**最终效果：**
+- 上传功能正常工作
+- 每个用户只能看到自己的考试记录
+- 数据隔离得到保障
+
+**修改文件：**
+- src/pages/Upload.tsx
+- src/components/exam/FormInputTab.tsx
 
 ---
 

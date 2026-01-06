@@ -6,6 +6,7 @@ import { fileToBase64, recognizeText, compressImage } from '@/services/imageReco
 import { parseExamData } from '@/services/dataParser';
 import { createExamRecord, createModuleScores, getNextSortOrder, getNextIndexNumber } from '@/db/api';
 import FormInputTab from '@/components/exam/FormInputTab';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface FileWithPreview {
   file: File;
@@ -13,6 +14,7 @@ interface FileWithPreview {
 }
 
 export default function Upload() {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<string>('image');
   const [examName, setExamName] = useState<string>('');
   const [sortOrder, setSortOrder] = useState<number>(1);
@@ -199,9 +201,15 @@ export default function Upload() {
       const nextIndexNumber = await getNextIndexNumber();
       console.log('获取到的索引号:', nextIndexNumber);
 
-      // 添加考试名称、排序号、索引号、考试类型和图片URL
+      // 检查用户是否登录
+      if (!user?.id) {
+        throw new Error('用户未登录，请先登录');
+      }
+
+      // 添加考试名称、排序号、索引号、考试类型、图片URL和用户ID
       const recordWithNameAndSortOrder = {
         ...examRecord,
+        user_id: user.id, // 添加用户ID
         exam_name: examName,
         exam_type: examType, // 添加考试类型
         sort_order: sortOrder,

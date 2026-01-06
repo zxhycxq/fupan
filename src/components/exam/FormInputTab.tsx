@@ -2,6 +2,7 @@ import { Form, Collapse, Row, Col, InputNumber, Button, message } from 'antd';
 import { SaveOutlined } from '@ant-design/icons';
 import { createExamRecord, createModuleScores, getNextIndexNumber } from '@/db/api';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 const { Panel } = Collapse;
 
@@ -59,11 +60,18 @@ interface FormInputTabProps {
 export default function FormInputTab({ examName, sortOrder, examType, onSubmitStart, onSubmitEnd }: FormInputTabProps) {
   const [form] = Form.useForm();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const handleSubmit = async () => {
     try {
       if (!examName || examName.trim() === '') {
         message.error('请输入考试名称');
+        return;
+      }
+
+      // 检查用户是否登录
+      if (!user?.id) {
+        message.error('用户未登录，请先登录');
         return;
       }
 
@@ -182,6 +190,7 @@ export default function FormInputTab({ examName, sortOrder, examType, onSubmitSt
       console.log('获取到的索引号:', nextIndexNumber);
 
       const examRecord = {
+        user_id: user.id, // 添加用户ID
         exam_name: examName,
         exam_type: examType, // 添加考试类型
         exam_number: sortOrder,
