@@ -3,6 +3,7 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useAuth } from '@/contexts/AuthContext';
 import { message } from 'antd';
 
@@ -15,6 +16,7 @@ export default function Login() {
   const [step, setStep] = useState<'phone' | 'otp'>('phone');
   const [loading, setLoading] = useState(false);
   const [countdown, setCountdown] = useState(0);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const { signInWithPhone, verifyOtp } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -36,6 +38,11 @@ export default function Login() {
   const handleSendOtp = async () => {
     if (!validatePhone(phone)) {
       message.error('请输入正确的手机号');
+      return;
+    }
+
+    if (!agreedToTerms) {
+      message.warning('请先同意用户条款和隐私协议');
       return;
     }
 
@@ -114,10 +121,50 @@ export default function Login() {
                   maxLength={11}
                 />
               </div>
+              
+              {/* 条款勾选框 */}
+              <div className="flex items-start space-x-2">
+                <Checkbox
+                  id="terms"
+                  checked={agreedToTerms}
+                  onCheckedChange={(checked) => setAgreedToTerms(checked as boolean)}
+                />
+                <label
+                  htmlFor="terms"
+                  className="text-sm text-muted-foreground leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  我已阅读并同意{' '}
+                  <a
+                    href="/terms"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    用户条款
+                  </a>
+                  {' '}和{' '}
+                  <a
+                    href="/privacy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    隐私协议
+                  </a>
+                </label>
+              </div>
+
+              {/* 提示文案 */}
+              <div className="text-xs text-muted-foreground bg-muted p-3 rounded-md">
+                💡 提示：未注册的手机号将自动创建账户
+              </div>
+
               <Button
                 className="w-full"
                 onClick={handleSendOtp}
-                disabled={loading || !phone}
+                disabled={loading || !phone || !agreedToTerms}
               >
                 {loading ? '发送中...' : '获取验证码'}
               </Button>

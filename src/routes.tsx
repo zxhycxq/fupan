@@ -9,6 +9,8 @@ import Profile from './pages/Profile';
 import DebugData from './pages/DebugData';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Terms from './pages/Terms';
+import Privacy from './pages/Privacy';
 import type { ReactNode } from 'react';
 
 interface RouteConfig {
@@ -29,6 +31,18 @@ const routes: RouteConfig[] = [
     name: '注册',
     path: '/register',
     element: <Register />,
+    visible: false,
+  },
+  {
+    name: '用户条款',
+    path: '/terms',
+    element: <Terms />,
+    visible: false,
+  },
+  {
+    name: '隐私协议',
+    path: '/privacy',
+    element: <Privacy />,
     visible: false,
   },
   {

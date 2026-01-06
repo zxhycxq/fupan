@@ -721,3 +721,108 @@ export async function deleteAllUserData(): Promise<void> {
   localStorage.clear();
 }
 
+// ==================== 用户昵称相关 API ====================
+
+/**
+ * 检查用户名是否可用
+ * @param username 要检查的用户名
+ * @returns 检查结果
+ */
+export async function checkUsernameAvailability(username: string): Promise<{
+  available: boolean;
+  reason: string;
+  message: string;
+}> {
+  try {
+    // 获取当前用户
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    const { data, error } = await supabase.rpc('check_username_availability', {
+      username_input: username,
+      current_user_id: user?.id || null,
+    });
+
+    if (error) {
+      console.error('检查用户名失败:', error);
+      return {
+        available: false,
+        reason: 'error',
+        message: '检查失败，请稍后重试',
+      };
+    }
+
+    return data as { available: boolean; reason: string; message: string };
+  } catch (error) {
+    console.error('检查用户名异常:', error);
+    return {
+      available: false,
+      reason: 'error',
+      message: '检查失败，请稍后重试',
+    };
+  }
+}
+
+/**
+ * 更新用户昵称
+ * @param username 新昵称
+ */
+export async function updateUsername(username: string): Promise<void> {
+  // 获取当前用户
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    throw new Error('用户未登录');
+  }
+
+  // 先检查用户名是否可用
+  const checkResult = await checkUsernameAvailability(username);
+  if (!checkResult.available) {
+    throw new Error(checkResult.message);
+  }
+
+  // 更新用户名
+  const { error } = await supabase
+    .from('profiles')
+    .update({ username, updated_at: new Date().toISOString() })
+    .eq('id', user.id);
+
+  if (error) {
+    console.error('更新用户名失败:', error);
+    throw error;
+  }
+}
+
+/**
+ * 获取用户资料
+ */
+export async function getUserProfile(): Promise<{
+  id: string;
+  username: string | null;
+  phone: string | null;
+  created_at: string;
+  updated_at: string;
+} | null> {
+  try {
+    // 获取当前用户
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return null;
+    }
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, username, phone, created_at, updated_at')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    if (error) {
+      console.error('获取用户资料失败:', error);
+      return null;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('获取用户资料异常:', error);
+    return null;
+  }
+}
+

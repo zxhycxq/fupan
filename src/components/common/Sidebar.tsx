@@ -120,7 +120,7 @@ export default function Sidebar() {
           {user && (
             <>
               <div className="text-xs text-gray-600 dark:text-gray-400 text-center leading-tight truncate px-1">
-                {profile?.username || profile?.phone || '用户'}
+                {profile?.username || (profile?.phone ? `用户_${profile.phone.replace(/^\+?86/, '').slice(-4)}` : '默认用户')}
               </div>
               <button
                 onClick={handleSignOut}
