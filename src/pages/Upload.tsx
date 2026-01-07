@@ -215,7 +215,7 @@ export default function Upload() {
         sort_order: sortOrder,
         index_number: nextIndexNumber, // 使用自动生成的唯一索引号
         rating: 0, // 默认星级为 0
-        image_url: allImageUrls.length > 0 ? allImageUrls[0] : null, // 保存第一张图片的base64
+        image_url: allImageUrls.length > 0 ? allImageUrls[0] : undefined, // 保存第一张图片的base64
       };
 
       // 保存到数据库

@@ -87,7 +87,7 @@ function generateModuleScore(
     id: crypto.randomUUID(),
     exam_record_id: examRecordId,
     module_name: moduleName,
-    parent_module: null,
+    parent_module: undefined,
     total_questions: totalQuestions,
     correct_answers: correctCount,
     wrong_answers: wrongCount,

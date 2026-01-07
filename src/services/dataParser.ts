@@ -430,7 +430,7 @@ export function parseExamData(
 
       moduleScores.push({
         module_name: module.name,
-        parent_module: null,
+        parent_module: undefined,
         total_questions: totalQuestions,
         correct_answers: correctAnswers,
         wrong_answers: wrongAnswers,

@@ -371,11 +371,11 @@ export default function ExamList() {
       updates.exam_type = values.exam_type || '国考模考'; // 添加考试类型
 
       updates.total_score = Math.round(values.total_score * 10) / 10;
-      updates.time_used = values.time_used ? values.time_used * 60 : null; // 将分钟转换为秒
-      updates.average_score = values.average_score ? Math.round(values.average_score * 10) / 10 : null;
-      updates.pass_rate = values.pass_rate ? Math.round(values.pass_rate * 10) / 10 : null;
-      updates.exam_date = values.exam_date ? values.exam_date.format('YYYY-MM-DD') : null;
-      updates.report_url = values.report_url ? values.report_url.trim() : null;
+      updates.time_used = values.time_used ? values.time_used * 60 : undefined; // 将分钟转换为秒
+      updates.average_score = values.average_score ? Math.round(values.average_score * 10) / 10 : undefined;
+      updates.pass_rate = values.pass_rate ? Math.round(values.pass_rate * 10) / 10 : undefined;
+      updates.exam_date = values.exam_date ? values.exam_date.format('YYYY-MM-DD') : undefined;
+      updates.report_url = values.report_url ? values.report_url.trim() : undefined;
 
       await updateExamRecord(editingRecord.id!, updates);
 
