@@ -1,24 +1,61 @@
 # Task: 优化用户体验和数据管理
 
 ## Plan
-- [ ] Step 1: 延长登录会话时间
-  - [ ] 修改 Supabase Auth 配置，设置 session 过期时间为15天
-  - [ ] 配置 refresh token 自动刷新
-- [ ] Step 2: 实现软删除功能
-  - [ ] 添加 deleted_at 字段到 user_profiles 表
-  - [ ] 创建软删除函数
-  - [ ] 修改 RLS 策略排除已删除用户
-  - [ ] 个人中心添加删除账号功能
-  - [ ] 确保新用户不关联旧数据
-- [ ] Step 3: 优化空状态页面
-  - [ ] 修改考公复盘页面空状态样式
-  - [ ] 参考图片2设计居中布局
-  - [ ] 添加美观的空状态提示
-- [ ] Step 4: 测试所有功能
-  - [ ] 登录会话持久化测试
+- [x] Step 1: 延长登录会话时间
+  - [x] 修改 Supabase Auth 配置，设置 session 过期时间为15天
+  - [x] 配置 refresh token 自动刷新
+  - [x] 应用数据库迁移（记录配置说明）
+- [x] Step 2: 实现软删除功能
+  - [x] 添加 deleted_at 字段到 profiles 表
+  - [x] 添加 deleted_at 字段到所有用户数据表
+  - [x] 创建软删除函数 soft_delete_user_account()
+  - [x] 修改 RLS 策略排除已删除用户
+  - [x] 个人中心添加删除账号功能
+  - [x] 确保新用户不关联旧数据
+  - [x] 应用数据库迁移
+- [x] Step 3: 优化空状态页面
+  - [x] 修改考试记录页面空状态样式
+  - [x] 参考图片2设计居中布局
+  - [x] 添加美观的空状态提示
+- [x] Step 4: 修复类型错误
+  - [x] Upload.tsx: image_url 类型修复
+  - [x] dataParser.ts: parent_module 类型修复
+  - [x] generateTestData.ts: parent_module 类型修复
+  - [x] ExamList.tsx: 多个字段类型修复
+- [ ] Step 5: 测试所有功能
+  - [ ] 登录会话持久化测试（15天）
   - [ ] 软删除功能测试
   - [ ] 空状态页面显示测试
   - [ ] 完整流程集成测试
+
+## Notes
+- ✅ 会话配置：客户端已启用 autoRefreshToken、persistSession、detectSessionInUrl
+- ⚠️ **需要手动配置**：在 Supabase Dashboard 的 Authentication > Settings 中设置 JWT expiry 为 1296000 秒（15天）
+- ✅ 软删除功能：已创建完整的迁移文件，包含 deleted_at 字段、软删除函数、RLS 策略更新
+- ✅ 空状态页面：已优化考试记录页面的空状态显示，居中布局，美观的图标和提示
+- ✅ 类型错误：已修复 null/undefined 类型不匹配问题
+- ℹ️ 软删除说明：删除账号后数据被标记为已删除，不再显示，新用户不会关联旧数据
+- ⚠️ 存在一些现有代码的类型错误（与新功能无关）
+
+## Completed
+1. ✅ 延长登录会话时间：
+   - 修改 src/db/supabase.ts，添加 auth 配置
+   - 启用 autoRefreshToken、persistSession、detectSessionInUrl
+   - 创建迁移文件记录配置说明
+2. ✅ 实现软删除功能：
+   - 添加 deleted_at 字段到 profiles、exam_records、module_scores、user_settings、exam_config 表
+   - 创建 soft_delete_user_account() 函数
+   - 更新所有表的 RLS 策略，排除已删除数据
+   - 创建索引提高查询性能
+   - 修改个人中心删除账号功能，使用软删除
+3. ✅ 优化空状态页面：
+   - 修改 ExamList.tsx 空状态样式
+   - 添加圆形渐变背景图标
+   - 居中布局，美观的提示文字
+   - 大号按钮，阴影效果
+4. ✅ 修复类型错误：
+   - 将 null 改为 undefined，符合类型定义
+   - 修复 Upload.tsx、dataParser.ts、generateTestData.ts、ExamList.tsx
 
 ---
 
