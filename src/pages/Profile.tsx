@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Card, Descriptions, Button, Modal, Input, message, Spin, Alert, Space, Typography } from 'antd';
 import { UserOutlined, PhoneOutlined, CalendarOutlined, EditOutlined, CheckCircleOutlined, CloseCircleOutlined, LoadingOutlined, DeleteOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
-import { getUserProfile, updateUsername, checkUsernameAvailability, deleteAllUserData } from '@/db/api';
+import { getUserProfile, updateUsername, checkUsernameAvailability, softDeleteUserAccount } from '@/db/api';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 
@@ -129,7 +129,7 @@ export default function Profile() {
             description={
               <div className="space-y-3">
                 <p className="text-sm">
-                  删除后将<span className="font-semibold text-red-600">永久清除</span>以下所有数据：
+                  删除后将<span className="font-semibold text-red-600">清除</span>以下所有数据：
                 </p>
                 <ul className="list-disc list-inside space-y-1 text-sm">
                   <li>所有考试记录（包括成绩、用时等）</li>
@@ -142,9 +142,9 @@ export default function Profile() {
                     🚨 重要提示：
                   </p>
                   <ul className="list-disc list-inside space-y-1 text-sm text-red-600 mt-2">
-                    <li>数据将从后台数据库中<span className="font-bold">永久删除</span></li>
+                    <li>数据将被<span className="font-bold">标记为已删除</span>，不再显示</li>
                     <li>删除后<span className="font-bold">无法恢复</span>任何数据</li>
-                    <li>即使使用相同的手机号或邮箱重新注册，也<span className="font-bold">不会恢复</span>任何历史数据</li>
+                    <li>即使使用相同的手机号重新注册，也<span className="font-bold">不会关联</span>任何历史数据</li>
                     <li>删除前请确保已导出或备份重要数据</li>
                   </ul>
                 </div>
@@ -165,7 +165,14 @@ export default function Profile() {
       onOk: async () => {
         try {
           setIsDeleting(true);
-          await deleteAllUserData();
+          const result = await softDeleteUserAccount();
+          
+          if (!result.success) {
+            message.error(result.error || '删除数据失败，请重试');
+            setIsDeleting(false);
+            return;
+          }
+          
           message.success('所有数据已删除');
           
           // 延迟跳转，让用户看到成功消息

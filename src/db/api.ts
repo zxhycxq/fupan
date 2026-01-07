@@ -826,3 +826,20 @@ export async function getUserProfile(): Promise<{
   }
 }
 
+// 软删除用户账号及所有数据
+export async function softDeleteUserAccount(): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { error } = await supabase.rpc('soft_delete_user_account');
+
+    if (error) {
+      console.error('软删除用户账号失败:', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('软删除用户账号异常:', error);
+    return { success: false, error: '删除失败，请稍后重试' };
+  }
+}
+

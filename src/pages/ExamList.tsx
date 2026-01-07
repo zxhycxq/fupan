@@ -1072,11 +1072,36 @@ export default function ExamList() {
         </div>
 
         {examRecords.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-500 mb-4">暂无考试记录</p>
-            <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/upload')}>
-              上传第一条记录
-            </Button>
+          <div className="flex flex-col items-center justify-center py-24 px-4">
+            <div className="text-center space-y-6 max-w-md">
+              {/* 空状态图标 */}
+              <div className="flex justify-center">
+                <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center">
+                  <svg className="w-16 h-16 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+              </div>
+              
+              {/* 提示文字 */}
+              <div className="space-y-2">
+                <h3 className="text-xl font-semibold text-gray-800">暂无考试记录</h3>
+                <p className="text-sm text-gray-500">
+                  开始记录您的考试成绩，追踪学习进度
+                </p>
+              </div>
+              
+              {/* 操作按钮 */}
+              <Button 
+                type="primary" 
+                size="large"
+                icon={<PlusOutlined />} 
+                onClick={() => navigate('/upload')}
+                className="h-12 px-8 text-base font-medium shadow-lg hover:shadow-xl transition-all"
+              >
+                上传第一条记录
+              </Button>
+            </div>
           </div>
         ) : (
           <div className="overflow-x-auto bg-white rounded-lg shadow-sm">
