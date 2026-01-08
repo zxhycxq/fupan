@@ -704,15 +704,16 @@ export default function ExamList() {
     },
     {
       title: (
-        <Tooltip title="默认开启，关闭代表不参与数据总览和各模块分析的统计分析">
-          <Space size={4}>
+        <Space size={4}>
+          <span>参与统计</span>
+          <Tooltip title="默认开启，关闭代表不参与数据总览和各模块分析的统计分析">
             <InfoCircleOutlined className="text-gray-400 text-xs" />
-          </Space>
-        </Tooltip>
+          </Tooltip>
+        </Space>
       ),
       dataIndex: 'include_in_stats',
       key: 'include_in_stats',
-      width: 60,
+      width: 90,
       render: (value: boolean | null | undefined, record: ExamRecord) => {
         const isIncluded = value !== false; // 默认为 true
         return (

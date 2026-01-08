@@ -392,6 +392,7 @@ export default function ModuleAnalysis() {
                   )}
                 </div>
               }
+              bodyStyle={{ padding: '12px' }}
             >
               <ModuleChart config={config} filteredRecords={filteredExamRecords} />
             </Card>
