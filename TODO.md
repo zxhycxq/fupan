@@ -1,4 +1,46 @@
-# Task: 优化用户体验和数据管理
+# Task: 优化用户体验细节
+
+## Plan
+- [x] Step 1: 优化参与统计开关
+  - [x] 移除"参与统计"文字，只保留图标
+  - [x] 设置 size="small" 让开关更小
+  - [x] 调整列宽为 60
+- [x] Step 2: 增强删除数据功能
+  - [x] 添加 checkUserVipStatus() 函数
+  - [x] VIP用户需要输入"确认删除用户"二次确认
+  - [x] 显示VIP到期时间和权益提醒
+  - [x] 非VIP用户保持原有流程
+- [x] Step 3: 优化得分分布图表
+  - [x] 图例中冒号后内容换行显示
+  - [x] 饼图标签中冒号后内容换行显示
+  - [x] 提升图表可读性
+
+## Notes
+- ✅ 参与统计开关：已优化为小尺寸开关，移除文字，只保留图标和 Tooltip
+- ✅ 删除数据功能：已添加VIP检查，VIP用户需要输入确认文字才能删除
+- ✅ 得分分布图表：已优化图例和标签显示，冒号后内容换行
+- ℹ️ VIP功能：checkUserVipStatus() 当前返回默认值（非VIP），等待VIP功能实现后更新
+- ⚠️ 存在一些历史遗留的类型错误（与本次修改无关）
+
+## Completed
+1. ✅ 参与统计开关优化：
+   - 移除"参与统计"文字
+   - 设置 size="small"
+   - 调整列宽为 60
+   - 保留 Tooltip 说明
+2. ✅ 删除数据功能增强：
+   - 添加 checkUserVipStatus() 函数（占位实现）
+   - VIP用户显示额外警告和输入确认
+   - 非VIP用户保持原有流程
+   - 拆分为三个函数：handleDeleteAccount、showVipDeleteConfirm、showNormalDeleteConfirm、executeDelete
+3. ✅ 得分分布图表优化：
+   - legend.formatter 添加换行处理
+   - label.formatter 添加换行处理
+   - 冒号后内容换行显示
+
+---
+
+# Previous Task: 优化用户体验和数据管理
 
 ## Plan
 - [x] Step 1: 延长登录会话时间
