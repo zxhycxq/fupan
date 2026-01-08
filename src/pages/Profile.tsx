@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Card, Descriptions, Button, Modal, Input, message, Spin, Alert, Space, Typography } from 'antd';
 import { UserOutlined, PhoneOutlined, CalendarOutlined, EditOutlined, CheckCircleOutlined, CloseCircleOutlined, LoadingOutlined, DeleteOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
-import { getUserProfile, updateUsername, checkUsernameAvailability, softDeleteUserAccount } from '@/db/api';
+import { getUserProfile, updateUsername, checkUsernameAvailability, softDeleteUserAccount, checkUserVipStatus } from '@/db/api';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 
@@ -118,7 +118,111 @@ export default function Profile() {
   };
 
   // 删除账户确认
-  const handleDeleteAccount = () => {
+  const handleDeleteAccount = async () => {
+    try {
+      // 检查VIP状态
+      const { isVip, expiryDate } = await checkUserVipStatus();
+      
+      if (isVip && expiryDate) {
+        // 如果是VIP用户，显示VIP提醒的确认框
+        showVipDeleteConfirm(expiryDate);
+      } else {
+        // 非VIP用户，直接显示普通确认框
+        showNormalDeleteConfirm();
+      }
+    } catch (error) {
+      console.error('检查VIP状态失败:', error);
+      // 出错时按非VIP处理
+      showNormalDeleteConfirm();
+    }
+  };
+
+  // VIP用户删除确认（需要输入确认文字）
+  const showVipDeleteConfirm = (expiryDate: string) => {
+    let confirmText = '';
+    
+    Modal.confirm({
+      title: '确认删除所有数据',
+      icon: <ExclamationCircleOutlined />,
+      content: (
+        <div className="space-y-4">
+          <Alert
+            message="⚠️ VIP用户提醒"
+            description={
+              <div className="space-y-3">
+                <p className="text-sm font-semibold text-orange-600">
+                  您当前是VIP用户，会员有效期至：{dayjs(expiryDate).format('YYYY-MM-DD')}
+                </p>
+                <p className="text-sm text-orange-600">
+                  删除数据后，您的VIP权益将无法恢复，且无法退款。
+                </p>
+              </div>
+            }
+            type="warning"
+            showIcon
+          />
+          <Alert
+            message="⚠️ 此操作不可逆"
+            description={
+              <div className="space-y-3">
+                <p className="text-sm">
+                  删除后将<span className="font-semibold text-red-600">清除</span>以下所有数据：
+                </p>
+                <ul className="list-disc list-inside space-y-1 text-sm">
+                  <li>所有考试记录（包括成绩、用时等）</li>
+                  <li>所有模块得分详情</li>
+                  <li>所有个人设置和目标</li>
+                  <li>考试倒计时配置</li>
+                </ul>
+                <div className="bg-red-50 border border-red-200 rounded p-3 mt-3">
+                  <p className="text-sm text-red-700 font-semibold">
+                    🚨 重要提示：
+                  </p>
+                  <ul className="list-disc list-inside space-y-1 text-sm text-red-600 mt-2">
+                    <li>数据将被<span className="font-bold">标记为已删除</span>，不再显示</li>
+                    <li>删除后<span className="font-bold">无法恢复</span>任何数据</li>
+                    <li>即使使用相同的手机号重新注册，也<span className="font-bold">不会关联</span>任何历史数据</li>
+                    <li>删除前请确保已导出或备份重要数据</li>
+                  </ul>
+                </div>
+              </div>
+            }
+            type="error"
+            showIcon
+          />
+          <div className="mt-4">
+            <p className="text-base font-medium mb-2">
+              请输入"<span className="text-red-600 font-bold">确认删除用户</span>"以继续：
+            </p>
+            <Input
+              placeholder="请输入：确认删除用户"
+              onChange={(e) => { confirmText = e.target.value; }}
+              onPressEnter={(e) => {
+                if ((e.target as HTMLInputElement).value === '确认删除用户') {
+                  Modal.destroyAll();
+                  executeDelete();
+                }
+              }}
+            />
+          </div>
+        </div>
+      ),
+      okText: '确认删除',
+      okType: 'danger',
+      cancelText: '取消',
+      width: 600,
+      onOk: () => {
+        if (confirmText !== '确认删除用户') {
+          message.error('请输入"确认删除用户"以继续');
+          return Promise.reject();
+        }
+        return executeDelete();
+      },
+    });
+  };
+
+  // 普通用户删除确认
+  const showNormalDeleteConfirm = () => {
     Modal.confirm({
       title: '确认删除所有数据',
       icon: <ExclamationCircleOutlined />,
@@ -162,31 +266,34 @@ export default function Profile() {
       okType: 'danger',
       cancelText: '取消',
       width: 600,
-      onOk: async () => {
-        try {
-          setIsDeleting(true);
-          const result = await softDeleteUserAccount();
-          
-          if (!result.success) {
-            message.error(result.error || '删除数据失败，请重试');
-            setIsDeleting(false);
-            return;
-          }
-          
-          message.success('所有数据已删除');
-          
-          // 延迟跳转，让用户看到成功消息
-          setTimeout(() => {
-            navigate('/');
-            window.location.reload();
-          }, 1000);
-        } catch (error) {
-          console.error('删除数据失败:', error);
-          message.error('删除数据失败，请重试');
-          setIsDeleting(false);
-        }
-      },
+      onOk: executeDelete,
     });
+  };
+
+  // 执行删除操作
+  const executeDelete = async () => {
+    try {
+      setIsDeleting(true);
+      const result = await softDeleteUserAccount();
+      
+      if (!result.success) {
+        message.error(result.error || '删除数据失败，请重试');
+        setIsDeleting(false);
+        return;
+      }
+      
+      message.success('所有数据已删除');
+      
+      // 延迟跳转，让用户看到成功消息
+      setTimeout(() => {
+        navigate('/');
+        window.location.reload();
+      }, 1000);
+    } catch (error) {
+      console.error('删除数据失败:', error);
+      message.error('删除数据失败，请重试');
+      setIsDeleting(false);
+    }
   };
 
   // 格式化手机号（隐藏中间4位）

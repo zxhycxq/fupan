@@ -826,6 +826,21 @@ export async function getUserProfile(): Promise<{
   }
 }
 
+// 检查用户VIP状态
+export async function checkUserVipStatus(): Promise<{ isVip: boolean; expiryDate: string | null }> {
+  try {
+    // TODO: 实现VIP状态检查逻辑
+    // 当前返回默认值，等待VIP功能实现后更新
+    // 预期从 user_vip 表或 profiles 表中查询 vip_expiry_date 字段
+    // 如果 vip_expiry_date > now()，则 isVip = true
+    
+    return { isVip: false, expiryDate: null };
+  } catch (error) {
+    console.error('检查VIP状态异常:', error);
+    return { isVip: false, expiryDate: null };
+  }
+}
+
 // 软删除用户账号及所有数据
 export async function softDeleteUserAccount(): Promise<{ success: boolean; error?: string }> {
   try {

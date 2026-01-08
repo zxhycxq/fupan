@@ -820,6 +820,11 @@ export default function Dashboard() {
       textStyle: {
         fontSize: isMobile ? 10 : 12,
       },
+      formatter: (name: string) => {
+        // 将括号后的内容换行显示
+        // 例如："90-100分: 0次 (0%)" -> "90-100分:\n0次 (0%)"
+        return name.replace(/:\s*/, ':\n');
+      },
     },
     series: [
       {
@@ -851,7 +856,10 @@ export default function Dashboard() {
         ],
         label: {
           fontSize: isMobile ? 10 : 12,
-          formatter: '{b}: {c}次 ({d}%)',
+          formatter: (params: any) => {
+            // 饼图标签也换行显示
+            return `${params.name}:\n${params.value}次 (${params.percent.toFixed(1)}%)`;
+          },
         },
         emphasis: {
           itemStyle: {
