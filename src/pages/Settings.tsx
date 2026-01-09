@@ -488,6 +488,33 @@ export default function Settings() {
           </div>
         </Space>
       </Card>
+
+      {/* 功能反馈&建议 */}
+      <Card title="功能反馈 & 建议" className="mb-6">
+        <Space direction="vertical" size="middle" className="w-full">
+          <div>
+            <Text type="secondary">
+              我们非常重视您的意见和建议，您的反馈将帮助我们不断改进产品。
+            </Text>
+          </div>
+          <div>
+            <Button 
+              type="primary" 
+              icon={
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                </svg>
+              }
+              onClick={() => window.open('https://example.feishu.cn/share/base/form/shrcnXXXXXXXXXXXXXXXXXXX', '_blank')}
+            >
+              提交反馈或建议
+            </Button>
+            <Text type="secondary" className="ml-3 text-sm">
+              点击后将跳转到飞书表单
+            </Text>
+          </div>
+        </Space>
+      </Card>
     </div>
   );
 }

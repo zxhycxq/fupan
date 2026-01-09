@@ -88,7 +88,7 @@ export default function VipPurchaseModal({ visible, onCancel, onPurchase }: VipP
       open={visible}
       onCancel={onCancel}
       footer={null}
-      width={900}
+      width={1000}
       centered
       title={
         <div className="text-center">
@@ -105,11 +105,11 @@ export default function VipPurchaseModal({ visible, onCancel, onPurchase }: VipP
           onChange={(e) => setSelectedPlan(e.target.value)}
           className="w-full"
         >
-          <Space direction="vertical" size={16} className="w-full">
+          <div className="grid grid-cols-3 gap-4">
             {VIP_PLANS.map((plan) => (
               <div
                 key={plan.id}
-                className={`relative border-2 rounded-lg p-6 cursor-pointer transition-all ${
+                className={`relative border-2 rounded-lg p-4 cursor-pointer transition-all ${
                   selectedPlan === plan.id
                     ? 'border-primary bg-primary/5'
                     : 'border-border hover:border-primary/50'
@@ -122,58 +122,55 @@ export default function VipPurchaseModal({ visible, onCancel, onPurchase }: VipP
                   </div>
                 )}
                 
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start gap-4 flex-1">
-                    <Radio value={plan.id} className="mt-1" />
-                    
-                    <div className="flex-1">
-                      <div className="flex items-baseline gap-3 mb-2">
-                        <Title level={4} className="mb-0">{plan.name}</Title>
-                        <div className="flex items-baseline gap-2">
-                          <Text className="text-2xl font-bold text-primary">
-                            ¥{plan.price}
-                          </Text>
-                          {plan.originalPrice && (
-                            <Text delete type="secondary" className="text-sm">
-                              ¥{plan.originalPrice}
-                            </Text>
+                <div className="flex flex-col h-full">
+                  <div className="text-center mb-3">
+                    <Radio value={plan.id} className="mb-2" />
+                    <Title level={4} className="mb-2">{plan.name}</Title>
+                    <div className="flex flex-col items-center gap-1">
+                      <div className="flex items-baseline gap-1">
+                        <Text className="text-2xl font-bold text-primary">
+                          ¥{plan.price}
+                        </Text>
+                        <Text type="secondary" className="text-sm">
+                          / {plan.period}
+                        </Text>
+                      </div>
+                      {plan.originalPrice && (
+                        <Text delete type="secondary" className="text-xs">
+                          原价 ¥{plan.originalPrice}
+                        </Text>
+                      )}
+                    </div>
+                  </div>
+
+                  <Divider className="my-2" />
+
+                  <div className="flex-1">
+                    <Text strong className="block mb-2 text-sm">特征</Text>
+                    <div className="space-y-1.5">
+                      {plan.features.map((feature, index) => (
+                        <div
+                          key={index}
+                          className={`flex items-start gap-2 text-xs ${
+                            feature.included ? 'text-foreground' : 'text-muted-foreground'
+                          }`}
+                        >
+                          {feature.included ? (
+                            <CheckOutlined className="text-primary mt-0.5 flex-shrink-0" />
+                          ) : (
+                            <CloseOutlined className="text-muted-foreground mt-0.5 flex-shrink-0" />
                           )}
-                          <Text type="secondary" className="text-sm">
-                            / {plan.period}
+                          <Text className={`text-xs ${feature.included ? '' : 'line-through'}`}>
+                            {feature.name}
                           </Text>
                         </div>
-                      </div>
-
-                      <Divider className="my-3" />
-
-                      <div className="space-y-2">
-                        <Text strong className="block mb-2">特征</Text>
-                        <div className="grid grid-cols-2 gap-2">
-                          {plan.features.map((feature, index) => (
-                            <div
-                              key={index}
-                              className={`flex items-center gap-2 ${
-                                feature.included ? 'text-foreground' : 'text-muted-foreground'
-                              }`}
-                            >
-                              {feature.included ? (
-                                <CheckOutlined className="text-primary" />
-                              ) : (
-                                <CloseOutlined className="text-muted-foreground" />
-                              )}
-                              <Text className={feature.included ? '' : 'line-through'}>
-                                {feature.name}
-                              </Text>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
+                      ))}
                     </div>
                   </div>
                 </div>
               </div>
             ))}
-          </Space>
+          </div>
         </Radio.Group>
 
         <div className="flex justify-end gap-3 mt-6">

@@ -950,26 +950,22 @@ export default function ExamList() {
             onFinish={handleSearch}
             className="filter-form"
           >
-            <Row gutter={[16, 8]}>
-              <Col xs={24} sm={12} md={8} lg={6}>
+            <Row gutter={[16, 16]}>
+              <Col xs={24} sm={12} md={6}>
                 <Form.Item 
                   label="考试名称" 
                   name="examName" 
-                  className="mb-2"
-                  labelCol={{ xs: 24, sm: 8 }}
-                  wrapperCol={{ xs: 24, sm: 16 }}
+                  className="mb-0"
                 >
                   <Input placeholder="请输入考试名称" allowClear />
                 </Form.Item>
               </Col>
               
-              <Col xs={24} sm={12} md={8} lg={6}>
+              <Col xs={24} sm={12} md={6}>
                 <Form.Item 
                   label="考试类型" 
                   name="examType" 
-                  className="mb-2"
-                  labelCol={{ xs: 24, sm: 8 }}
-                  wrapperCol={{ xs: 24, sm: 16 }}
+                  className="mb-0"
                 >
                   <Select placeholder="请选择考试类型" allowClear>
                     <Select.Option value="国考真题">国考真题</Select.Option>
@@ -981,13 +977,11 @@ export default function ExamList() {
                 </Form.Item>
               </Col>
               
-              <Col xs={24} sm={12} md={8} lg={6}>
+              <Col xs={24} sm={12} md={6}>
                 <Form.Item 
                   label="总分区间" 
                   name="scoreRange" 
-                  className="mb-2"
-                  labelCol={{ xs: 24, sm: 8 }}
-                  wrapperCol={{ xs: 24, sm: 16 }}
+                  className="mb-0"
                 >
                   <Select placeholder="请选择总分区间" allowClear>
                     {PERCENTAGE_RANGE_OPTIONS.map(opt => (
@@ -997,13 +991,11 @@ export default function ExamList() {
                 </Form.Item>
               </Col>
               
-              <Col xs={24} sm={12} md={8} lg={6}>
+              <Col xs={24} sm={12} md={6}>
                 <Form.Item 
                   label="击败率区间" 
                   name="passRateRange" 
-                  className="mb-2"
-                  labelCol={{ xs: 24, sm: 8 }}
-                  wrapperCol={{ xs: 24, sm: 16 }}
+                  className="mb-0"
                 >
                   <Select placeholder="请选择击败率区间" allowClear>
                     {PERCENTAGE_RANGE_OPTIONS.map(opt => (
@@ -1013,13 +1005,11 @@ export default function ExamList() {
                 </Form.Item>
               </Col>
               
-              <Col xs={24} sm={12} md={8} lg={6}>
+              <Col xs={24} sm={12} md={6}>
                 <Form.Item 
                   label="星级" 
                   name="rating" 
-                  className="mb-2"
-                  labelCol={{ xs: 24, sm: 8 }}
-                  wrapperCol={{ xs: 24, sm: 16 }}
+                  className="mb-0"
                 >
                   <Select placeholder="请选择星级" allowClear>
                     {RATING_OPTIONS.map(opt => (
@@ -1029,13 +1019,11 @@ export default function ExamList() {
                 </Form.Item>
               </Col>
               
-              <Col xs={24} sm={12} md={12} lg={9}>
+              <Col xs={24} sm={12} md={12}>
                 <Form.Item 
                   label="考试日期" 
                   name="dateRange" 
-                  className="mb-2"
-                  labelCol={{ xs: 24, sm: 8, md: 4, lg: 4 }}
-                  wrapperCol={{ xs: 24, sm: 16, md: 20, lg: 20 }}
+                  className="mb-0"
                 >
                   <DateRangeFilter 
                     value={dateRange} 
@@ -1049,8 +1037,8 @@ export default function ExamList() {
                 </Form.Item>
               </Col>
               
-              <Col xs={24} sm={24} md={12} lg={9} className="flex items-start justify-end">
-                <Space size="small" className="mb-2">
+              <Col xs={24} sm={12} md={6} className="flex items-end justify-end">
+                <Space size="small">
                   <Button 
                     type="primary" 
                     icon={<SearchOutlined />}
