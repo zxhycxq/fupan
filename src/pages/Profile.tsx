@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Card, Descriptions, Button, Modal, Input, message, Spin, Alert, Space, Typography } from 'antd';
-import { UserOutlined, PhoneOutlined, CalendarOutlined, EditOutlined, CheckCircleOutlined, CloseCircleOutlined, LoadingOutlined, DeleteOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
+import { Card, Descriptions, Button, Modal, Input, message, Spin, Alert, Space, Typography, Tag } from 'antd';
+import { UserOutlined, PhoneOutlined, CalendarOutlined, EditOutlined, CheckCircleOutlined, CloseCircleOutlined, LoadingOutlined, DeleteOutlined, ExclamationCircleOutlined, CrownOutlined } from '@ant-design/icons';
 import { getUserProfile, updateUsername, checkUsernameAvailability, softDeleteUserAccount, checkUserVipStatus } from '@/db/api';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
+import VipPurchaseModal from '@/components/common/VipPurchaseModal';
 
 const { Title, Text } = Typography;
 
@@ -31,6 +32,8 @@ export default function Profile() {
   const [usernameCheckResult, setUsernameCheckResult] = useState<UsernameCheckResult | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isVipModalVisible, setIsVipModalVisible] = useState(false);
+  const [isVip, setIsVip] = useState(false); // 是否为VIP用户
 
   useEffect(() => {
     loadProfile();
@@ -55,6 +58,10 @@ export default function Profile() {
       setIsLoading(true);
       const data = await getUserProfile();
       setProfile(data);
+      
+      // 检查VIP状态
+      const vipStatus = await checkUserVipStatus();
+      setIsVip(vipStatus.isVip);
     } catch (error) {
       console.error('加载用户资料失败:', error);
       message.error('加载用户资料失败');
@@ -296,6 +303,14 @@ export default function Profile() {
     }
   };
 
+  // 处理会员购买
+  const handleVipPurchase = (planId: string) => {
+    console.log('购买会员套餐:', planId);
+    message.info('会员购买功能即将上线，敬请期待！');
+    setIsVipModalVisible(false);
+    // TODO: 实现实际的支付流程
+  };
+
   // 格式化手机号（隐藏中间4位）
   const formatPhone = (phone: string | null) => {
     if (!phone) return '未绑定';
@@ -400,6 +415,22 @@ export default function Profile() {
               <Text type="secondary" className="ml-2">
                 （未设置，点击右上角编辑昵称）
               </Text>
+            )}
+          </Descriptions.Item>
+          <Descriptions.Item label={<><CrownOutlined className="mr-2" />用户类型</>}>
+            {isVip ? (
+              <Tag color="gold" icon={<CrownOutlined />}>VIP会员</Tag>
+            ) : (
+              <Space>
+                <Tag color="default">普通用户</Tag>
+                <Button 
+                  type="primary" 
+                  size="small"
+                  onClick={() => setIsVipModalVisible(true)}
+                >
+                  去付费
+                </Button>
+              </Space>
             )}
           </Descriptions.Item>
           <Descriptions.Item label={<><PhoneOutlined className="mr-2" />手机号</>}>
@@ -532,6 +563,13 @@ export default function Profile() {
           </div>
         </Space>
       </Modal>
+
+      {/* 会员购买弹窗 */}
+      <VipPurchaseModal
+        visible={isVipModalVisible}
+        onCancel={() => setIsVipModalVisible(false)}
+        onPurchase={handleVipPurchase}
+      />
     </div>
   );
 }
