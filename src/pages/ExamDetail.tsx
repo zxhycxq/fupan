@@ -1177,19 +1177,17 @@ export default function ExamDetail() {
                               >
                                 正确率: {subModule.accuracy_rate?.toFixed(1)}%
                               </Tag>
-                              {/* 只有总题数为0的子模块才显示删除按钮（表示是用户手动添加的） */}
-                              {subModule.total_questions === 0 && (
-                                <Button
-                                  type="text"
-                                  size="small"
-                                  danger
-                                  className="h-6 w-6 p-0"
-                                  onClick={() => handleDeleteModule(subModule.id, subModule.module_name)}
-                                  title="删除子模块"
-                                >
-                                  <DeleteOutlined className="h-3 w-3" />
-                                </Button>
-                              )}
+                              {/* 所有子模块都可以删除 */}
+                              <Button
+                                type="text"
+                                size="small"
+                                danger
+                                className="h-6 w-6 p-0"
+                                onClick={() => handleDeleteModule(subModule.id, subModule.module_name)}
+                                title="删除子模块"
+                              >
+                                <DeleteOutlined className="h-3 w-3" />
+                              </Button>
                             </div>
                           </div>
                           
