@@ -383,6 +383,23 @@ export default function ExamDetail() {
       return;
     }
 
+    // 验证子模块总题数不能超过父模块总题数
+    const parentModule = examDetail.module_scores.find(
+      m => m.module_name === addingParentModule && !m.parent_module
+    );
+    if (parentModule) {
+      const currentSubModules = examDetail.module_scores.filter(
+        m => m.parent_module === addingParentModule
+      );
+      const currentSubTotal = currentSubModules.reduce((sum, m) => sum + (m.total_questions || 0), 0);
+      const newTotal = currentSubTotal + parseInt(newModuleTotal);
+      
+      if (newTotal > parentModule.total_questions) {
+        message.error(`子模块总题数不能超过父模块总题数（${parentModule.total_questions}题）`);
+        return;
+      }
+    }
+
     try {
       setIsSaving(true);
 
@@ -408,8 +425,11 @@ export default function ExamDetail() {
       const addedModule = await addModuleScore(newModule);
 
       if (addedModule) {
-        // 重新加载考试详情
-        await loadExamDetail(id);
+        // 无感知刷新：直接更新本地状态，不重新加载整个页面
+        setExamDetail({
+          ...examDetail,
+          module_scores: [...examDetail.module_scores, addedModule],
+        });
         message.success('子模块添加成功');
         setIsAddingModule(false);
       } else {
@@ -425,7 +445,7 @@ export default function ExamDetail() {
 
   // 删除子模块
   const handleDeleteModule = async (moduleId: string, moduleName: string) => {
-    if (!id) return;
+    if (!id || !examDetail) return;
 
     Modal.confirm({
       title: '确认删除',
@@ -436,8 +456,11 @@ export default function ExamDetail() {
         try {
           const success = await deleteModuleScore(moduleId);
           if (success) {
-            // 重新加载考试详情
-            await loadExamDetail(id);
+            // 无感知刷新：直接更新本地状态，不重新加载整个页面
+            setExamDetail({
+              ...examDetail,
+              module_scores: examDetail.module_scores.filter(m => m.id !== moduleId),
+            });
             message.success('子模块删除成功');
           } else {
             message.error('删除子模块失败');
