@@ -268,105 +268,118 @@ export function parseExamData(
     
     // 先查找模块名称在文本中的位置
     const moduleIndex = textToUse.indexOf(module.name);
+    let moduleMatch: RegExpMatchArray | null = null;
+    
     if (moduleIndex === -1) {
       console.log(`✗ 未找到模块名称: ${module.name}`);
-      continue;
-    }
-    
-    // 提取模块名称后的200个字符，用于调试
-    const contextAfterModule = textToUse.substring(moduleIndex, moduleIndex + 200);
-    console.log(`找到模块位置: ${moduleIndex}`);
-    console.log(`模块后的内容（前200字符）:`, contextAfterModule);
-    
-    // 查找大模块数据 - 支持多种格式，但要精确匹配
-    // 格式1（网页版）: "总题数20题 答对15题 正确率75% 用时30秒"
-    // 格式2（手机端）: "共20道，答对15道，正确率75%，用时30秒"
-    // 
-    // 关键改进：使用更小的搜索范围，确保只匹配紧跟在模块名后的数据
-    // 避免跨越到其他模块或子模块
-    
-    // 手机端格式：模块名后面紧跟数据（最多100字符内）
-    // 支持"共X题"和"共X道"两种格式
-    const mobilePattern = `${module.name}[\\s\\n]{0,20}` +  // 模块名后最多20个空白字符
-      `共[\\s，,]*?(\\d+)[\\s]*?(?:题|道)[\\s，,]+?` +  // 共X题/道
-      `答对[\\s，,]*?(\\d+)[\\s]*?(?:题|道)[\\s，,]+?` +  // 答对Y题/道
-      `正确率[\\s，,]*?(\\d+)[\\s]*?%[\\s，,]+?` +  // 正确率Z%
-      `用时[\\s，,]*?(\\d+)[\\s]*?(?:分[\\s]*?)?(\\d+)?[\\s]*?秒`;  // 用时W分X秒 或 用时W秒
-    
-    const mobileRegex = new RegExp(mobilePattern, 'i');
-    let moduleMatch = textToUse.match(mobileRegex);
-    let isMobileFormat = !!moduleMatch;
-    
-    // 如果手机端格式没匹配到，尝试网页版格式
-    if (!moduleMatch) {
-      // PC端格式1：总题数 35题  答对 22道  正确率 63%  用时 29分
-      // PC端格式2：总题数 5题   答对 2道   正确率 40%  用时 6分
-      // PC端格式3：总题数 1题   答对 0道   正确率 0%   用时 84秒
+      // 即使没找到模块名称，也创建空记录，并继续解析子模块
+      moduleScores.push({
+        module_name: module.name,
+        parent_module: undefined,
+        total_questions: 0,
+        correct_answers: 0,
+        wrong_answers: 0,
+        unanswered: 0,
+        accuracy_rate: 0,
+        time_used: 0,
+      });
+      console.log(`✓ 创建空模块记录: ${module.name}`);
+    } else {
+      // 提取模块名称后的200个字符，用于调试
+      const contextAfterModule = textToUse.substring(moduleIndex, moduleIndex + 200);
+      console.log(`找到模块位置: ${moduleIndex}`);
+      console.log(`模块后的内容（前200字符）:`, contextAfterModule);
+      
+      // 查找大模块数据 - 支持多种格式，但要精确匹配
+      // 格式1（网页版）: "总题数20题 答对15题 正确率75% 用时30秒"
+      // 格式2（手机端）: "共20道，答对15道，正确率75%，用时30秒"
       // 
-      // 关键改进：
-      // 1. 模块名称和数据之间可能有换行符
-      // 2. 使用 [\s\S] 匹配任意字符（包括换行符）
-      // 3. 增加搜索范围到200字符
-      const webPattern = `${module.name}[\\s\\S]{0,200}?` +  // 增加搜索范围，使用非贪婪匹配
-        `(?:总题数|共计)[：:\\s]{0,10}(\\d+)[\\s]*(?:题|道)[\\s]{0,20}` +  // 允许0-10个空格，字段间0-20个空格
-        `答对[：:\\s]{0,10}(\\d+)[\\s]*(?:题|道)[\\s]{0,20}` +  // 允许0-10个空格
-        `正确率[：:\\s]{0,10}(\\d+)%[\\s]{0,20}` +  // 允许0-10个空格
-        `用时[：:\\s]{0,10}(\\d+)(?:[\\s]*(\\d+))?[\\s]*(?:秒|分)`;  // 用时 W秒 或 W分 或 W分X秒
+      // 关键改进：使用更小的搜索范围，确保只匹配紧跟在模块名后的数据
+      // 避免跨越到其他模块或子模块
       
-      const webRegex = new RegExp(webPattern, 'i');
-      moduleMatch = textToUse.match(webRegex);
+      // 手机端格式：模块名后面紧跟数据（最多100字符内）
+      // 支持"共X题"和"共X道"两种格式
+      const mobilePattern = `${module.name}[\\s\\n]{0,20}` +  // 模块名后最多20个空白字符
+        `共[\\s，,]*?(\\d+)[\\s]*?(?:题|道)[\\s，,]+?` +  // 共X题/道
+        `答对[\\s，,]*?(\\d+)[\\s]*?(?:题|道)[\\s，,]+?` +  // 答对Y题/道
+        `正确率[\\s，,]*?(\\d+)[\\s]*?%[\\s，,]+?` +  // 正确率Z%
+        `用时[\\s，,]*?(\\d+)[\\s]*?(?:分[\\s]*?)?(\\d+)?[\\s]*?秒`;  // 用时W分X秒 或 用时W秒
       
-      console.log(`尝试网页版格式匹配: ${module.name}`);
-      console.log(`正则表达式: ${webPattern}`);
-      console.log(`匹配结果:`, moduleMatch ? moduleMatch[0].substring(0, 100) : '未匹配');
-    }
-    
-    // 如果还是没匹配到，尝试简化格式（只有数字和百分比）
-    if (!moduleMatch) {
-      // 简化格式：模块名称后面直接是数字、百分比、数字
-      // 例如：
-      // 言语理解与表达
-      // 21
-      // 70%
-      // 25
-      const simplePattern = `${module.name}[\\s\\S]{0,50}?` +  // 模块名称后最多50个字符
-        `(\\d+)[\\s\\S]{0,20}?` +  // 第一个数字（总题数）
-        `(\\d+)%[\\s\\S]{0,20}?` +  // 百分比（正确率）
-        `(\\d+)`;  // 第二个数字（用时）
+      const mobileRegex = new RegExp(mobilePattern, 'i');
+      moduleMatch = textToUse.match(mobileRegex);
+      let isMobileFormat = !!moduleMatch;
       
-      const simpleRegex = new RegExp(simplePattern, 'i');
-      moduleMatch = textToUse.match(simpleRegex);
-      
-      console.log(`尝试简化格式匹配: ${module.name}`);
-      console.log(`正则表达式: ${simplePattern}`);
-      console.log(`匹配结果:`, moduleMatch ? moduleMatch[0].substring(0, 100) : '未匹配');
-      
-      if (moduleMatch) {
-        // 标记为简化格式
-        isMobileFormat = false;
-        // 重新组织匹配结果，使其与标准格式兼容
-        // 简化格式：[完整匹配, 总题数, 正确率, 用时]
-        // 标准格式：[完整匹配, 总题数, 答对数, 正确率, 用时]
-        // 需要根据总题数和正确率计算答对数
-        const totalQuestions = parseInt(moduleMatch[1]);
-        const accuracyRate = parseInt(moduleMatch[2]);
-        const correctAnswers = Math.round(totalQuestions * accuracyRate / 100);
+      // 如果手机端格式没匹配到，尝试网页版格式
+      if (!moduleMatch) {
+        // PC端格式1：总题数 35题  答对 22道  正确率 63%  用时 29分
+        // PC端格式2：总题数 5题   答对 2道   正确率 40%  用时 6分
+        // PC端格式3：总题数 1题   答对 0道   正确率 0%   用时 84秒
+        // 
+        // 关键改进：
+        // 1. 模块名称和数据之间可能有换行符
+        // 2. 使用 [\s\S] 匹配任意字符（包括换行符）
+        // 3. 增加搜索范围到200字符
+        const webPattern = `${module.name}[\\s\\S]{0,200}?` +  // 增加搜索范围，使用非贪婪匹配
+          `(?:总题数|共计)[：:\\s]{0,10}(\\d+)[\\s]*(?:题|道)[\\s]{0,20}` +  // 允许0-10个空格，字段间0-20个空格
+          `答对[：:\\s]{0,10}(\\d+)[\\s]*(?:题|道)[\\s]{0,20}` +  // 允许0-10个空格
+          `正确率[：:\\s]{0,10}(\\d+)%[\\s]{0,20}` +  // 允许0-10个空格
+          `用时[：:\\s]{0,10}(\\d+)(?:[\\s]*(\\d+))?[\\s]*(?:秒|分)`;  // 用时 W秒 或 W分 或 W分X秒
         
-        // 重新构造匹配结果
-        moduleMatch = [
-          moduleMatch[0],  // 完整匹配
-          moduleMatch[1],  // 总题数
-          correctAnswers.toString(),  // 答对数（计算得出）
-          moduleMatch[2],  // 正确率
-          moduleMatch[3],  // 用时
-        ];
+        const webRegex = new RegExp(webPattern, 'i');
+        moduleMatch = textToUse.match(webRegex);
         
-        console.log(`简化格式解析: 总题数=${totalQuestions}, 正确率=${accuracyRate}%, 计算答对数=${correctAnswers}`);
+        console.log(`尝试网页版格式匹配: ${module.name}`);
+        console.log(`正则表达式: ${webPattern}`);
+        console.log(`匹配结果:`, moduleMatch ? moduleMatch[0].substring(0, 100) : '未匹配');
       }
-    }
-
-    if (moduleMatch) {
-      console.log(`找到模块数据:`, moduleMatch[0].substring(0, 150));
+      
+      // 如果还是没匹配到，尝试简化格式（只有数字和百分比）
+      if (!moduleMatch) {
+        // 简化格式：模块名称后面直接是数字、百分比、数字
+        // 例如：
+        // 言语理解与表达
+        // 21
+        // 70%
+        // 25
+        const simplePattern = `${module.name}[\\s\\S]{0,50}?` +  // 模块名称后最多50个字符
+          `(\\d+)[\\s\\S]{0,20}?` +  // 第一个数字（总题数）
+          `(\\d+)%[\\s\\S]{0,20}?` +  // 百分比（正确率）
+          `(\\d+)`;  // 第二个数字（用时）
+        
+        const simpleRegex = new RegExp(simplePattern, 'i');
+        moduleMatch = textToUse.match(simpleRegex);
+        
+        console.log(`尝试简化格式匹配: ${module.name}`);
+        console.log(`正则表达式: ${simplePattern}`);
+        console.log(`匹配结果:`, moduleMatch ? moduleMatch[0].substring(0, 100) : '未匹配');
+        
+        if (moduleMatch) {
+          // 标记为简化格式
+          isMobileFormat = false;
+          // 重新组织匹配结果，使其与标准格式兼容
+          // 简化格式：[完整匹配, 总题数, 正确率, 用时]
+          // 标准格式：[完整匹配, 总题数, 答对数, 正确率, 用时]
+          // 需要根据总题数和正确率计算答对数
+          const totalQuestions = parseInt(moduleMatch[1]);
+          const accuracyRate = parseInt(moduleMatch[2]);
+          const correctAnswers = Math.round(totalQuestions * accuracyRate / 100);
+          
+          // 重新构造匹配结果
+          moduleMatch = [
+            moduleMatch[0],  // 完整匹配
+            moduleMatch[1],  // 总题数
+            correctAnswers.toString(),  // 答对数（计算得出）
+            moduleMatch[2],  // 正确率
+            moduleMatch[3],  // 用时
+          ];
+          
+          console.log(`简化格式解析: 总题数=${totalQuestions}, 正确率=${accuracyRate}%, 计算答对数=${correctAnswers}`);
+        }
+      }
+      
+      // 处理模块匹配结果
+      if (moduleMatch) {
+        console.log(`找到模块数据:`, moduleMatch[0].substring(0, 150));
       
       let totalQuestions, correctAnswers, accuracyRate, timeUsedSec;
       
@@ -438,9 +451,22 @@ export function parseExamData(
         accuracy_rate: accuracyRate,
         time_used: timeUsedSec,
       });
-    } else {
-      console.log(`✗ 未找到模块数据`);
-    }
+      } else {
+        console.log(`✗ 未找到模块数据: ${module.name}`);
+        // 即使没有识别到大模块数据，也创建一个空记录
+        moduleScores.push({
+          module_name: module.name,
+          parent_module: undefined,
+          total_questions: 0,
+          correct_answers: 0,
+          wrong_answers: 0,
+          unanswered: 0,
+          accuracy_rate: 0,
+          time_used: 0,
+        });
+        console.log(`✓ 创建空模块记录: ${module.name}`);
+      }
+    } // 结束 else 块（找到模块名称的情况）
 
     // 查找子模块数据
     for (const childName of module.children) {
@@ -583,7 +609,19 @@ export function parseExamData(
           time_used: timeUsedSec,
         });
       } else {
-        console.log(`  ✗ 未找到子模块数据`);
+        console.log(`  ✗ 未找到子模块数据: ${childName}`);
+        // 即使没有识别到子模块数据，也创建一个空记录
+        moduleScores.push({
+          module_name: childName,
+          parent_module: module.name,
+          total_questions: 0,
+          correct_answers: 0,
+          wrong_answers: 0,
+          unanswered: 0,
+          accuracy_rate: 0,
+          time_used: 0,
+        });
+        console.log(`  ✓ 创建空子模块记录: ${childName}`);
       }
     }
   }
