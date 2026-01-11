@@ -30,9 +30,11 @@ import {
   InfoCircleOutlined, 
   FileOutlined,
   CheckCircleOutlined,
-  CloseCircleOutlined
+  CloseCircleOutlined,
+  PlusOutlined,
+  DeleteOutlined
 } from '@ant-design/icons';
-import { getExamRecordById, updateModuleScore, updateExamRecord, getUserSettings, updateExamNotes } from '@/db/api';
+import { getExamRecordById, updateModuleScore, updateExamRecord, getUserSettings, updateExamNotes, addModuleScore, deleteModuleScore } from '@/db/api';
 import type { ExamRecordDetail, ModuleScore, UserSetting } from '@/types';
 import { EXAM_DETAIL_GRADIENTS, generateGradientStyle } from '@/config/gradients';
 import WangEditor from '@/components/common/WangEditor';
@@ -90,6 +92,12 @@ export default function ExamDetail() {
   const [mistakes, setMistakes] = useState<string>(''); // 错题内容
   const [isSaving, setIsSaving] = useState(false); // 保存状态
   const [timeChartType, setTimeChartType] = useState<'pie' | 'bar'>('pie'); // 用时图表类型（饼图/柱状图）
+  const [isAddingModule, setIsAddingModule] = useState(false); // 是否正在添加子模块
+  const [addingParentModule, setAddingParentModule] = useState<string>(''); // 正在添加子模块的父模块名称
+  const [newModuleName, setNewModuleName] = useState<string>(''); // 新子模块名称
+  const [newModuleTotal, setNewModuleTotal] = useState<string>(''); // 新子模块总题数
+  const [newModuleCorrect, setNewModuleCorrect] = useState<string>(''); // 新子模块答对数
+  const [newModuleTime, setNewModuleTime] = useState<string>(''); // 新子模块用时
   // 使用 antd message
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -322,6 +330,124 @@ export default function ExamDetail() {
     } finally {
       setIsSaving(false);
     }
+  };
+
+  // 定义固定子模块数量的模块
+  const FIXED_SUBMODULE_COUNTS: Record<string, number> = {
+    '言语理解与表达': 3,
+    '判断推理': 4,
+  };
+
+  // 判断是否可以添加子模块
+  const canAddSubModule = (parentModuleName: string, currentSubModuleCount: number): boolean => {
+    const fixedCount = FIXED_SUBMODULE_COUNTS[parentModuleName];
+    if (fixedCount !== undefined) {
+      return currentSubModuleCount < fixedCount;
+    }
+    return true; // 其他模块可以自由添加
+  };
+
+  // 打开添加子模块对话框
+  const handleOpenAddModule = (parentModuleName: string) => {
+    setAddingParentModule(parentModuleName);
+    setNewModuleName('');
+    setNewModuleTotal('');
+    setNewModuleCorrect('');
+    setNewModuleTime('');
+    setIsAddingModule(true);
+  };
+
+  // 添加子模块
+  const handleAddModule = async () => {
+    if (!examDetail || !id) return;
+
+    // 验证输入
+    if (!newModuleName.trim()) {
+      message.error('请输入子模块名称');
+      return;
+    }
+    if (!newModuleTotal || parseInt(newModuleTotal) < 0) {
+      message.error('请输入有效的总题数');
+      return;
+    }
+    if (!newModuleCorrect || parseInt(newModuleCorrect) < 0) {
+      message.error('请输入有效的答对数');
+      return;
+    }
+    if (parseInt(newModuleCorrect) > parseInt(newModuleTotal)) {
+      message.error('答对数不能大于总题数');
+      return;
+    }
+    if (!newModuleTime || parseFloat(newModuleTime) < 0) {
+      message.error('请输入有效的用时');
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+
+      const totalQuestions = parseInt(newModuleTotal);
+      const correctAnswers = parseInt(newModuleCorrect);
+      const timeUsed = minutesToSeconds(parseFloat(newModuleTime));
+      const accuracyRate = totalQuestions > 0 ? (correctAnswers / totalQuestions) * 100 : 0;
+      const wrongAnswers = totalQuestions - correctAnswers; // 错误数 = 总题数 - 答对数
+      const unanswered = 0; // 默认未答题数为0
+
+      const newModule: Omit<ModuleScore, 'id' | 'created_at'> = {
+        exam_record_id: id,
+        module_name: newModuleName.trim(),
+        parent_module: addingParentModule,
+        total_questions: totalQuestions,
+        correct_answers: correctAnswers,
+        wrong_answers: wrongAnswers,
+        unanswered: unanswered,
+        accuracy_rate: accuracyRate,
+        time_used: timeUsed,
+      };
+
+      const addedModule = await addModuleScore(newModule);
+
+      if (addedModule) {
+        // 重新加载考试详情
+        await loadExamDetail(id);
+        message.success('子模块添加成功');
+        setIsAddingModule(false);
+      } else {
+        message.error('添加子模块失败');
+      }
+    } catch (error) {
+      console.error('添加子模块失败:', error);
+      message.error('添加子模块失败');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // 删除子模块
+  const handleDeleteModule = async (moduleId: string, moduleName: string) => {
+    if (!id) return;
+
+    Modal.confirm({
+      title: '确认删除',
+      content: `确定要删除子模块"${moduleName}"吗？此操作不可恢复。`,
+      okText: '确定',
+      cancelText: '取消',
+      onOk: async () => {
+        try {
+          const success = await deleteModuleScore(moduleId);
+          if (success) {
+            // 重新加载考试详情
+            await loadExamDetail(id);
+            message.success('子模块删除成功');
+          } else {
+            message.error('删除子模块失败');
+          }
+        } catch (error) {
+          console.error('删除子模块失败:', error);
+          message.error('删除子模块失败');
+        }
+      },
+    });
   };
 
   if (isLoading) {
@@ -1040,16 +1166,31 @@ export default function ExamDetail() {
                               <div className="w-1.5 h-1.5 rounded-full bg-primary/60"></div>
                               <span className="font-medium text-base">{subModule.module_name}</span>
                             </div>
-                            <Tag 
-                              className="text-xs"
-                              color={
-                                (subModule.accuracy_rate || 0) >= 80 ? 'green' :
-                                (subModule.accuracy_rate || 0) >= 60 ? 'blue' :
-                                'red'
-                              }
-                            >
-                              正确率: {subModule.accuracy_rate?.toFixed(1)}%
-                            </Tag>
+                            <div className="flex items-center gap-2">
+                              <Tag 
+                                className="text-xs"
+                                color={
+                                  (subModule.accuracy_rate || 0) >= 80 ? 'green' :
+                                  (subModule.accuracy_rate || 0) >= 60 ? 'blue' :
+                                  'red'
+                                }
+                              >
+                                正确率: {subModule.accuracy_rate?.toFixed(1)}%
+                              </Tag>
+                              {/* 只有总题数为0的子模块才显示删除按钮（表示是用户手动添加的） */}
+                              {subModule.total_questions === 0 && (
+                                <Button
+                                  type="text"
+                                  size="small"
+                                  danger
+                                  className="h-6 w-6 p-0"
+                                  onClick={() => handleDeleteModule(subModule.id, subModule.module_name)}
+                                  title="删除子模块"
+                                >
+                                  <DeleteOutlined className="h-3 w-3" />
+                                </Button>
+                              )}
+                            </div>
                           </div>
                           
                           {/* 第一行：总题数、答对 */}
@@ -1217,6 +1358,21 @@ export default function ExamDetail() {
                       ))}
                     </div>
                   )}
+
+                  {/* 添加子模块按钮 */}
+                  {canAddSubModule(mainModule.module_name, subModules.length) && (
+                    <div className="mt-4">
+                      <Button
+                        type="dashed"
+                        size="small"
+                        icon={<PlusOutlined />}
+                        onClick={() => handleOpenAddModule(mainModule.module_name)}
+                        className="w-full"
+                      >
+                        添加子模块
+                      </Button>
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -1272,6 +1428,78 @@ export default function ExamDetail() {
               />
             </div>
           )}
+        </div>
+      </Modal>
+
+      {/* 添加子模块对话框 */}
+      <Modal
+        title={`添加子模块 - ${addingParentModule}`}
+        open={isAddingModule}
+        onCancel={() => setIsAddingModule(false)}
+        onOk={handleAddModule}
+        okText="确定"
+        cancelText="取消"
+        confirmLoading={isSaving}
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">子模块名称 *</label>
+            <Input
+              placeholder="请输入子模块名称"
+              value={newModuleName}
+              onChange={(e) => setNewModuleName(e.target.value)}
+              maxLength={50}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">总题数 *</label>
+            <Input
+              type="number"
+              min="0"
+              step="1"
+              placeholder="请输入总题数"
+              value={newModuleTotal}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === '' || /^\d+$/.test(value)) {
+                  setNewModuleTotal(value);
+                }
+              }}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">答对数 *</label>
+            <Input
+              type="number"
+              min="0"
+              step="1"
+              placeholder="请输入答对数"
+              value={newModuleCorrect}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === '' || /^\d+$/.test(value)) {
+                  setNewModuleCorrect(value);
+                }
+              }}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">用时（分钟） *</label>
+            <Input
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="请输入用时"
+              value={newModuleTime}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === '' || /^\d+\.?\d*$/.test(value)) {
+                  setNewModuleTime(value);
+                }
+              }}
+              suffix="分钟"
+            />
+          </div>
         </div>
       </Modal>
     </div>

@@ -858,3 +858,44 @@ export async function softDeleteUserAccount(): Promise<{ success: boolean; error
   }
 }
 
+// 添加模块得分记录
+export async function addModuleScore(moduleScore: Omit<ModuleScore, 'id' | 'created_at'>): Promise<ModuleScore | null> {
+  try {
+    const { data, error } = await supabase
+      .from('module_scores')
+      .insert(moduleScore)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('添加模块得分失败:', error);
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('添加模块得分异常:', error);
+    return null;
+  }
+}
+
+// 删除模块得分记录
+export async function deleteModuleScore(id: string): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('module_scores')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('删除模块得分失败:', error);
+      throw error;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('删除模块得分异常:', error);
+    return false;
+  }
+}
+
