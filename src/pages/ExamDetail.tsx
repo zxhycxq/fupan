@@ -167,6 +167,17 @@ export default function ExamDetail() {
     const otherModulesTime = calculateTotalTime(module.id);
     const totalTime = otherModulesTime + minutes;
 
+    console.log('=== 用时验证调试信息 ===');
+    console.log('当前编辑模块:', module.module_name);
+    console.log('新用时(分钟):', minutes);
+    console.log('其他模块总用时(分钟):', otherModulesTime);
+    console.log('总用时(分钟):', totalTime);
+    console.log('所有模块:', examDetail.module_scores.map(m => ({
+      name: m.module_name,
+      parent: m.parent_module,
+      time: secondsToMinutes(m.time_used || 0)
+    })));
+
     // 验证总时长不超过120分钟
     if (totalTime > 120) {
       message.error(`所有模块总用时不能超过120分钟，当前其他模块已用时${otherModulesTime.toFixed(1)}分钟`);
