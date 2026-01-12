@@ -524,6 +524,9 @@ export default function ExamDetail() {
       if (indexB === -1) return -1;
       return indexA - indexB;
     });
+
+  // 计算所有大模块的总用时（秒）
+  const totalModulesTime = mainModules.reduce((sum, m) => sum + (m.time_used || 0), 0);
   
   // 判断是否应该标红（低于目标值或默认50%）
   const shouldHighlightRed = (moduleName: string, accuracyRate: number | undefined): boolean => {
@@ -864,7 +867,7 @@ export default function ExamDetail() {
             <ClockCircleOutlined className="text-lg text-white opacity-80" />
           </div>
           <div className="text-3xl font-bold mb-1 text-white">
-            {examDetail.time_used ? Math.round(examDetail.time_used / 60) : '-'}
+            {totalModulesTime ? Math.round(totalModulesTime / 60) : '-'}
           </div>
           <p className="text-xs text-white opacity-80">m</p>
         </Card>
