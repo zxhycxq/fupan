@@ -529,11 +529,9 @@ export default function ExamDetail() {
   // 计算所有大模块的总用时（秒）
   const totalModulesTime = mainModules.reduce((sum, m) => sum + (m.time_used || 0), 0);
   
-  // 判断是否使用用户手动设置的用时
-  // 如果 examDetail.time_used 存在且与各大模块总和不同，说明用户手动修改过
-  const displayTime = examDetail.time_used && Math.abs(examDetail.time_used - totalModulesTime) > 1 
-    ? examDetail.time_used 
-    : totalModulesTime;
+  // 优先使用各大模块用时总和
+  // 只有当用户在列表页手动修改过总用时（与模块总和差异较大）时，才使用用户设置的值
+  const displayTime = totalModulesTime || examDetail.time_used || 0;
   
   // 判断是否应该标红（低于目标值或默认50%）
   const shouldHighlightRed = (moduleName: string, accuracyRate: number | undefined): boolean => {
