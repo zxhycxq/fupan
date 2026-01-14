@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
-import { Card, Button, InputNumber, Select, DatePicker, Space, message, Spin, Alert, Input, Tooltip } from 'antd';
+import { Card, Button, InputNumber, Select, DatePicker, Space, message, Spin, Alert, Input, Tooltip, Typography } from 'antd';
 import { SaveOutlined, ReloadOutlined, CalendarOutlined, BgColorsOutlined, AimOutlined, TrophyOutlined, QuestionCircleOutlined } from '@ant-design/icons';
 import { useTheme, themes } from '@/hooks/use-theme';
 import { getUserSettings, batchUpsertUserSettings, getExamConfig, saveExamConfig } from '@/db/api';
 import type { UserSetting } from '@/types';
 import dayjs from 'dayjs';
 import { GRADE_LABEL_THEMES } from '@/config/gradeLabels';
+
+const { Text } = Typography;
 
 // 6大模块
 const MAIN_MODULES = [
