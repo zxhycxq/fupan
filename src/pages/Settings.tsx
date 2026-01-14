@@ -492,7 +492,18 @@ export default function Settings() {
       </Card>
 
       {/* 功能反馈&建议 */}
-      <Card title="功能反馈 & 建议" className="mb-6">
+      <Card 
+        title={
+          <span className="flex items-center gap-2">
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
+              <path d="M11 12h2v2h-2zm0-6h2v4h-2z"/>
+            </svg>
+            功能反馈 & 建议
+          </span>
+        }
+        className="max-w-5xl mx-auto mt-6"
+      >
         <Space direction="vertical" size="middle" className="w-full">
           <div>
             <Text type="secondary">
