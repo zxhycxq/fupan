@@ -304,14 +304,6 @@ export default function Profile() {
     }
   };
 
-  // 处理会员购买
-  const handleVipPurchase = (planId: string) => {
-    console.log('购买会员套餐:', planId);
-    message.info('会员购买功能即将上线，敬请期待！');
-    setIsVipModalVisible(false);
-    // TODO: 实现实际的支付流程
-  };
-
   // 格式化手机号（隐藏中间4位）
   const formatPhone = (phone: string | null) => {
     if (!phone) return '未绑定';
@@ -570,14 +562,6 @@ export default function Profile() {
         open={isVipModalVisible}
         onCancel={() => setIsVipModalVisible(false)}
       />
-
-      {/* 旧的会员购买弹窗 - 暂时隐藏
-      <VipPurchaseModal
-        visible={isVipModalVisible}
-        onCancel={() => setIsVipModalVisible(false)}
-        onPurchase={handleVipPurchase}
-      />
-      */}
     </div>
   );
 }
