@@ -83,10 +83,10 @@ const DraggableItem = ({ module, index, onNameChange, onTimeChange }: DraggableI
   };
 
   const minutes = Math.floor(module.suggestedTime / 60);
-  const timeRange = minutes < 10 ? '(5-10分钟)' : 
-                    minutes < 20 ? '(10-20分钟)' : 
-                    minutes < 30 ? '(20-30分钟)' : 
-                    minutes < 40 ? '(30-40分钟)' : '(40-50分钟)';
+  const timeRange = minutes < 10 ? '5-10分钟' : 
+                    minutes < 20 ? '10-20分钟' : 
+                    minutes < 30 ? '20-30分钟' : 
+                    minutes < 40 ? '30-40分钟' : '40-50分钟';
 
   return (
     <div
@@ -111,17 +111,14 @@ const DraggableItem = ({ module, index, onNameChange, onTimeChange }: DraggableI
           placeholder="模块名称"
         />
         
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <InputNumber
-            min={0}
-            value={minutes}
-            onChange={(value) => onTimeChange(index, value || 0)}
-            className="flex-1 sm:flex-none sm:w-20"
-            placeholder="分钟"
-            inputMode="numeric"
-          />
-          <span className="text-xs text-gray-400 whitespace-nowrap">{timeRange}</span>
-        </div>
+        <InputNumber
+          min={0}
+          value={minutes}
+          onChange={(value) => onTimeChange(index, value || 0)}
+          className="w-full sm:w-32"
+          placeholder={timeRange}
+          inputMode="numeric"
+        />
       </div>
     </div>
   );
@@ -141,6 +138,7 @@ export default function ExamTimer() {
 
   const [totalTime, setTotalTime] = useState(0);
   const [showSettings, setShowSettings] = useState(false);
+  const [showLandscapeSettings, setShowLandscapeSettings] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const [tempModules, setTempModules] = useState<Module[]>(DEFAULT_MODULES);
   const [tempCountdown, setTempCountdown] = useState(false);
@@ -148,6 +146,7 @@ export default function ExamTimer() {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const reportRef = useRef<HTMLDivElement>(null);
+  const [isMobile, setIsMobile] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -173,6 +172,16 @@ export default function ExamTimer() {
         console.error('加载设置失败:', e);
       }
     }
+  }, []);
+
+  // 检测是否为移动端
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
   // 从localStorage恢复状态
@@ -411,7 +420,11 @@ export default function ExamTimer() {
     setTempModules([...state.modules]);
     setTempCountdown(state.isCountdown);
     setTempDuration(Math.floor(state.countdownDuration / 60));
-    setShowSettings(true);
+    if (isMobile) {
+      setShowLandscapeSettings(true);
+    } else {
+      setShowSettings(true);
+    }
   };
 
   // 保存设置
@@ -687,7 +700,7 @@ export default function ExamTimer() {
         onOk={handleSaveSettings}
         onCancel={() => setShowSettings(false)}
         width="90%"
-        style={{ maxWidth: '700px' }}
+        style={{ maxWidth: '600px' }}
         className="exam-timer-settings-modal"
       >
         <div className="space-y-4 sm:space-y-6">
@@ -751,6 +764,118 @@ export default function ExamTimer() {
                 )}
               </div>
             )}
+          </div>
+        </div>
+      </Modal>
+
+      {/* 横屏设置对话框 */}
+      <Modal
+        open={showLandscapeSettings}
+        onCancel={() => setShowLandscapeSettings(false)}
+        footer={null}
+        width="100vw"
+        style={{ 
+          top: 0,
+          maxWidth: '100vw',
+          margin: 0,
+          padding: 0,
+        }}
+        bodyStyle={{
+          height: '100vh',
+          padding: 0,
+          overflow: 'hidden',
+        }}
+        className="landscape-modal"
+      >
+        <div 
+          className="w-full h-full flex items-center justify-center bg-white dark:bg-gray-900"
+          style={{
+            transform: 'rotate(90deg)',
+            transformOrigin: 'center center',
+            width: '100vh',
+            height: '100vw',
+            position: 'absolute',
+            left: '50%',
+            top: '50%',
+            marginLeft: '-50vh',
+            marginTop: '-50vw',
+          }}
+        >
+          <div className="w-full h-full overflow-auto p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">计时器设置</h2>
+              <div className="flex gap-2">
+                <Button onClick={() => setShowLandscapeSettings(false)}>取消</Button>
+                <Button type="primary" onClick={() => {
+                  handleSaveSettings();
+                  setShowLandscapeSettings(false);
+                }}>确定</Button>
+              </div>
+            </div>
+            
+            <div className="space-y-6">
+              {/* 倒计时模式 */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <ClockCircleOutlined className="text-lg" />
+                    <span className="font-semibold">倒计时模式</span>
+                  </div>
+                  <Switch
+                    checked={tempCountdown}
+                    onChange={setTempCountdown}
+                  />
+                </div>
+                <div className="flex items-center gap-2 pl-7">
+                  <span className="text-sm text-gray-600">考试总时长</span>
+                  <InputNumber
+                    min={1}
+                    value={tempDuration}
+                    onChange={(value) => setTempDuration(value || 115)}
+                    className="w-28"
+                    addonAfter="分钟"
+                    disabled={!tempCountdown}
+                    inputMode="numeric"
+                  />
+                </div>
+              </div>
+              
+              {/* 模块设置 */}
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <SettingOutlined className="text-lg" />
+                  <span className="font-semibold">时间设置（拖拽排序）</span>
+                </div>
+                <DndContext sensors={sensors} onDragEnd={onDragEnd}>
+                  <SortableContext
+                    items={tempModules.map((i) => i.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    <div className="space-y-2">
+                      {tempModules.map((module, index) => (
+                        <DraggableItem
+                          key={module.id}
+                          module={module}
+                          index={index}
+                          onNameChange={handleModuleNameChange}
+                          onTimeChange={handleModuleTimeChange}
+                        />
+                      ))}
+                    </div>
+                  </SortableContext>
+                </DndContext>
+                
+                {/* 总时间提示 */}
+                {tempCountdown && (
+                  <div className="mt-3 text-sm text-gray-500 pl-7">
+                    当前模块总时间：{Math.ceil(tempModules.reduce((sum, m) => sum + m.suggestedTime, 0) / 60)} 分钟
+                    {tempModules.reduce((sum, m) => sum + m.suggestedTime, 0) > tempDuration * 60 && (
+                      <span className="text-red-500 ml-2">（超出考试总时长）</span>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </Modal>
