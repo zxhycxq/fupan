@@ -899,3 +899,104 @@ export async function deleteModuleScore(id: string): Promise<boolean> {
   }
 }
 
+// ==================== 支付相关 API ====================
+
+// 创建支付订单
+export async function createPaymentOrder(params: {
+  sku_code: string;
+  quantity: number;
+  user_name: string;
+  user_address: string;
+  user_phone?: string;
+}): Promise<{ success: boolean; order_no?: string; pay_url?: string; is_free?: boolean; error?: string }> {
+  try {
+    const { data, error } = await supabase.functions.invoke('create_payment_order', {
+      body: params,
+    });
+
+    if (error) {
+      console.error('创建支付订单失败:', error);
+      return { success: false, error: error.message || '创建订单失败' };
+    }
+
+    if (data.error) {
+      return { success: false, error: data.error };
+    }
+
+    return {
+      success: true,
+      order_no: data.order_no,
+      pay_url: data.pay_url,
+      is_free: data.is_free,
+    };
+  } catch (error: any) {
+    console.error('创建支付订单异常:', error);
+    return { success: false, error: error.message || '创建订单失败' };
+  }
+}
+
+// 获取订单详情
+export async function getOrderDetail(orderNo: string): Promise<{ success: boolean; data?: any; error?: string }> {
+  try {
+    const { data: order, error: orderError } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('order_no', orderNo)
+      .maybeSingle();
+
+    if (orderError) {
+      console.error('获取订单详情失败:', orderError);
+      return { success: false, error: orderError.message };
+    }
+
+    if (!order) {
+      return { success: false, error: '订单不存在' };
+    }
+
+    // 获取订单明细
+    const { data: items, error: itemsError } = await supabase
+      .from('order_items')
+      .select('*')
+      .eq('order_id', order.id);
+
+    if (itemsError) {
+      console.error('获取订单明细失败:', itemsError);
+      return { success: false, error: itemsError.message };
+    }
+
+    return {
+      success: true,
+      data: {
+        ...order,
+        items: Array.isArray(items) ? items : [],
+      },
+    };
+  } catch (error: any) {
+    console.error('获取订单详情异常:', error);
+    return { success: false, error: error.message || '获取订单详情失败' };
+  }
+}
+
+// 获取用户的所有订单
+export async function getUserOrders(): Promise<{ success: boolean; data?: any[]; error?: string }> {
+  try {
+    const { data: orders, error: ordersError } = await supabase
+      .from('orders')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (ordersError) {
+      console.error('获取用户订单失败:', ordersError);
+      return { success: false, error: ordersError.message };
+    }
+
+    return {
+      success: true,
+      data: Array.isArray(orders) ? orders : [],
+    };
+  } catch (error: any) {
+    console.error('获取用户订单异常:', error);
+    return { success: false, error: error.message || '获取用户订单失败' };
+  }
+}
+

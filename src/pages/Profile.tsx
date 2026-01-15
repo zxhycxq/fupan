@@ -4,7 +4,8 @@ import { UserOutlined, PhoneOutlined, CalendarOutlined, EditOutlined, CheckCircl
 import { getUserProfile, updateUsername, checkUsernameAvailability, softDeleteUserAccount, checkUserVipStatus } from '@/db/api';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
-import VipPurchaseModal from '@/components/common/VipPurchaseModal';
+// import VipPurchaseModal from '@/components/common/VipPurchaseModal'; // 暂时隐藏旧的会员购买弹窗
+import PaymentModal from '@/components/common/PaymentModal'; // 使用新的支付弹窗
 
 const { Title, Text } = Typography;
 
@@ -564,12 +565,19 @@ export default function Profile() {
         </Space>
       </Modal>
 
-      {/* 会员购买弹窗 */}
+      {/* 会员购买弹窗 - 使用新的支付弹窗 */}
+      <PaymentModal
+        open={isVipModalVisible}
+        onCancel={() => setIsVipModalVisible(false)}
+      />
+
+      {/* 旧的会员购买弹窗 - 暂时隐藏
       <VipPurchaseModal
         visible={isVipModalVisible}
         onCancel={() => setIsVipModalVisible(false)}
         onPurchase={handleVipPurchase}
       />
+      */}
     </div>
   );
 }

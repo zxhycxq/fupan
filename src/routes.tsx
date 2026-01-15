@@ -11,6 +11,8 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
+import OrderConfirm from './pages/OrderConfirm';
+import OrderDetail from './pages/OrderDetail';
 import type { ReactNode } from 'react';
 
 interface RouteConfig {
@@ -97,6 +99,18 @@ const routes: RouteConfig[] = [
     name: '数据调试',
     path: '/debug',
     element: <DebugData />,
+    visible: false,
+  },
+  {
+    name: '订单确认',
+    path: '/order-confirm',
+    element: <OrderConfirm />,
+    visible: false,
+  },
+  {
+    name: '订单详情',
+    path: '/order-detail/:orderNo',
+    element: <OrderDetail />,
     visible: false,
   },
 ];
