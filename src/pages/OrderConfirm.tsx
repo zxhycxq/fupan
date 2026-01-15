@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Card, Form, Input, InputNumber, Button, message, Spin, Divider } from 'antd';
-import { ShoppingCartOutlined, UserOutlined, EnvironmentOutlined } from '@ant-design/icons';
+import { Card, Form, Input, InputNumber, Button, message, Divider } from 'antd';
+import { ShoppingCartOutlined, UserOutlined, PhoneOutlined } from '@ant-design/icons';
 import { createPaymentOrder } from '@/db/api';
+import dayjs from 'dayjs';
 
 interface SKU {
   sku_code: string;
@@ -80,11 +81,12 @@ export default function OrderConfirm() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="container mx-auto px-4 max-w-4xl">
+    <div className="min-h-screen bg-gray-50 py-4">
+      <div className="container mx-auto px-4 max-w-3xl">
         <Card className="shadow-sm">
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold flex items-center gap-2">
+          {/* 页面标题 */}
+          <div className="mb-4">
+            <h1 className="text-xl font-bold flex items-center gap-2">
               <ShoppingCartOutlined />
               确认订单
             </h1>
@@ -99,103 +101,106 @@ export default function OrderConfirm() {
             }}
           >
             {/* 商品信息 */}
-            <div className="mb-6">
-              <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <div className="mb-4">
+              <h2 className="text-base font-semibold mb-3 flex items-center gap-2">
                 <ShoppingCartOutlined />
                 商品信息
               </h2>
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <div className="flex items-center justify-between mb-4">
+              <div className="bg-gray-50 p-3 rounded-lg">
+                <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
-                    <div className="font-medium text-base">{sku.name}</div>
+                    <div className="font-medium">{sku.name}</div>
                     <div className="text-gray-500 text-sm mt-1">
                       有效期：{sku.duration_months > 0 ? `${sku.duration_months}个月` : '永久'}
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-primary text-xl font-bold">¥{sku.price.toFixed(2)}</div>
+                    <div className="text-primary text-lg font-bold">¥{sku.price.toFixed(2)}</div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3 text-sm">
                   <span className="text-gray-600">数量：</span>
                   <InputNumber
                     min={1}
                     max={10}
                     value={quantity}
                     onChange={(value) => setQuantity(value || 1)}
-                    className="w-24"
+                    className="w-20"
+                    size="small"
                   />
-                  <span className="text-gray-500 text-sm ml-auto">
+                  <span className="text-gray-500 ml-auto">
                     小计：¥{subtotal.toFixed(2)}
                   </span>
                 </div>
               </div>
             </div>
 
-            <Divider />
+            <Divider className="my-4" />
 
-            {/* 收货人信息 */}
-            <div className="mb-6">
-              <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            {/* 买家信息 */}
+            <div className="mb-4">
+              <h2 className="text-base font-semibold mb-3 flex items-center gap-2">
                 <UserOutlined />
                 买家信息
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <Form.Item
-                  label="姓名"
+                  label={<span className="text-sm">姓名</span>}
                   name="user_name"
                   rules={[{ required: true, message: '请输入姓名' }]}
+                  className="mb-3"
                 >
-                  <Input placeholder="请输入姓名" prefix={<UserOutlined />} />
+                  <Input placeholder="请输入姓名" prefix={<UserOutlined />} size="middle" />
                 </Form.Item>
 
                 <Form.Item
-                  label="手机号"
+                  label={<span className="text-sm">手机号</span>}
                   name="user_phone"
                   rules={[
                     { required: true, message: '请输入手机号' },
                     { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号' },
                   ]}
+                  className="mb-3"
                 >
-                  <Input placeholder="请输入手机号" />
+                  <Input placeholder="请输入手机号" prefix={<PhoneOutlined />} size="middle" />
                 </Form.Item>
               </div>
 
               <Form.Item
-                label="地址"
+                label={<span className="text-sm">地址</span>}
                 name="user_address"
                 rules={[{ required: true, message: '请输入地址' }]}
+                className="mb-0"
               >
                 <Input.TextArea
                   placeholder="请输入详细地址（省市区+街道+门牌号）"
-                  rows={3}
+                  rows={2}
+                  size="middle"
                 />
               </Form.Item>
             </div>
 
-            <Divider />
+            <Divider className="my-4" />
 
             {/* 金额明细 */}
-            <div className="mb-6">
-              <h2 className="text-lg font-semibold mb-4">金额明细</h2>
-              <div className="space-y-3">
+            <div className="mb-4">
+              <h2 className="text-base font-semibold mb-3">金额明细</h2>
+              <div className="space-y-2 text-sm">
                 <div className="flex justify-between text-gray-600">
                   <span>商品总价：</span>
                   <span>¥{subtotal.toFixed(2)}</span>
                 </div>
-                {discount > 0 && (
-                  <div className="flex justify-between text-green-600">
-                    <span>优惠金额：</span>
-                    <span>-¥{discount.toFixed(2)}</span>
-                  </div>
-                )}
                 <div className="flex justify-between text-gray-600">
                   <span>运费：</span>
                   <span>{shipping === 0 ? '免运费' : `¥${shipping.toFixed(2)}`}</span>
                 </div>
-                <Divider className="my-3" />
-                <div className="flex justify-between text-xl font-bold">
+                <div className="flex justify-between text-gray-500 text-xs">
+                  <span>购买时间：</span>
+                  <span>{dayjs().format('YYYY-MM-DD HH:mm:ss')}</span>
+                </div>
+                <Divider className="my-2" />
+                <div className="flex justify-between text-lg font-bold">
                   <span>实付款：</span>
                   <span className="text-primary">¥{total.toFixed(2)}</span>
                 </div>
@@ -203,14 +208,14 @@ export default function OrderConfirm() {
             </div>
 
             {/* 提交按钮 */}
-            <Form.Item>
+            <Form.Item className="mb-0">
               <Button
                 type="primary"
                 htmlType="submit"
                 size="large"
                 block
                 loading={loading}
-                className="h-12 text-base font-medium"
+                className="h-11 text-base font-medium"
               >
                 {loading ? '正在创建订单...' : '提交订单'}
               </Button>
