@@ -238,8 +238,8 @@ export default function FormInputTab({ examName, sortOrder, examType, onSubmitSt
                 {/* 大模块总计 */}
                 <div className="bg-blue-50 p-3 rounded border-b-2 border-blue-200">
                   <div className="font-medium mb-2 text-blue-700">总计 <span className="text-red-500">*</span></div>
-                  <Row gutter={12}>
-                    <Col span={8}>
+                  <Row gutter={[12, 12]}>
+                    <Col xs={24} sm={8}>
                       <Form.Item
                         name={[`${parentModule.name}_总计`, 'total_questions']}
                         label="题目数量"
@@ -252,11 +252,12 @@ export default function FormInputTab({ examName, sortOrder, examType, onSubmitSt
                         <InputNumber
                           min={0}
                           placeholder="题目数"
-                          style={{ width: '100%' }}
+                          className="w-full"
+                          inputMode="numeric"
                         />
                       </Form.Item>
                     </Col>
-                    <Col span={8}>
+                    <Col xs={24} sm={8}>
                       <Form.Item
                         name={[`${parentModule.name}_总计`, 'correct_answers']}
                         label="答对数量"
@@ -268,11 +269,12 @@ export default function FormInputTab({ examName, sortOrder, examType, onSubmitSt
                         <InputNumber
                           min={0}
                           placeholder="答对数"
-                          style={{ width: '100%' }}
+                          className="w-full"
+                          inputMode="numeric"
                         />
                       </Form.Item>
                     </Col>
-                    <Col span={8}>
+                    <Col xs={24} sm={8}>
                       <Form.Item
                         name={[`${parentModule.name}_总计`, 'time_used']}
                         label="用时(分钟)"
@@ -281,8 +283,9 @@ export default function FormInputTab({ examName, sortOrder, examType, onSubmitSt
                       >
                         <InputNumber
                           min={0}
-                          placeholder="默认1分钟"
-                          style={{ width: '100%' }}
+                          placeholder="分钟"
+                          className="w-full"
+                          inputMode="numeric"
                         />
                       </Form.Item>
                     </Col>
@@ -295,8 +298,8 @@ export default function FormInputTab({ examName, sortOrder, examType, onSubmitSt
                   return (
                     <div key={subModule} className="border-b pb-3 last:border-b-0">
                       <div className="font-medium mb-2 text-gray-700">{subModule}</div>
-                      <Row gutter={12}>
-                        <Col span={8}>
+                      <Row gutter={[12, 12]}>
+                        <Col xs={24} sm={8}>
                           <Form.Item
                             name={[fieldKey, 'total_questions']}
                             label="题目数量"
@@ -305,11 +308,12 @@ export default function FormInputTab({ examName, sortOrder, examType, onSubmitSt
                             <InputNumber
                               min={0}
                               placeholder="题目数"
-                              style={{ width: '100%' }}
+                              className="w-full"
+                              inputMode="numeric"
                             />
                           </Form.Item>
                         </Col>
-                        <Col span={8}>
+                        <Col xs={24} sm={8}>
                           <Form.Item
                             name={[fieldKey, 'correct_answers']}
                             label="答对数量"
@@ -318,11 +322,12 @@ export default function FormInputTab({ examName, sortOrder, examType, onSubmitSt
                             <InputNumber
                               min={0}
                               placeholder="答对数"
-                              style={{ width: '100%' }}
+                              className="w-full"
+                              inputMode="numeric"
                             />
                           </Form.Item>
                         </Col>
-                        <Col span={8}>
+                        <Col xs={24} sm={8}>
                           <Form.Item
                             name={[fieldKey, 'time_used']}
                             label="用时(分钟)"
@@ -331,8 +336,9 @@ export default function FormInputTab({ examName, sortOrder, examType, onSubmitSt
                           >
                             <InputNumber
                               min={0}
-                              placeholder="默认1分钟"
-                              style={{ width: '100%' }}
+                              placeholder="分钟"
+                              className="w-full"
+                              inputMode="numeric"
                             />
                           </Form.Item>
                         </Col>

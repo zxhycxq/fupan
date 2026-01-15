@@ -349,9 +349,10 @@ export default function Upload() {
                 min={0}
                 value={timeUsedMinutes}
                 onChange={(value) => setTimeUsedMinutes(value || 0)}
-                placeholder="请输入考试用时(分钟)"
-                style={{ width: '100%' }}
+                placeholder="分钟"
+                className="w-full"
                 required
+                inputMode="numeric"
               />
               <div className="text-sm text-gray-500 mt-1">
                 请输入考试用时，单位为分钟

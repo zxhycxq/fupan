@@ -92,32 +92,33 @@ const DraggableItem = ({ module, index, onNameChange, onTimeChange }: DraggableI
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg mb-2"
+      className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 p-3 bg-gray-50 rounded-lg mb-2"
     >
       <div
         {...attributes}
         {...listeners}
-        className="cursor-move text-gray-400 hover:text-gray-600"
+        className="cursor-move text-gray-400 hover:text-gray-600 self-start sm:self-center"
       >
         <HolderOutlined style={{ fontSize: '16px' }} />
       </div>
       
-      <div className="flex-1 flex items-center gap-3">
+      <div className="flex-1 w-full flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
         <Input
           value={module.name}
           onChange={(e) => onNameChange(index, e.target.value)}
           maxLength={10}
-          style={{ width: '200px' }}
+          className="w-full sm:w-48"
           placeholder="模块名称"
         />
         
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           <InputNumber
             min={0}
             value={minutes}
             onChange={(value) => onTimeChange(index, value || 0)}
-            style={{ width: '80px' }}
+            className="flex-1 sm:flex-none sm:w-20"
             placeholder="分钟"
+            inputMode="numeric"
           />
           <span className="text-xs text-gray-400 whitespace-nowrap">{timeRange}</span>
         </div>
@@ -685,30 +686,33 @@ export default function ExamTimer() {
         open={showSettings}
         onOk={handleSaveSettings}
         onCancel={() => setShowSettings(false)}
-        width={700}
+        width="90%"
+        style={{ maxWidth: '700px' }}
+        className="exam-timer-settings-modal"
       >
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* 倒计时模式 */}
           <div>
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <ClockCircleOutlined className="text-lg" />
-                <span className="font-semibold">倒计时模式</span>
+                <ClockCircleOutlined className="text-base sm:text-lg" />
+                <span className="font-semibold text-sm sm:text-base">倒计时模式</span>
               </div>
               <Switch
                 checked={tempCountdown}
                 onChange={setTempCountdown}
               />
             </div>
-            <div className="flex items-center gap-2 pl-7">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 pl-0 sm:pl-7">
               <span className="text-sm text-gray-600">考试总时长</span>
               <InputNumber
                 min={1}
                 value={tempDuration}
                 onChange={(value) => setTempDuration(value || 115)}
-                style={{ width: '100px' }}
+                className="w-full sm:w-28"
                 addonAfter="分钟"
                 disabled={!tempCountdown}
+                inputMode="numeric"
               />
             </div>
           </div>
@@ -716,8 +720,8 @@ export default function ExamTimer() {
           {/* 模块设置 */}
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <SettingOutlined className="text-lg" />
-              <span className="font-semibold">时间设置（拖拽排序）</span>
+              <SettingOutlined className="text-base sm:text-lg" />
+              <span className="font-semibold text-sm sm:text-base">时间设置（拖拽排序）</span>
             </div>
             <DndContext sensors={sensors} onDragEnd={onDragEnd}>
               <SortableContext
@@ -740,7 +744,7 @@ export default function ExamTimer() {
             
             {/* 总时间提示 */}
             {tempCountdown && (
-              <div className="mt-3 text-sm text-gray-500 pl-7">
+              <div className="mt-3 text-xs sm:text-sm text-gray-500 pl-0 sm:pl-7">
                 当前模块总时间：{Math.ceil(tempModules.reduce((sum, m) => sum + m.suggestedTime, 0) / 60)} 分钟
                 {tempModules.reduce((sum, m) => sum + m.suggestedTime, 0) > tempDuration * 60 && (
                   <span className="text-red-500 ml-2">（超出考试总时长）</span>
