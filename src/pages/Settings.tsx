@@ -240,11 +240,13 @@ export default function Settings() {
               {themes.map((themeOption) => {
                 const isActive = theme === themeOption.value;
                 const themeColorMap: Record<string, string> = {
-                  default: '#1677ff',
                   blue: '#3b82f6',
                   green: '#22c55e',
                   purple: '#a855f7',
                   orange: '#f97316',
+                  red: '#ef4444',
+                  cyan: '#06b6d4',
+                  pink: '#ec4899',
                 };
                 const themeColor = themeColorMap[themeOption.value];
 

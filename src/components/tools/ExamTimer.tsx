@@ -124,6 +124,67 @@ const DraggableItem = ({ module, index, onNameChange, onTimeChange }: DraggableI
   );
 };
 
+// 横屏专用的 DraggableItem 组件（始终单行布局）
+const LandscapeDraggableItem = ({ module, index, onNameChange, onTimeChange }: DraggableItemProps) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: module.id,
+  });
+
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  const minutes = Math.floor(module.suggestedTime / 60);
+  const timeRange = minutes < 10 ? '5-10分钟' : 
+                    minutes < 20 ? '10-20分钟' : 
+                    minutes < 30 ? '20-30分钟' : 
+                    minutes < 40 ? '30-40分钟' : '40-50分钟';
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg mb-2"
+    >
+      <div
+        {...attributes}
+        {...listeners}
+        className="cursor-move text-gray-400 hover:text-gray-600"
+      >
+        <HolderOutlined style={{ fontSize: '16px' }} />
+      </div>
+      
+      <div className="flex-1 flex items-center gap-3">
+        <Input
+          value={module.name}
+          onChange={(e) => onNameChange(index, e.target.value)}
+          maxLength={10}
+          className="w-48"
+          placeholder="模块名称"
+        />
+        
+        <InputNumber
+          min={0}
+          value={minutes}
+          onChange={(value) => onTimeChange(index, value || 0)}
+          className="w-32"
+          placeholder={timeRange}
+          inputMode="numeric"
+        />
+      </div>
+    </div>
+  );
+};
+
 export default function ExamTimer() {
   const [state, setState] = useState<TimerState>({
     totalStartTime: null,
@@ -853,7 +914,7 @@ export default function ExamTimer() {
                   >
                     <div className="space-y-2">
                       {tempModules.map((module, index) => (
-                        <DraggableItem
+                        <LandscapeDraggableItem
                           key={module.id}
                           module={module}
                           index={index}

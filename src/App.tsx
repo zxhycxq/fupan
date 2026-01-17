@@ -17,13 +17,6 @@ dayjs.locale('zh-cn');
 
 // 主题颜色配置
 const themeColors = {
-  default: {
-    colorPrimary: '#1677ff',
-    colorSuccess: '#52c41a',
-    colorWarning: '#faad14',
-    colorError: '#ff4d4f',
-    colorInfo: '#1677ff',
-  },
   blue: {
     colorPrimary: '#3b82f6', // 蓝色主题
     colorSuccess: '#10b981',
@@ -52,6 +45,27 @@ const themeColors = {
     colorError: '#ef4444',
     colorInfo: '#f97316',
   },
+  red: {
+    colorPrimary: '#ef4444', // 红色主题
+    colorSuccess: '#10b981',
+    colorWarning: '#f59e0b',
+    colorError: '#dc2626',
+    colorInfo: '#ef4444',
+  },
+  cyan: {
+    colorPrimary: '#06b6d4', // 青色主题
+    colorSuccess: '#10b981',
+    colorWarning: '#f59e0b',
+    colorError: '#ef4444',
+    colorInfo: '#06b6d4',
+  },
+  pink: {
+    colorPrimary: '#ec4899', // 粉色主题
+    colorSuccess: '#10b981',
+    colorWarning: '#f59e0b',
+    colorError: '#ef4444',
+    colorInfo: '#ec4899',
+  },
 };
 
 function App() {
@@ -62,12 +76,10 @@ function App() {
     const root = document.documentElement;
     
     // 移除所有主题类
-    root.classList.remove('theme-blue', 'theme-green', 'theme-purple', 'theme-orange');
+    root.classList.remove('theme-blue', 'theme-green', 'theme-purple', 'theme-orange', 'theme-red', 'theme-cyan', 'theme-pink');
     
-    // 添加主题类（除了默认主题）
-    if (currentTheme !== 'default') {
-      root.classList.add(`theme-${currentTheme}`);
-    }
+    // 添加主题类
+    root.classList.add(`theme-${currentTheme}`);
   }, [currentTheme]);
 
   // 根据当前主题生成 Ant Design 主题配置
