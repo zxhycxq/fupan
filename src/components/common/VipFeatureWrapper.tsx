@@ -52,23 +52,26 @@ export function VipFeatureWrapper({
         {badgePosition === 'left' && badge}
         
         <div
-          className="opacity-50 cursor-not-allowed pointer-events-none select-none"
-          onClick={handleClick}
+          className="opacity-50 cursor-not-allowed select-none relative"
           style={{ pointerEvents: 'none' }}
         >
           {children}
+          
+          {/* 覆盖层，用于捕获点击事件 */}
+          <div
+            className="absolute inset-0 cursor-not-allowed"
+            style={{ 
+              pointerEvents: 'auto',
+              zIndex: 999
+            }}
+            onClick={handleClick}
+            title={tooltip}
+          />
         </div>
-
-        {/* 覆盖层，用于捕获点击事件 */}
-        <div
-          className="absolute inset-0 cursor-not-allowed z-10"
-          onClick={handleClick}
-          title={tooltip}
-        />
 
         {badgePosition === 'right' && badge}
         {badgePosition === 'top' && (
-          <div className="absolute -top-2 -right-2 z-20">
+          <div className="absolute -top-2 -right-2 z-[1000]">
             {badge}
           </div>
         )}
