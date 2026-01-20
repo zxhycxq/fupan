@@ -1,197 +1,230 @@
-# 会员系统和主题优化 - 完成情况
+# VIP 功能集成 TODO 清单
 
 ## ✅ 已完成
 
-### 1. 主题肤色设置优化
-- [x] 简化主题选择UI（移除描述文字和颜色横条）
-- [x] 改用 flex 弹性布局，一行展示更多主题
-- [x] 颜色块从 12x12 改为 8x8，更紧凑
-- [x] 保持选中状态的视觉反馈
+### 数据库层
+- [x] 添加 `vip_type` 字段到 `user_vip` 表
+- [x] 更新 `admin_activate_vip()` RPC 函数，支持 vip_type 参数
+- [x] 更新 `admin_renew_vip()` RPC 函数，支持 vip_type 参数
+- [x] 迁移文件：`supabase/migrations/00028_add_vip_type_field.sql`
 
-### 2. 会员系统前端
-- [x] 创建 VipPaymentModal 组件
-  - [x] 季度会员套餐（¥99/3个月）
-  - [x] 年度会员套餐（¥299/12个月，推荐）
-  - [x] 功能列表展示
-  - [x] 支付说明和流程
-  - [x] 支持飞书表单和支付文章两种方式
-- [x] 更新 Profile.tsx 页面
-  - [x] 添加 VipStatus 接口
-  - [x] 会员状态展示（普通用户/VIP会员）
-  - [x] VIP到期时间和剩余天数显示
-  - [x] "去付款"和"续费会员"按钮
-  - [x] 集成 VipPaymentModal 弹窗
+### 前端基础组件
+- [x] `useVipStatus` Hook - 检查用户VIP状态
+- [x] `useVipFeature` Hook - 检查功能权限
+- [x] `VipBadge` 组件 - VIP标识图标
+- [x] `VipBenefitsModal` 组件 - VIP权益弹窗
+- [x] `VipFeatureWrapper` 组件 - 功能包装器
 
-### 3. 会员系统后端
-- [x] 创建 user_vip 表（用户会员信息）
-- [x] 创建 vip_orders 表（会员订单记录）
-- [x] 配置 RLS 策略（用户只能查看自己的数据）
-- [x] 更新 checkUserVipStatus API
-  - [x] 返回完整的 VipStatus 数据
-  - [x] 计算剩余天数
-  - [x] 检查是否过期
+### API 函数
+- [x] `canCreateExamRecord()` - 检查考试记录创建权限
+- [x] `getUserVipStatus()` - 获取用户VIP状态
 
-### 4. 配置和文档
-- [x] 创建 VIP_MANAGEMENT.md（管理员操作指南）
-  - [x] 数据库表结构说明
-  - [x] 开通会员 SQL 示例
-  - [x] 续费会员 SQL 示例
-  - [x] 查询和管理 SQL 示例
-  - [x] 常见问题解答
-- [x] 创建 VIP_SETUP_GUIDE.md（配置和部署指南）
-  - [x] 前端配置说明
-  - [x] 数据库配置说明
-  - [x] 管理员操作流程
-  - [x] 用户使用流程
-  - [x] 支付页面配置方案
-- [x] 更新 .env.production.example
-  - [x] 添加会员支付配置项
-  - [x] 支付方式选择（feishu/article）
-  - [x] 支付链接配置
-
-### 5. 代码质量
-- [x] 修复所有 TypeScript 类型错误
-- [x] 通过 lint 检查（我们修改的文件无错误）
-- [x] 代码注释完整
-
-## 📋 待办事项
-
-### 1. 配置支付链接
-- [ ] 创建飞书表单或支付文章
-- [ ] 在 .env.production 中配置实际的支付链接
-- [ ] 测试支付链接跳转
-
-### 2. 测试会员功能
-- [ ] 测试会员状态查询
-- [ ] 测试会员购买流程
-- [ ] 测试会员到期显示
-- [ ] 测试续费功能
-
-### 3. 管理员操作
-- [ ] 准备管理员账号（Supabase service_role）
-- [ ] 测试开通会员 SQL
-- [ ] 测试续费会员 SQL
-- [ ] 建立会员开通流程文档
-
-### 4. 用户体验优化（可选）
-- [ ] 添加会员到期邮件提醒
-- [ ] 添加会员购买成功通知
-- [ ] 优化会员功能列表展示
-- [ ] 添加会员特权页面
-
-### 5. 未来功能（长期）
-- [ ] 对接自动支付接口
-- [ ] 开发管理后台页面
-- [ ] 支持多种会员等级
-- [ ] 添加发票管理功能
-
-## 📝 使用说明
-
-### 管理员开通会员流程
-
-1. **收到用户支付信息**
-   - 用户手机号
-   - 支付凭证
-   - 购买套餐（季度/年度）
-
-2. **查询用户ID**
-   ```sql
-   SELECT id FROM auth.users WHERE phone = '+8613800138000';
-   ```
-
-3. **开通会员**
-   ```sql
-   -- 季度会员
-   INSERT INTO user_vip (user_id, is_vip, vip_start_date, vip_end_date)
-   VALUES ('user-uuid', TRUE, NOW(), NOW() + INTERVAL '3 months');
-   
-   -- 年度会员
-   INSERT INTO user_vip (user_id, is_vip, vip_start_date, vip_end_date)
-   VALUES ('user-uuid', TRUE, NOW(), NOW() + INTERVAL '12 months');
-   ```
-
-4. **记录订单（推荐）**
-   ```sql
-   INSERT INTO vip_orders (user_id, order_no, amount, duration_months, status, payment_method, paid_at, expired_at)
-   VALUES (
-     'user-uuid',
-     'VIP' || TO_CHAR(NOW(), 'YYYYMMDDHH24MISS') || SUBSTRING(MD5(RANDOM()::TEXT), 1, 6),
-     99.00,
-     3,
-     'paid',
-     'alipay',
-     NOW(),
-     NOW() + INTERVAL '3 months'
-   );
-   ```
-
-5. **通知用户**
-   - 会员已开通
-   - 到期时间
-   - 享受的权益
-
-### 用户购买会员流程
-
-1. 登录系统，进入个人中心
-2. 查看会员状态，点击"去付款"
-3. 选择会员套餐（季度/年度）
-4. 点击"去付款"跳转到支付页面
-5. 完成支付，保存支付凭证
-6. 联系客服提供支付凭证和手机号
-7. 等待管理员开通（24小时内）
-8. 刷新页面查看会员状态
-
-## 🔧 配置检查清单
-
-- [ ] 配置 VITE_PAYMENT_TYPE（feishu 或 article）
-- [ ] 配置 VITE_FEISHU_FORM_URL 或 VITE_PAYMENT_ARTICLE_URL
-- [ ] 确认数据库表已创建（user_vip, vip_orders）
-- [ ] 确认 RLS 策略已启用
-- [ ] 测试会员状态查询 API
-- [ ] 准备客服联系方式
-
-## 📊 数据统计（可选）
-
-可以通过以下 SQL 查询会员统计数据：
-
-```sql
--- 当前VIP会员数
-SELECT COUNT(*) FROM user_vip WHERE is_vip = TRUE AND vip_end_date > NOW();
-
--- 本月新增会员
-SELECT COUNT(*) FROM user_vip WHERE vip_start_date >= DATE_TRUNC('month', NOW());
-
--- 本月到期会员
-SELECT COUNT(*) FROM user_vip WHERE vip_end_date BETWEEN NOW() AND NOW() + INTERVAL '30 days';
-
--- 会员收入统计
-SELECT 
-  SUM(amount) as total_revenue,
-  COUNT(*) as total_orders,
-  AVG(amount) as avg_order_value
-FROM vip_orders
-WHERE status = 'paid' AND paid_at >= DATE_TRUNC('month', NOW());
-```
-
-## 🎯 下一步行动
-
-1. **立即执行**：
-   - 配置支付链接（.env.production）
-   - 测试会员购买流程
-   - 准备客服响应流程
-
-2. **本周完成**：
-   - 完善管理员操作文档
-   - 建立会员开通标准流程
-   - 测试所有会员功能
-
-3. **本月优化**：
-   - 收集用户反馈
-   - 优化会员购买体验
-   - 考虑添加自动化功能
+### 文档
+- [x] `VIP_FEATURES.md` - 完整功能说明文档
+- [x] `VIP_INTEGRATION_EXAMPLES.md` - 集成示例代码
+- [x] `VIP_ACTIVATION_SECURITY.md` - 会员开通安全方案
+- [x] `VIP_QUICK_REFERENCE.md` - 快速参考指南
 
 ---
 
-**创建时间**：2025-01-20  
-**最后更新**：2025-01-20  
-**状态**：✅ 核心功能已完成，待配置和测试
+## 🔄 待集成功能
+
+### 1. 考试记录上传限制（高优先级）
+
+**文件**：`src/pages/UploadPage.tsx` 或相关上传组件
+
+**任务**：
+- [ ] 在上传前调用 `canCreateExamRecord()` 检查权限
+- [ ] 免费用户达到3条记录时，显示VIP升级提示
+- [ ] 显示当前记录数和限制（如：2/3）
+- [ ] 添加VIP升级入口按钮
+
+**参考代码**：见 `VIP_INTEGRATION_EXAMPLES.md` 第1节
+
+**测试点**：
+- [ ] 免费用户创建第4条记录时被拦截
+- [ ] 显示正确的提示信息和VIP弹窗
+- [ ] VIP用户可以无限制创建记录
+
+---
+
+### 2. 导出Excel功能限制（高优先级）
+
+#### 2.1 数据总览页面
+
+**文件**：`src/pages/DataOverview.tsx`
+
+**任务**：
+- [ ] 使用 `VipFeatureWrapper` 包装"导出考试记录列表"按钮
+- [ ] 添加VIP标识
+- [ ] 点击时显示VIP权益弹窗
+
+**参考代码**：见 `VIP_INTEGRATION_EXAMPLES.md` 第2节
+
+#### 2.2 模块分析页面
+
+**文件**：`src/pages/ModuleAnalysis.tsx` 或相关分析页面
+
+**任务**：
+- [ ] 使用 `VipFeatureWrapper` 包装"导出模块详细数据"按钮
+- [ ] 使用 `VipFeatureWrapper` 包装"导出趋势图表"按钮
+- [ ] 添加VIP标识
+
+**参考代码**：见 `VIP_INTEGRATION_EXAMPLES.md` 第3节
+
+**测试点**：
+- [ ] 免费用户点击导出按钮显示VIP弹窗
+- [ ] VIP用户可以正常导出Excel
+- [ ] 导出功能正常工作
+
+---
+
+### 3. 主题肤色设置限制（中优先级）
+
+**文件**：`src/pages/Settings.tsx`
+
+**任务**：
+- [ ] 在"主题肤色设置"标题旁添加VIP标识
+- [ ] 使用 `VipFeatureWrapper` 包装主题选择器
+- [ ] 免费用户点击时显示VIP弹窗
+- [ ] VIP用户可以正常切换主题
+
+**参考代码**：见 `VIP_INTEGRATION_EXAMPLES.md` 第4节
+
+**测试点**：
+- [ ] 免费用户点击主题设置显示VIP弹窗
+- [ ] VIP用户可以正常设置主题
+- [ ] 主题设置保存正常
+
+---
+
+### 4. 等级称谓设置限制（中优先级）
+
+**文件**：`src/pages/Settings.tsx`
+
+**任务**：
+- [ ] 在"等级称谓设置"标题旁添加VIP标识
+- [ ] 使用 `VipFeatureWrapper` 包装等级选择器
+- [ ] 免费用户点击时显示VIP弹窗
+- [ ] VIP用户可以正常切换等级主题
+
+**参考代码**：见 `VIP_INTEGRATION_EXAMPLES.md` 第4节
+
+**测试点**：
+- [ ] 免费用户点击等级设置显示VIP弹窗
+- [ ] VIP用户可以正常设置等级称谓
+- [ ] 等级设置保存正常
+
+---
+
+### 5. 考试记录列表VIP状态显示（低优先级）
+
+**文件**：`src/pages/ExamRecords.tsx` 或考试记录列表页面
+
+**任务**：
+- [ ] 在页面顶部显示VIP状态提示
+- [ ] 免费用户显示：当前记录 X/3
+- [ ] VIP用户显示：VIP会员 - 无限制
+- [ ] 添加"升级VIP"按钮（免费用户）
+
+**参考代码**：见 `VIP_INTEGRATION_EXAMPLES.md` 第5节
+
+**测试点**：
+- [ ] 正确显示当前记录数
+- [ ] VIP状态正确显示
+- [ ] 升级按钮正常工作
+
+---
+
+### 6. 用户中心VIP信息展示（低优先级）
+
+**文件**：`src/pages/Profile.tsx` 或用户中心页面
+
+**任务**：
+- [ ] 显示VIP类型（季度/年度）
+- [ ] 显示到期时间
+- [ ] 显示剩余天数
+- [ ] 显示进度条
+- [ ] 添加续费按钮
+
+**参考代码**：见 `VIP_INTEGRATION_EXAMPLES.md` 第6节
+
+**测试点**：
+- [ ] VIP信息正确显示
+- [ ] 剩余天数计算正确
+- [ ] 进度条显示正确
+- [ ] 续费按钮正常工作
+
+---
+
+## 🧪 测试清单
+
+### 功能测试
+- [ ] 免费用户创建第4条记录时被拦截
+- [ ] VIP用户可以创建无限条记录
+- [ ] 免费用户点击导出Excel显示VIP弹窗
+- [ ] VIP用户可以正常导出Excel
+- [ ] 免费用户点击主题设置显示VIP弹窗
+- [ ] VIP用户可以正常设置主题
+- [ ] 免费用户点击等级设置显示VIP弹窗
+- [ ] VIP用户可以正常设置等级
+
+### 边界测试
+- [ ] VIP到期后自动降级为免费用户
+- [ ] VIP到期后超过3条记录的用户只能查看不能新增
+- [ ] 季度会员和年度会员权益一致
+- [ ] 续费后到期时间正确延长
+
+---
+
+## 🚀 快速开始
+
+### 第一步：测试VIP功能基础组件
+
+1. 在任意页面导入并测试 `useVipStatus`：
+```typescript
+import { useVipStatus } from '@/hooks/useVipStatus'
+
+const { vipStatus, loading } = useVipStatus()
+console.log('VIP状态:', vipStatus)
+```
+
+2. 测试 `VipBadge` 组件：
+```typescript
+import { VipBadge } from '@/components/common/VipBadge'
+
+<VipBadge size="md" showText />
+```
+
+3. 测试 `VipBenefitsModal` 弹窗：
+```typescript
+import { VipBenefitsModal } from '@/components/common/VipBenefitsModal'
+
+<VipBenefitsModal open={true} onClose={() => {}} />
+```
+
+### 第二步：集成考试记录上传限制
+
+这是最重要的功能，建议优先实现。参考 `VIP_INTEGRATION_EXAMPLES.md` 第1节。
+
+### 第三步：集成导出Excel限制
+
+参考 `VIP_INTEGRATION_EXAMPLES.md` 第2-3节。
+
+### 第四步：集成设置页面限制
+
+参考 `VIP_INTEGRATION_EXAMPLES.md` 第4节。
+
+---
+
+## 📝 注意事项
+
+1. **前端权限检查仅用于UI显示**，不能作为安全保障
+2. **所有敏感操作必须在后端验证VIP状态**
+3. **每次操作都要检查VIP是否过期**
+4. **RLS策略确保用户只能访问自己的数据**
+5. **测试时使用SQL Editor手动开通测试VIP**
+
+---
+
+**最后更新**：2025-11-22

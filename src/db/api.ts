@@ -1038,3 +1038,129 @@ export async function getUserOrders(): Promise<{ success: boolean; data?: any[];
   }
 }
 
+/**
+ * 检查用户是否可以创建新的考试记录
+ * 免费用户最多3条记录，VIP用户无限制
+ */
+export async function canCreateExamRecord(): Promise<{
+  canCreate: boolean;
+  isVip: boolean;
+  currentCount: number;
+  maxCount: number;
+  reason?: string;
+}> {
+  try {
+    // 获取当前用户
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return {
+        canCreate: false,
+        isVip: false,
+        currentCount: 0,
+        maxCount: 0,
+        reason: '用户未登录',
+      };
+    }
+
+    // 检查VIP状态
+    const { data: vipData } = await supabase
+      .from('user_vip')
+      .select('is_vip, vip_end_date')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    const isVip = vipData?.is_vip && 
+      vipData?.vip_end_date && 
+      new Date(vipData.vip_end_date) > new Date();
+
+    // VIP用户无限制
+    if (isVip) {
+      const { count } = await supabase
+        .from('exam_records')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id);
+
+      return {
+        canCreate: true,
+        isVip: true,
+        currentCount: count || 0,
+        maxCount: -1, // -1 表示无限制
+      };
+    }
+
+    // 免费用户检查记录数量
+    const { count, error } = await supabase
+      .from('exam_records')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id);
+
+    if (error) {
+      console.error('查询考试记录数量失败:', error);
+      throw error;
+    }
+
+    const currentCount = count || 0;
+    const maxCount = 3;
+    const canCreate = currentCount < maxCount;
+
+    return {
+      canCreate,
+      isVip: false,
+      currentCount,
+      maxCount,
+      reason: canCreate ? undefined : `免费用户最多只能保存${maxCount}条考试记录，请升级VIP或删除旧记录`,
+    };
+  } catch (error: any) {
+    console.error('检查考试记录权限失败:', error);
+    return {
+      canCreate: false,
+      isVip: false,
+      currentCount: 0,
+      maxCount: 3,
+      reason: error.message || '检查权限失败',
+    };
+  }
+}
+
+/**
+ * 获取用户VIP状态
+ */
+export async function getUserVipStatus(): Promise<{
+  isVip: boolean;
+  vipType?: 'quarter' | 'year';
+  vipEndDate?: string;
+  daysRemaining?: number;
+}> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return { isVip: false };
+    }
+
+    const { data, error } = await supabase
+      .from('user_vip')
+      .select('*')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (error || !data) {
+      return { isVip: false };
+    }
+
+    const endDate = new Date(data.vip_end_date);
+    const now = new Date();
+    const isExpired = endDate < now;
+    const daysRemaining = Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+    return {
+      isVip: data.is_vip && !isExpired,
+      vipType: data.vip_type,
+      vipEndDate: data.vip_end_date,
+      daysRemaining: isExpired ? 0 : daysRemaining,
+    };
+  } catch (error) {
+    console.error('获取VIP状态失败:', error);
+    return { isVip: false };
+  }
+}
+
