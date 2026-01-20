@@ -827,17 +827,55 @@ export async function getUserProfile(): Promise<{
 }
 
 // 检查用户VIP状态
-export async function checkUserVipStatus(): Promise<{ isVip: boolean; expiryDate: string | null }> {
+export async function checkUserVipStatus(): Promise<{ 
+  isVip: boolean; 
+  vipEndDate: string | null;
+  daysRemaining: number | null;
+}> {
   try {
-    // TODO: 实现VIP状态检查逻辑
-    // 当前返回默认值，等待VIP功能实现后更新
-    // 预期从 user_vip 表或 profiles 表中查询 vip_expiry_date 字段
-    // 如果 vip_expiry_date > now()，则 isVip = true
+    const { data: { user } } = await supabase.auth.getUser();
     
-    return { isVip: false, expiryDate: null };
+    if (!user) {
+      return { isVip: false, vipEndDate: null, daysRemaining: null };
+    }
+
+    // 查询用户VIP信息
+    const { data, error } = await supabase
+      .from('user_vip')
+      .select('is_vip, vip_end_date')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (error) {
+      console.error('查询VIP状态失败:', error);
+      return { isVip: false, vipEndDate: null, daysRemaining: null };
+    }
+
+    if (!data) {
+      return { isVip: false, vipEndDate: null, daysRemaining: null };
+    }
+
+    // 检查是否过期
+    const now = new Date();
+    const endDate = data.vip_end_date ? new Date(data.vip_end_date) : null;
+    
+    if (!endDate) {
+      return { isVip: false, vipEndDate: null, daysRemaining: null };
+    }
+
+    const isVip = data.is_vip && endDate > now;
+    const daysRemaining = isVip 
+      ? Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+      : null;
+
+    return {
+      isVip,
+      vipEndDate: data.vip_end_date,
+      daysRemaining,
+    };
   } catch (error) {
     console.error('检查VIP状态异常:', error);
-    return { isVip: false, expiryDate: null };
+    return { isVip: false, vipEndDate: null, daysRemaining: null };
   }
 }
 

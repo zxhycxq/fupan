@@ -236,7 +236,7 @@ export default function Settings() {
               </h3>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            <div className="flex flex-wrap gap-3">
               {themes.map((themeOption) => {
                 const isActive = theme === themeOption.value;
                 const themeColorMap: Record<string, string> = {
@@ -255,57 +255,35 @@ export default function Settings() {
                     key={themeOption.value}
                     onClick={() => setTheme(themeOption.value)}
                     className={`
-                      relative cursor-pointer rounded-lg border-2 p-4 transition-all
+                      relative cursor-pointer rounded-lg border-2 px-4 py-3 transition-all
+                      flex items-center gap-3
                       ${isActive 
                         ? 'border-blue-500 bg-blue-50 shadow-md' 
                         : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
                       }
                     `}
                   >
-                    <div className="flex items-start gap-3">
-                      {/* 颜色预览 */}
-                      <div 
-                        className="w-12 h-12 rounded-lg shadow-sm flex-shrink-0"
-                        style={{ backgroundColor: themeColor }}
-                      />
-                      
-                      {/* 主题信息 */}
-                      <div className="flex-1 min-w-0">
-                        <div className="font-semibold text-base mb-1">
-                          {themeOption.label}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          {themeOption.description}
+                    {/* 颜色预览 */}
+                    <div 
+                      className="w-8 h-8 rounded-md shadow-sm flex-shrink-0"
+                      style={{ backgroundColor: themeColor }}
+                    />
+                    
+                    {/* 主题名称 */}
+                    <div className="font-medium text-sm">
+                      {themeOption.label}
+                    </div>
+
+                    {/* 选中标记 */}
+                    {isActive && (
+                      <div className="ml-2">
+                        <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center">
+                          <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
                         </div>
                       </div>
-
-                      {/* 选中标记 */}
-                      {isActive && (
-                        <div className="absolute top-2 right-2">
-                          <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center">
-                            <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* 颜色示例条 */}
-                    <div className="mt-3 flex gap-1">
-                      <div 
-                        className="h-2 flex-1 rounded-full"
-                        style={{ backgroundColor: themeColor, opacity: 1 }}
-                      />
-                      <div 
-                        className="h-2 flex-1 rounded-full"
-                        style={{ backgroundColor: themeColor, opacity: 0.7 }}
-                      />
-                      <div 
-                        className="h-2 flex-1 rounded-full"
-                        style={{ backgroundColor: themeColor, opacity: 0.4 }}
-                      />
-                    </div>
+                    )}
                   </div>
                 );
               })}

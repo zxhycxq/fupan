@@ -4,8 +4,7 @@ import { UserOutlined, PhoneOutlined, CalendarOutlined, EditOutlined, CheckCircl
 import { getUserProfile, updateUsername, checkUsernameAvailability, softDeleteUserAccount, checkUserVipStatus } from '@/db/api';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
-// import VipPurchaseModal from '@/components/common/VipPurchaseModal'; // 暂时隐藏旧的会员购买弹窗
-import PaymentModal from '@/components/common/PaymentModal'; // 使用新的支付弹窗
+import VipPaymentModal from '@/components/common/VipPaymentModal';
 
 const { Title, Text } = Typography;
 
@@ -23,6 +22,12 @@ interface UsernameCheckResult {
   message: string;
 }
 
+interface VipStatus {
+  isVip: boolean;
+  vipEndDate: string | null;
+  daysRemaining: number | null;
+}
+
 export default function Profile() {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -34,7 +39,11 @@ export default function Profile() {
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isVipModalVisible, setIsVipModalVisible] = useState(false);
-  const [isVip, setIsVip] = useState(false); // 是否为VIP用户
+  const [vipStatus, setVipStatus] = useState<VipStatus>({
+    isVip: false,
+    vipEndDate: null,
+    daysRemaining: null,
+  });
 
   useEffect(() => {
     loadProfile();
@@ -61,8 +70,8 @@ export default function Profile() {
       setProfile(data);
       
       // 检查VIP状态
-      const vipStatus = await checkUserVipStatus();
-      setIsVip(vipStatus.isVip);
+      const vipData = await checkUserVipStatus();
+      setVipStatus(vipData);
     } catch (error) {
       console.error('加载用户资料失败:', error);
       message.error('加载用户资料失败');
@@ -129,11 +138,11 @@ export default function Profile() {
   const handleDeleteAccount = async () => {
     try {
       // 检查VIP状态
-      const { isVip, expiryDate } = await checkUserVipStatus();
+      const { isVip, vipEndDate } = await checkUserVipStatus();
       
-      if (isVip && expiryDate) {
+      if (isVip && vipEndDate) {
         // 如果是VIP用户，显示VIP提醒的确认框
-        showVipDeleteConfirm(expiryDate);
+        showVipDeleteConfirm(vipEndDate);
       } else {
         // 非VIP用户，直接显示普通确认框
         showNormalDeleteConfirm();
@@ -410,18 +419,46 @@ export default function Profile() {
               </Text>
             )}
           </Descriptions.Item>
-          <Descriptions.Item label={<><CrownOutlined className="mr-2" />用户类型</>}>
-            {isVip ? (
-              <Tag color="gold" icon={<CrownOutlined />}>VIP会员</Tag>
+          <Descriptions.Item label={<><CrownOutlined className="mr-2" />会员状态</>}>
+            {vipStatus.isVip ? (
+              <Space direction="vertical" size="small">
+                <Tag color="gold" icon={<CrownOutlined />} className="text-base py-1 px-3">
+                  VIP会员
+                </Tag>
+                {vipStatus.vipEndDate && (
+                  <div className="text-sm">
+                    <Text type="secondary">到期时间：</Text>
+                    <Text strong>{dayjs(vipStatus.vipEndDate).format('YYYY-MM-DD')}</Text>
+                    {vipStatus.daysRemaining !== null && vipStatus.daysRemaining > 0 && (
+                      <Text type="warning" className="ml-2">
+                        （剩余 {vipStatus.daysRemaining} 天）
+                      </Text>
+                    )}
+                    {vipStatus.daysRemaining !== null && vipStatus.daysRemaining <= 0 && (
+                      <Text type="danger" className="ml-2">
+                        （已过期）
+                      </Text>
+                    )}
+                  </div>
+                )}
+                <Button 
+                  type="default" 
+                  size="small"
+                  onClick={() => setIsVipModalVisible(true)}
+                >
+                  续费会员
+                </Button>
+              </Space>
             ) : (
               <Space>
                 <Tag color="default">普通用户</Tag>
                 <Button 
                   type="primary" 
                   size="small"
+                  icon={<CrownOutlined />}
                   onClick={() => setIsVipModalVisible(true)}
                 >
-                  去付费
+                  去付款
                 </Button>
               </Space>
             )}
@@ -557,9 +594,9 @@ export default function Profile() {
         </Space>
       </Modal>
 
-      {/* 会员购买弹窗 - 使用新的支付弹窗 */}
-      <PaymentModal
-        open={isVipModalVisible}
+      {/* 会员购买弹窗 */}
+      <VipPaymentModal
+        visible={isVipModalVisible}
         onCancel={() => setIsVipModalVisible(false)}
       />
     </div>
