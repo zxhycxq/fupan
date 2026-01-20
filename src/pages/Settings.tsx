@@ -242,48 +242,46 @@ export default function Settings() {
               </h3>
             </div>
 
-            <VipFeatureWrapper
-              featureName="theme_settings"
-              showBadge={false}
-              tooltip="主题肤色设置需要VIP会员"
-            >
-              <div className="flex flex-wrap gap-3">
-                {themes.map((themeOption) => {
-                  const isActive = theme === themeOption.value;
-                  const themeColorMap: Record<string, string> = {
-                    blue: '#3b82f6',
-                    green: '#22c55e',
-                    purple: '#a855f7',
-                    orange: '#f97316',
-                    red: '#ef4444',
-                    cyan: '#06b6d4',
-                    pink: '#ec4899',
-                  };
-                  const themeColor = themeColorMap[themeOption.value];
+            <div className="flex flex-wrap gap-3">
+              {themes.map((themeOption) => {
+                const isActive = theme === themeOption.value;
+                const themeColorMap: Record<string, string> = {
+                  blue: '#3b82f6',
+                  green: '#22c55e',
+                  purple: '#a855f7',
+                  orange: '#f97316',
+                  red: '#ef4444',
+                  cyan: '#06b6d4',
+                  pink: '#ec4899',
+                };
+                const themeColor = themeColorMap[themeOption.value];
 
-                  return (
-                    <div
-                      key={themeOption.value}
-                      onClick={() => setTheme(themeOption.value)}
-                      className={`
-                        relative cursor-pointer rounded-lg border-2 px-4 py-3 transition-all
-                        flex items-center gap-3
-                        ${isActive 
-                          ? 'border-blue-500 bg-blue-50 shadow-md' 
-                          : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
-                        }
-                      `}
-                    >
-                      {/* 颜色预览 */}
-                      <div 
-                        className="w-8 h-8 rounded-md shadow-sm flex-shrink-0"
-                        style={{ backgroundColor: themeColor }}
-                      />
-                      
-                      {/* 主题名称 */}
-                      <div className="font-medium text-sm">
-                        {themeOption.label}
-                      </div>
+                // 蓝色主题免费,其他主题需要VIP
+                const isFreeTheme = themeOption.value === 'blue';
+
+                const themeCard = (
+                  <div
+                    key={themeOption.value}
+                    onClick={() => setTheme(themeOption.value)}
+                    className={`
+                      relative cursor-pointer rounded-lg border-2 px-4 py-3 transition-all
+                      flex items-center gap-3
+                      ${isActive 
+                        ? 'border-blue-500 bg-blue-50 shadow-md' 
+                        : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
+                      }
+                    `}
+                  >
+                    {/* 颜色预览 */}
+                    <div 
+                      className="w-8 h-8 rounded-md shadow-sm flex-shrink-0"
+                      style={{ backgroundColor: themeColor }}
+                    />
+                    
+                    {/* 主题名称 */}
+                    <div className="font-medium text-sm">
+                      {themeOption.label}
+                    </div>
 
                     {/* 选中标记 */}
                     {isActive && (
@@ -297,9 +295,25 @@ export default function Settings() {
                     )}
                   </div>
                 );
+
+                // 蓝色主题不需要VIP,直接返回
+                if (isFreeTheme) {
+                  return themeCard;
+                }
+
+                // 其他主题需要VIP
+                return (
+                  <VipFeatureWrapper
+                    key={themeOption.value}
+                    featureName="theme_settings"
+                    showBadge={false}
+                    tooltip="该主题需要VIP会员"
+                  >
+                    {themeCard}
+                  </VipFeatureWrapper>
+                );
               })}
             </div>
-            </VipFeatureWrapper>
           </div>
 
           {/* 考试倒计时配置部分 */}
@@ -430,41 +444,38 @@ export default function Settings() {
               </h3>
             </div>
 
-            <VipFeatureWrapper
-              featureName="grade_label_settings"
-              showBadge={false}
-              tooltip="等级称谓设置需要VIP会员"
-            >
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-                {GRADE_LABEL_THEMES.map((themeOption) => {
-                  const isActive = gradeLabelTheme === themeOption.id;
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+              {GRADE_LABEL_THEMES.map((themeOption, index) => {
+                const isActive = gradeLabelTheme === themeOption.id;
+                // 第一个主题(易经系列)免费,其他主题需要VIP
+                const isFreeTheme = index === 0;
 
-                  return (
-                    <div
-                      key={themeOption.id}
-                      onClick={() => setGradeLabelTheme(themeOption.id)}
-                      className={`
-                        relative cursor-pointer rounded-lg border-2 p-4 transition-all
-                        ${isActive 
-                          ? 'border-blue-500 bg-blue-50 shadow-md' 
-                          : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
-                        }
-                      `}
-                    >
-                      <div className="flex items-start justify-between">
-                        {/* 主题信息 */}
-                        <div className="flex-1 min-w-0">
-                          <div className="font-semibold text-base mb-2">
-                            {themeOption.name}
-                          </div>
-                          <div className="text-xs text-gray-600 space-y-1">
-                            {themeOption.labels.map((label, index) => {
-                              // 根据索引显示对应的分数区间
-                              const ranges = ['<50分', '50-60分', '60-70分', '70-80分', '>80分'];
-                              return (
-                                <div key={index} className="flex items-center gap-2">
-                                  <span className="text-gray-400">{ranges[index]}:</span>
-                                  <span className="font-medium">{label.label}</span>
+                const themeCard = (
+                  <div
+                    key={themeOption.id}
+                    onClick={() => setGradeLabelTheme(themeOption.id)}
+                    className={`
+                      relative cursor-pointer rounded-lg border-2 p-4 transition-all
+                      ${isActive 
+                        ? 'border-blue-500 bg-blue-50 shadow-md' 
+                        : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
+                      }
+                    `}
+                  >
+                    <div className="flex items-start justify-between">
+                      {/* 主题信息 */}
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold text-base mb-2">
+                          {themeOption.name}
+                        </div>
+                        <div className="text-xs text-gray-600 space-y-1">
+                          {themeOption.labels.map((label, labelIndex) => {
+                            // 根据索引显示对应的分数区间
+                            const ranges = ['<50分', '50-60分', '60-70分', '70-80分', '>80分'];
+                            return (
+                              <div key={labelIndex} className="flex items-center gap-2">
+                                <span className="text-gray-400">{ranges[labelIndex]}:</span>
+                                <span className="font-medium">{label.label}</span>
                               </div>
                             );
                           })}
@@ -484,9 +495,25 @@ export default function Settings() {
                     </div>
                   </div>
                 );
+
+                // 第一个主题不需要VIP,直接返回
+                if (isFreeTheme) {
+                  return themeCard;
+                }
+
+                // 其他主题需要VIP
+                return (
+                  <VipFeatureWrapper
+                    key={themeOption.id}
+                    featureName="grade_label_settings"
+                    showBadge={false}
+                    tooltip="该等级主题需要VIP会员"
+                  >
+                    {themeCard}
+                  </VipFeatureWrapper>
+                );
               })}
             </div>
-            </VipFeatureWrapper>
           </div>
         </Space>
       </Card>
