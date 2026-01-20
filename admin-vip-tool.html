@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>会员管理工具</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 600px;
+      width: 100%;
+      padding: 40px;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 28px;
+      text-align: center;
+    }
+
+    .subtitle {
+      color: #666;
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      color: #555;
+      font-weight: 500;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: all 0.3s;
+      font-family: inherit;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .result {
+      padding: 16px;
+      margin-top: 20px;
+      border-radius: 8px;
+      display: none;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .result.show {
+      display: block;
+    }
+
+    .result.success {
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+      color: #155724;
+    }
+
+    .result.error {
+      background: #f8d7da;
+      border: 1px solid #f5c6cb;
+      color: #721c24;
+    }
+
+    .result h3 {
+      margin-bottom: 10px;
+      font-size: 18px;
+    }
+
+    .result p {
+      margin: 5px 0;
+      font-size: 14px;
+    }
+
+    .info-box {
+      background: #e3f2fd;
+      border: 1px solid #90caf9;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+
+    .info-box h3 {
+      color: #1976d2;
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+
+    .info-box ul {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .info-box li {
+      color: #555;
+      font-size: 13px;
+      margin: 5px 0;
+      padding-left: 20px;
+      position: relative;
+    }
+
+    .info-box li:before {
+      content: "•";
+      position: absolute;
+      left: 5px;
+      color: #1976d2;
+    }
+
+    .loading {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #fff;
+      border-radius: 50%;
+      border-top-color: transparent;
+      animation: spin 0.6s linear infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .helper-text {
+      font-size: 12px;
+      color: #999;
+      margin-top: 5px;
+    }
+
+    .price-tag {
+      display: inline-block;
+      background: #fff3cd;
+      color: #856404;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-left: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔐 会员管理工具</h1>
+    <p class="subtitle">仅限管理员使用</p>
+
+    <div class="info-box">
+      <h3>📋 使用说明</h3>
+      <ul>
+        <li>输入用户ID（从 Supabase 查询获取）</li>
+        <li>输入管理员密钥（从环境变量获取）</li>
+        <li>选择会员时长和支付方式</li>
+        <li>点击"开通会员"按钮</li>
+      </ul>
+    </div>
+    
+    <form id="activateForm">
+      <div class="form-group">
+        <label for="userId">用户ID *</label>
+        <input 
+          type="text" 
+          id="userId" 
+          placeholder="例如：123e4567-e89b-12d3-a456-426614174000" 
+          required
+        >
+        <div class="helper-text">从 Supabase auth.users 表查询获取</div>
+      </div>
+
+      <div class="form-group">
+        <label for="adminSecret">管理员密钥 *</label>
+        <input 
+          type="password" 
+          id="adminSecret" 
+          placeholder="输入管理员密钥" 
+          required
+        >
+        <div class="helper-text">从 Supabase Edge Functions Secrets 中获取</div>
+      </div>
+      
+      <div class="form-group">
+        <label for="duration">会员时长 *</label>
+        <select id="duration" required>
+          <option value="">请选择会员时长</option>
+          <option value="3">季度会员（3个月）<span class="price-tag">¥99</span></option>
+          <option value="12">年度会员（12个月）<span class="price-tag">¥299</span></option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label for="paymentMethod">支付方式</label>
+        <select id="paymentMethod">
+          <option value="alipay">支付宝</option>
+          <option value="wechat">微信支付</option>
+          <option value="bank">银行转账</option>
+          <option value="manual">手动开通</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="transactionId">交易流水号（可选）</label>
+        <input 
+          type="text" 
+          id="transactionId" 
+          placeholder="例如：2024012012345678"
+        >
+        <div class="helper-text">用于记录支付凭证</div>
+      </div>
+      
+      <button type="submit" id="submitBtn">
+        开通会员
+      </button>
+    </form>
+    
+    <div id="result" class="result"></div>
+  </div>
+
+  <script>
+    // 配置 Supabase URL（需要替换为实际的项目URL）
+    const SUPABASE_URL = 'https://your-project.supabase.co'
+    
+    const form = document.getElementById('activateForm')
+    const submitBtn = document.getElementById('submitBtn')
+    const resultDiv = document.getElementById('result')
+
+    // 从 localStorage 读取上次使用的管理员密钥
+    const savedSecret = localStorage.getItem('adminSecret')
+    if (savedSecret) {
+      document.getElementById('adminSecret').value = savedSecret
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault()
+      
+      const userId = document.getElementById('userId').value.trim()
+      const adminSecret = document.getElementById('adminSecret').value.trim()
+      const duration = parseInt(document.getElementById('duration').value)
+      const paymentMethod = document.getElementById('paymentMethod').value
+      const transactionId = document.getElementById('transactionId').value.trim()
+      
+      // 保存管理员密钥到 localStorage（可选）
+      if (confirm('是否保存管理员密钥到本地？（仅在安全的环境中使用）')) {
+        localStorage.setItem('adminSecret', adminSecret)
+      }
+      
+      const amount = duration === 3 ? 99 : 299
+      
+      // 禁用按钮，显示加载状态
+      submitBtn.disabled = true
+      submitBtn.innerHTML = '<span class="loading"></span>开通中...'
+      resultDiv.classList.remove('show')
+      
+      try {
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/admin-activate-vip`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-admin-secret': adminSecret
+          },
+          body: JSON.stringify({
+            userId,
+            durationMonths: duration,
+            amount,
+            paymentMethod,
+            transactionId: transactionId || null
+          })
+        })
+        
+        const result = await response.json()
+        
+        if (response.ok && result.success) {
+          resultDiv.className = 'result success show'
+          resultDiv.innerHTML = `
+            <h3>✅ 开通成功</h3>
+            <p><strong>用户ID:</strong> ${result.data.userId}</p>
+            <p><strong>会员时长:</strong> ${result.data.durationMonths} 个月</p>
+            <p><strong>到期时间:</strong> ${new Date(result.data.vipEndDate).toLocaleString('zh-CN', {
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit'
+            })}</p>
+            <p><strong>订单号:</strong> ${result.data.orderNo}</p>
+          `
+          
+          // 清空表单（除了管理员密钥）
+          document.getElementById('userId').value = ''
+          document.getElementById('transactionId').value = ''
+          document.getElementById('duration').value = ''
+        } else {
+          resultDiv.className = 'result error show'
+          resultDiv.innerHTML = `
+            <h3>❌ 开通失败</h3>
+            <p><strong>错误信息:</strong> ${result.error || '未知错误'}</p>
+            ${result.details ? `<p><strong>详细信息:</strong> ${result.details}</p>` : ''}
+          `
+        }
+      } catch (error) {
+        resultDiv.className = 'result error show'
+        resultDiv.innerHTML = `
+          <h3>❌ 请求失败</h3>
+          <p><strong>错误信息:</strong> ${error.message}</p>
+          <p>请检查网络连接和 Supabase URL 配置</p>
+        `
+      } finally {
+        // 恢复按钮状态
+        submitBtn.disabled = false
+        submitBtn.innerHTML = '开通会员'
+      }
+    })
+
+    // 页面加载时检查 Supabase URL 配置
+    window.addEventListener('load', () => {
+      if (SUPABASE_URL === 'https://your-project.supabase.co') {
+        alert('⚠️ 请先配置 Supabase URL！\n\n在代码中找到 SUPABASE_URL 变量，替换为您的实际项目URL。')
+      }
+    })
+  </script>
+</body>
+</html>
