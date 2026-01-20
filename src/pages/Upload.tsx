@@ -454,7 +454,7 @@ export default function Upload() {
               accept="image/*"
               multiple
               onChange={handleFileChange}
-              disabled={isUploading}
+              disabled={isUploading || !recordLimit.canCreate}
               className="block w-full text-sm text-gray-500
                 file:mr-4 file:py-2 file:px-4
                 file:rounded file:border-0
@@ -465,6 +465,11 @@ export default function Upload() {
             />
             <div className="text-sm text-gray-500 mt-1">
               可以一次选择多张图片,每张图片最大10MB。建议按顺序选择图片以便更好地识别。
+              {!recordLimit.canCreate && (
+                <span className="text-red-500 ml-2">
+                  已达到免费用户上限，请升级VIP
+                </span>
+              )}
             </div>
             <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
               <div className="text-sm text-blue-800">
@@ -539,11 +544,13 @@ export default function Upload() {
             size="large"
             icon={isUploading ? <LoadingOutlined /> : <UploadOutlined />}
             loading={isUploading}
-            disabled={isUploading || selectedFiles.length === 0}
+            disabled={isUploading || selectedFiles.length === 0 || !recordLimit.canCreate}
             block
           >
             {isUploading 
               ? '处理中...' 
+              : !recordLimit.canCreate
+              ? '已达到上限，请升级VIP'
               : `上传并解析 (${selectedFiles.length} 张图片)`
             }
           </Button>

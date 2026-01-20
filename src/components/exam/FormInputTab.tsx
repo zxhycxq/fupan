@@ -3,6 +3,7 @@ import { SaveOutlined } from '@ant-design/icons';
 import { createExamRecord, createModuleScores, getNextIndexNumber, canCreateExamRecord } from '@/db/api';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useState, useEffect } from 'react';
 
 const { Panel } = Collapse;
 
@@ -61,6 +62,24 @@ export default function FormInputTab({ examName, sortOrder, examType, onSubmitSt
   const [form] = Form.useForm();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [recordLimit, setRecordLimit] = useState<{ canCreate: boolean; currentCount: number; maxCount: number | null }>({
+    canCreate: true,
+    currentCount: 0,
+    maxCount: null
+  });
+
+  // 检查考试记录创建权限
+  useEffect(() => {
+    const checkRecordLimit = async () => {
+      try {
+        const limit = await canCreateExamRecord();
+        setRecordLimit(limit);
+      } catch (error) {
+        console.error('检查记录限制失败:', error);
+      }
+    };
+    checkRecordLimit();
+  }, []);
 
   const handleSubmit = async () => {
     try {
@@ -383,9 +402,10 @@ export default function FormInputTab({ examName, sortOrder, examType, onSubmitSt
         size="large"
         icon={<SaveOutlined />}
         onClick={handleSubmit}
+        disabled={!recordLimit.canCreate}
         block
       >
-        保存成绩
+        {!recordLimit.canCreate ? '已达到上限，请升级VIP' : '保存成绩'}
       </Button>
     </div>
   );
