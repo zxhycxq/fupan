@@ -15,6 +15,9 @@ import type { Dayjs } from 'dayjs';
 import WangEditor, { type WangEditorRef } from '@/components/common/WangEditor';
 import DateRangeFilter from '@/components/common/DateRangeFilter';
 import { PERCENTAGE_RANGE_OPTIONS, RATING_OPTIONS } from '@/config/formOptions';
+import * as XLSX from 'xlsx';
+import { VipFeatureWrapper } from '@/components/common/VipFeatureWrapper';
+import { useVipStatus } from '@/hooks/useVipStatus';
 
 // 拖拽手柄
 const DragHandle = SortableHandle(() => (
@@ -78,6 +81,10 @@ export default function ExamList() {
   const [editingRecordId, setEditingRecordId] = useState<string>(''); // 正在编辑笔记的记录ID
   const [isSaving, setIsSaving] = useState(false); // 保存状态
   const [isSavingSort, setIsSavingSort] = useState(false); // 保存排序的loading状态
+  const [isExporting, setIsExporting] = useState(false); // 导出状态
+  
+  // VIP状态
+  const { vipStatus } = useVipStatus();
   
   // 从localStorage读取初始分页状态
   const initialPagination = loadPaginationFromStorage();
@@ -263,6 +270,70 @@ export default function ExamList() {
     filterForm.resetFields();
     setDateRange(null);
     setFilterParams({});
+  };
+
+  // 导出Excel功能
+  const handleExportExcel = () => {
+    try {
+      setIsExporting(true);
+      
+      // 使用筛选后的数据
+      const dataToExport = filteredRecords;
+      
+      if (dataToExport.length === 0) {
+        message.warning('没有可导出的数据');
+        return;
+      }
+
+      // 准备Excel数据
+      const excelData = dataToExport.map((record, index) => ({
+        '序号': index + 1,
+        '考试名称': record.exam_name || '-',
+        '考试类型': record.exam_type || '-',
+        '总分': record.total_score || 0,
+        '用时(分钟)': record.time_used ? Math.round(record.time_used / 60) : '-',
+        '平均分': record.average_score || '-',
+        '击败率(%)': record.pass_rate || '-',
+        '考试日期': record.exam_date ? dayjs(record.exam_date).format('YYYY-MM-DD') : '-',
+        '星级评定': record.rating ? `${record.rating}星` : '未评定',
+        '是否计入统计': record.include_in_stats ? '是' : '否',
+        '上传时间': record.created_at ? dayjs(record.created_at).format('YYYY-MM-DD HH:mm') : '-',
+      }));
+
+      // 创建工作簿
+      const worksheet = XLSX.utils.json_to_sheet(excelData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, '考试记录');
+
+      // 设置列宽
+      const colWidths = [
+        { wch: 6 },  // 序号
+        { wch: 25 }, // 考试名称
+        { wch: 12 }, // 考试类型
+        { wch: 8 },  // 总分
+        { wch: 12 }, // 用时
+        { wch: 10 }, // 平均分
+        { wch: 12 }, // 击败率
+        { wch: 12 }, // 考试日期
+        { wch: 10 }, // 星级评定
+        { wch: 14 }, // 是否计入统计
+        { wch: 18 }, // 上传时间
+      ];
+      worksheet['!cols'] = colWidths;
+
+      // 生成文件名
+      const fileName = `考试记录_${dayjs().format('YYYY-MM-DD_HHmmss')}.xlsx`;
+
+      // 导出文件
+      XLSX.writeFile(workbook, fileName);
+
+      message.success(`成功导出 ${dataToExport.length} 条记录`);
+    } catch (error) {
+      console.error('导出Excel失败:', error);
+      message.error('导出失败，请重试');
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const handleDelete = async (id: string, examName: string) => {
@@ -916,6 +987,21 @@ export default function ExamList() {
                 </Button>
               </>
             )}
+            <VipFeatureWrapper
+              featureName="export_excel"
+              showBadge={true}
+              tooltip="导出Excel需要VIP会员"
+            >
+              <Button
+                icon={<DownloadOutlined />}
+                onClick={handleExportExcel}
+                loading={isExporting}
+                disabled={isSavingSort || isExporting || filteredRecords.length === 0}
+                size="large"
+              >
+                导出Excel
+              </Button>
+            </VipFeatureWrapper>
             <Button
               type="primary"
               icon={<PlusOutlined />}
