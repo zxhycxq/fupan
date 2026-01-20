@@ -89,10 +89,10 @@ export function useVipFeature(featureName: string) {
 
   // 定义需要 VIP 的功能列表
   const vipFeatures = [
-    'export-excel',           // 导出Excel
-    'theme-settings',         // 主题肤色设置
-    'rank-settings',          // 等级称谓设置
-    'unlimited-records',      // 无限考试记录
+    'export_excel',           // 导出Excel
+    'theme_settings',         // 主题肤色设置
+    'grade_label_settings',   // 等级称谓设置
+    'unlimited_records',      // 无限考试记录
   ]
 
   const requiresVip = vipFeatures.includes(featureName)
