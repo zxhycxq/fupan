@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Card, Input, InputNumber, Progress, message, Spin, Tabs, Select } from 'antd';
-import { UploadOutlined, LoadingOutlined, CloseOutlined, DeleteOutlined, PictureOutlined, FormOutlined } from '@ant-design/icons';
+import { Button, Card, Input, InputNumber, Progress, message, Spin, Tabs, Select, Alert } from 'antd';
+import { UploadOutlined, LoadingOutlined, CloseOutlined, DeleteOutlined, PictureOutlined, FormOutlined, CrownOutlined } from '@ant-design/icons';
 import { fileToBase64, recognizeText, compressImage } from '@/services/imageRecognition';
 import { parseExamData } from '@/services/dataParser';
-import { createExamRecord, createModuleScores, getNextSortOrder, getNextIndexNumber } from '@/db/api';
+import { createExamRecord, createModuleScores, getNextSortOrder, getNextIndexNumber, canCreateExamRecord } from '@/db/api';
 import FormInputTab from '@/components/exam/FormInputTab';
 import { useAuth } from '@/contexts/AuthContext';
+import { useVipStatus } from '@/hooks/useVipStatus';
+import { VipBenefitsModal } from '@/components/common/VipBenefitsModal';
 
 interface FileWithPreview {
   file: File;
@@ -15,6 +17,7 @@ interface FileWithPreview {
 
 export default function Upload() {
   const { user } = useAuth();
+  const { vipStatus, loading: isVipLoading } = useVipStatus();
   const [activeTab, setActiveTab] = useState<string>('image');
   const [examName, setExamName] = useState<string>('');
   const [sortOrder, setSortOrder] = useState<number>(1);
@@ -24,6 +27,12 @@ export default function Upload() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState('');
+  const [showVipModal, setShowVipModal] = useState(false);
+  const [recordLimit, setRecordLimit] = useState<{ canCreate: boolean; currentCount: number; maxCount: number | null }>({
+    canCreate: true,
+    currentCount: 0,
+    maxCount: null
+  });
   const navigate = useNavigate();
 
   // 获取下一个可用的排序号
@@ -39,6 +48,22 @@ export default function Upload() {
     };
     fetchNextSortOrder();
   }, []);
+
+  // 检查考试记录创建权限
+  useEffect(() => {
+    const checkRecordLimit = async () => {
+      if (!user) return;
+      
+      try {
+        const result = await canCreateExamRecord();
+        setRecordLimit(result);
+      } catch (error) {
+        console.error('检查记录限制失败:', error);
+      }
+    };
+    
+    checkRecordLimit();
+  }, [user]);
 
   // 上传时禁止页面滚动
   useEffect(() => {
@@ -111,6 +136,13 @@ export default function Upload() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // 检查考试记录创建权限
+    if (!recordLimit.canCreate) {
+      message.warning('您已达到免费用户的考试记录上限（3条）');
+      setShowVipModal(true);
+      return;
+    }
 
     if (selectedFiles.length === 0) {
       message.error('请至少选择一张图片');
@@ -287,6 +319,61 @@ export default function Upload() {
         title="上传考试成绩"
         className="max-w-4xl mx-auto"
       >
+        {/* VIP状态提示 */}
+        {!isVipLoading && (
+          <div className="mb-6">
+            {vipStatus.isVip ? (
+              <Alert
+                message={
+                  <div className="flex items-center justify-between">
+                    <span>
+                      <CrownOutlined className="text-yellow-500 mr-2" />
+                      VIP会员 - 无限制创建考试记录
+                    </span>
+                    <span className="text-sm text-gray-500">
+                      当前记录数：{recordLimit.currentCount}
+                    </span>
+                  </div>
+                }
+                type="success"
+                showIcon={false}
+              />
+            ) : (
+              <Alert
+                message={
+                  <div className="flex items-center justify-between">
+                    <span>
+                      免费用户 - 最多创建3条考试记录
+                    </span>
+                    <div className="flex items-center gap-4">
+                      <span className="text-sm">
+                        当前记录数：<span className={recordLimit.currentCount >= 3 ? 'text-red-500 font-bold' : 'text-blue-500 font-bold'}>{recordLimit.currentCount}/3</span>
+                      </span>
+                      <Button
+                        type="primary"
+                        size="small"
+                        icon={<CrownOutlined />}
+                        onClick={() => setShowVipModal(true)}
+                      >
+                        升级VIP
+                      </Button>
+                    </div>
+                  </div>
+                }
+                type={recordLimit.canCreate ? 'info' : 'warning'}
+                showIcon={false}
+                description={
+                  !recordLimit.canCreate && (
+                    <div className="mt-2">
+                      您已达到免费用户的考试记录上限。升级VIP会员即可无限制创建考试记录，享受更多专属功能。
+                    </div>
+                  )
+                }
+              />
+            )}
+          </div>
+        )}
+
         {/* 上传方式说明 - 放在最前面 */}
         <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
           <div className="flex items-start">
@@ -523,6 +610,12 @@ export default function Upload() {
           ]}
         />
       </Card>
+
+      {/* VIP权益弹窗 */}
+      <VipBenefitsModal
+        open={showVipModal}
+        onClose={() => setShowVipModal(false)}
+      />
     </div>
   );
 }

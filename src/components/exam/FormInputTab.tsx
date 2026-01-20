@@ -1,6 +1,6 @@
 import { Form, Collapse, Row, Col, InputNumber, Button, message } from 'antd';
 import { SaveOutlined } from '@ant-design/icons';
-import { createExamRecord, createModuleScores, getNextIndexNumber } from '@/db/api';
+import { createExamRecord, createModuleScores, getNextIndexNumber, canCreateExamRecord } from '@/db/api';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -72,6 +72,13 @@ export default function FormInputTab({ examName, sortOrder, examType, onSubmitSt
       // 检查用户是否登录
       if (!user?.id) {
         message.error('用户未登录，请先登录');
+        return;
+      }
+
+      // 检查考试记录创建权限
+      const recordLimit = await canCreateExamRecord();
+      if (!recordLimit.canCreate) {
+        message.warning('您已达到免费用户的考试记录上限（3条），请升级VIP会员');
         return;
       }
 
