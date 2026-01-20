@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Card, Button, InputNumber, Select, DatePicker, Space, message, Spin, Alert, Input, Tooltip, Typography } from 'antd';
-import { SaveOutlined, ReloadOutlined, CalendarOutlined, BgColorsOutlined, AimOutlined, TrophyOutlined, QuestionCircleOutlined } from '@ant-design/icons';
+import { SaveOutlined, ReloadOutlined, CalendarOutlined, BgColorsOutlined, AimOutlined, TrophyOutlined, QuestionCircleOutlined, CrownOutlined } from '@ant-design/icons';
 import { useTheme, themes } from '@/hooks/use-theme';
 import { getUserSettings, batchUpsertUserSettings, getExamConfig, saveExamConfig } from '@/db/api';
 import type { UserSetting } from '@/types';
 import dayjs from 'dayjs';
 import { GRADE_LABEL_THEMES } from '@/config/gradeLabels';
+import { useVipStatus } from '@/hooks/useVipStatus';
+import { VipFeatureWrapper } from '@/components/common/VipFeatureWrapper';
+import { VipBadge } from '@/components/common/VipBadge';
 
 const { Text } = Typography;
 
@@ -36,6 +39,7 @@ export default function Settings() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const { theme, setTheme } = useTheme();
+  const { vipStatus } = useVipStatus();
 
   // 加载设置
   useEffect(() => {
@@ -220,6 +224,7 @@ export default function Settings() {
               <h3 className="text-lg font-semibold flex items-center gap-2">
                 <BgColorsOutlined />
                 主题肤色设置
+                <VipBadge />
                 <Tooltip 
                   title={
                     <div className="space-y-1">
@@ -227,6 +232,7 @@ export default function Settings() {
                       <div>• 主题设置会自动保存到浏览器本地</div>
                       <div>• 不同主题适合不同的使用场景和个人喜好</div>
                       <div>• 主题颜色会应用到所有按钮、图表和交互元素</div>
+                      <div className="text-yellow-300 mt-2">• VIP会员专享功能</div>
                     </div>
                   }
                   placement="right"
@@ -236,43 +242,48 @@ export default function Settings() {
               </h3>
             </div>
 
-            <div className="flex flex-wrap gap-3">
-              {themes.map((themeOption) => {
-                const isActive = theme === themeOption.value;
-                const themeColorMap: Record<string, string> = {
-                  blue: '#3b82f6',
-                  green: '#22c55e',
-                  purple: '#a855f7',
-                  orange: '#f97316',
-                  red: '#ef4444',
-                  cyan: '#06b6d4',
-                  pink: '#ec4899',
-                };
-                const themeColor = themeColorMap[themeOption.value];
+            <VipFeatureWrapper
+              featureName="theme_settings"
+              showBadge={false}
+              tooltip="主题肤色设置需要VIP会员"
+            >
+              <div className="flex flex-wrap gap-3">
+                {themes.map((themeOption) => {
+                  const isActive = theme === themeOption.value;
+                  const themeColorMap: Record<string, string> = {
+                    blue: '#3b82f6',
+                    green: '#22c55e',
+                    purple: '#a855f7',
+                    orange: '#f97316',
+                    red: '#ef4444',
+                    cyan: '#06b6d4',
+                    pink: '#ec4899',
+                  };
+                  const themeColor = themeColorMap[themeOption.value];
 
-                return (
-                  <div
-                    key={themeOption.value}
-                    onClick={() => setTheme(themeOption.value)}
-                    className={`
-                      relative cursor-pointer rounded-lg border-2 px-4 py-3 transition-all
-                      flex items-center gap-3
-                      ${isActive 
-                        ? 'border-blue-500 bg-blue-50 shadow-md' 
-                        : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
-                      }
-                    `}
-                  >
-                    {/* 颜色预览 */}
-                    <div 
-                      className="w-8 h-8 rounded-md shadow-sm flex-shrink-0"
-                      style={{ backgroundColor: themeColor }}
-                    />
-                    
-                    {/* 主题名称 */}
-                    <div className="font-medium text-sm">
-                      {themeOption.label}
-                    </div>
+                  return (
+                    <div
+                      key={themeOption.value}
+                      onClick={() => setTheme(themeOption.value)}
+                      className={`
+                        relative cursor-pointer rounded-lg border-2 px-4 py-3 transition-all
+                        flex items-center gap-3
+                        ${isActive 
+                          ? 'border-blue-500 bg-blue-50 shadow-md' 
+                          : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
+                        }
+                      `}
+                    >
+                      {/* 颜色预览 */}
+                      <div 
+                        className="w-8 h-8 rounded-md shadow-sm flex-shrink-0"
+                        style={{ backgroundColor: themeColor }}
+                      />
+                      
+                      {/* 主题名称 */}
+                      <div className="font-medium text-sm">
+                        {themeOption.label}
+                      </div>
 
                     {/* 选中标记 */}
                     {isActive && (
@@ -288,6 +299,7 @@ export default function Settings() {
                 );
               })}
             </div>
+            </VipFeatureWrapper>
           </div>
 
           {/* 考试倒计时配置部分 */}
@@ -400,6 +412,7 @@ export default function Settings() {
               <h3 className="text-lg font-semibold flex items-center gap-2">
                 <TrophyOutlined />
                 等级称谓主题设置
+                <VipBadge />
                 <Tooltip 
                   title={
                     <div className="space-y-1">
@@ -407,6 +420,7 @@ export default function Settings() {
                       <div>• 不同主题提供不同风格的等级名称</div>
                       <div>• 选择后需要点击"保存设置"按钮才能生效</div>
                       <div>• 等级称谓仅用于展示,不影响实际分数</div>
+                      <div className="text-yellow-300 mt-2">• VIP会员专享功能</div>
                     </div>
                   }
                   placement="right"
@@ -416,36 +430,41 @@ export default function Settings() {
               </h3>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-              {GRADE_LABEL_THEMES.map((themeOption) => {
-                const isActive = gradeLabelTheme === themeOption.id;
+            <VipFeatureWrapper
+              featureName="grade_label_settings"
+              showBadge={false}
+              tooltip="等级称谓设置需要VIP会员"
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                {GRADE_LABEL_THEMES.map((themeOption) => {
+                  const isActive = gradeLabelTheme === themeOption.id;
 
-                return (
-                  <div
-                    key={themeOption.id}
-                    onClick={() => setGradeLabelTheme(themeOption.id)}
-                    className={`
-                      relative cursor-pointer rounded-lg border-2 p-4 transition-all
-                      ${isActive 
-                        ? 'border-blue-500 bg-blue-50 shadow-md' 
-                        : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
-                      }
-                    `}
-                  >
-                    <div className="flex items-start justify-between">
-                      {/* 主题信息 */}
-                      <div className="flex-1 min-w-0">
-                        <div className="font-semibold text-base mb-2">
-                          {themeOption.name}
-                        </div>
-                        <div className="text-xs text-gray-600 space-y-1">
-                          {themeOption.labels.map((label, index) => {
-                            // 根据索引显示对应的分数区间
-                            const ranges = ['<50分', '50-60分', '60-70分', '70-80分', '>80分'];
-                            return (
-                              <div key={index} className="flex items-center gap-2">
-                                <span className="text-gray-400">{ranges[index]}:</span>
-                                <span className="font-medium">{label.label}</span>
+                  return (
+                    <div
+                      key={themeOption.id}
+                      onClick={() => setGradeLabelTheme(themeOption.id)}
+                      className={`
+                        relative cursor-pointer rounded-lg border-2 p-4 transition-all
+                        ${isActive 
+                          ? 'border-blue-500 bg-blue-50 shadow-md' 
+                          : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
+                        }
+                      `}
+                    >
+                      <div className="flex items-start justify-between">
+                        {/* 主题信息 */}
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-base mb-2">
+                            {themeOption.name}
+                          </div>
+                          <div className="text-xs text-gray-600 space-y-1">
+                            {themeOption.labels.map((label, index) => {
+                              // 根据索引显示对应的分数区间
+                              const ranges = ['<50分', '50-60分', '60-70分', '70-80分', '>80分'];
+                              return (
+                                <div key={index} className="flex items-center gap-2">
+                                  <span className="text-gray-400">{ranges[index]}:</span>
+                                  <span className="font-medium">{label.label}</span>
                               </div>
                             );
                           })}
@@ -467,6 +486,7 @@ export default function Settings() {
                 );
               })}
             </div>
+            </VipFeatureWrapper>
           </div>
         </Space>
       </Card>
