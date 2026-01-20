@@ -118,3 +118,125 @@ Vite、TypeScript、React、Supabase
 1. 查看[故障排查指南](./docs/TROUBLESHOOTING.md)
 2. 查看[调试指南](./docs/DEBUG_GUIDE.md)获取详细日志
 3. 联系技术支持并提供日志信息
+
+---
+
+## 生产部署
+
+### 快速部署
+
+本项目提供了自动化部署脚本，支持一键部署到多个平台：
+
+```bash
+# 1. 部署 Supabase 后端服务
+./deploy-supabase.sh
+
+# 2. 部署前端应用
+./deploy.sh
+```
+
+### 部署方式
+
+#### 方式一：Vercel 部署（推荐）
+- ✅ 零配置部署
+- ✅ 自动 HTTPS
+- ✅ 全球 CDN 加速
+- ✅ 自动构建和部署
+
+```bash
+# 使用部署脚本
+./deploy.sh
+# 选择选项 1: Vercel 部署
+```
+
+#### 方式二：Netlify 部署
+- ✅ 简单易用
+- ✅ 免费 HTTPS
+- ✅ 持续部署
+
+```bash
+# 使用部署脚本
+./deploy.sh
+# 选择选项 2: Netlify 部署
+```
+
+#### 方式三：自建服务器
+- ✅ 完全控制
+- ✅ 适合企业部署
+
+```bash
+# 1. 构建项目
+pnpm run build
+
+# 2. 上传 dist 目录到服务器
+scp -r dist/* user@server:/var/www/your-site/
+
+# 3. 配置 Nginx（参考 DEPLOYMENT_GUIDE.md）
+```
+
+### Supabase 后端部署
+
+#### 1. 创建 Supabase 项目
+- 访问 [Supabase Dashboard](https://app.supabase.com/)
+- 创建新项目
+- 记录项目 URL 和 API Key
+
+#### 2. 初始化数据库
+```bash
+# 使用自动化脚本
+./deploy-supabase.sh
+
+# 或手动在 SQL Editor 中执行初始化脚本
+# 参考 DEPLOYMENT_GUIDE.md 中的 SQL 脚本
+```
+
+#### 3. 配置 Storage
+- 创建 `exam-images` bucket
+- 配置存储策略（参考部署指南）
+
+#### 4. 配置环境变量
+```env
+VITE_SUPABASE_URL=https://xxxxx.supabase.co
+VITE_SUPABASE_ANON_KEY=your_anon_key
+VITE_APP_ID=your_app_id
+VITE_API_ENV=production
+```
+
+### 详细部署文档
+
+完整的部署指南请查看：
+- 📘 [完整部署指南](./DEPLOYMENT_GUIDE.md) - **详细的分步部署教程**
+- 🚀 [快速部署脚本](./deploy.sh) - 前端自动化部署
+- 🗄️ [Supabase 部署脚本](./deploy-supabase.sh) - 后端自动化部署
+
+### 部署检查清单
+
+部署前请确认：
+- [ ] Supabase 项目已创建
+- [ ] 数据库表已初始化
+- [ ] Storage bucket 已配置
+- [ ] RLS 策略已设置
+- [ ] 环境变量已配置
+- [ ] 前端已构建成功
+- [ ] 域名已配置（可选）
+
+### 常见部署问题
+
+| 问题 | 解决方案 |
+|------|----------|
+| 数据库连接失败 | 检查环境变量配置 |
+| 图片上传失败 | 确认 Storage bucket 和策略 |
+| 认证失败 | 检查 Supabase Auth 配置 |
+| CORS 错误 | 在 Supabase 中添加域名 |
+
+更多问题请查看 [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md) 的常见问题部分。
+
+---
+
+## 技术支持
+
+如需帮助，请：
+1. 查看 [部署指南](./DEPLOYMENT_GUIDE.md)
+2. 查看 [故障排查指南](./docs/TROUBLESHOOTING.md)
+3. 提交 GitHub Issue
+4. 联系技术支持团队
