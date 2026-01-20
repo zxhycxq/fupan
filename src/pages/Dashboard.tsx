@@ -19,7 +19,7 @@ import StatCard from '@/components/common/StatCard';
 import { getGradeLabelsByTheme } from '@/config/gradeLabels';
 import { getSeriesStyle, LEGEND_CONFIG, TOOLTIP_CONFIG } from '@/config/chartStyles';
 import { MOTIVATIONAL_POEMS } from '@/config/constants';
-import VipFeatureWrapper from '@/components/common/VipFeatureWrapper';
+import { VipFeatureWrapper } from '@/components/common/VipFeatureWrapper';
 
 // 扩展dayjs
 dayjs.extend(dayOfYear);
