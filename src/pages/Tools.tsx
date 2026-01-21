@@ -1,6 +1,7 @@
 import { Card, Tabs } from 'antd';
 import ExamTimer from '@/components/tools/ExamTimer';
-import { ClockCircleOutlined } from '@ant-design/icons';
+import PersistentTimerExample from '@/components/tools/PersistentTimerExample';
+import { ClockCircleOutlined, ExperimentOutlined } from '@ant-design/icons';
 
 export default function Tools() {
   return (
@@ -22,6 +23,16 @@ export default function Tools() {
                 </span>
               ),
               children: <ExamTimer />,
+            },
+            {
+              key: 'persistent-timer',
+              label: (
+                <span className="flex items-center gap-2">
+                  <ExperimentOutlined />
+                  持久化计时器示例
+                </span>
+              ),
+              children: <PersistentTimerExample />,
             },
           ]}
         />
