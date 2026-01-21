@@ -35,6 +35,7 @@ interface Module {
 interface TimerState {
   totalStartTime: number | null;
   totalPausedTime: number;
+  pauseStartTime: number | null; // 暂停开始时间
   isPaused: boolean;
   isRunning: boolean;
   isCountdown: boolean;
@@ -189,6 +190,7 @@ export default function ExamTimer() {
   const [state, setState] = useState<TimerState>({
     totalStartTime: null,
     totalPausedTime: 0,
+    pauseStartTime: null,
     isPaused: false,
     isRunning: false,
     isCountdown: false,
@@ -257,7 +259,7 @@ export default function ExamTimer() {
             content: '是否恢复上次的计时状态？',
             onOk: () => {
               setState(savedState);
-              message.success('已恢复计时状态');
+              // 移除message.success，避免两个弹窗
             },
             onCancel: () => {
               localStorage.removeItem(STORAGE_KEY);
@@ -354,18 +356,21 @@ export default function ExamTimer() {
   // 暂停/继续
   const handleTogglePause = () => {
     if (state.isPaused) {
-      const pauseDuration = Date.now() - (state.totalStartTime || 0);
+      // 继续计时：计算暂停时长并累加
+      const pauseDuration = Date.now() - (state.pauseStartTime || 0);
       setState(prev => ({
         ...prev,
         isPaused: false,
+        pauseStartTime: null,
         totalPausedTime: prev.totalPausedTime + pauseDuration,
       }));
       message.info('继续计时');
     } else {
+      // 暂停：记录暂停开始时间
       setState(prev => ({
         ...prev,
         isPaused: true,
-        totalStartTime: Date.now(),
+        pauseStartTime: Date.now(),
       }));
       message.info('已暂停');
     }
@@ -456,6 +461,7 @@ export default function ExamTimer() {
         setState({
           totalStartTime: null,
           totalPausedTime: 0,
+          pauseStartTime: null,
           isPaused: false,
           isRunning: false,
           isCountdown: state.isCountdown,
@@ -565,12 +571,14 @@ export default function ExamTimer() {
       legend: {
         orient: 'vertical',
         left: 'left',
+        top: 'center', // 垂直居中
       },
       series: [
         {
           name: '时间分布',
           type: 'pie',
           radius: '50%',
+          center: ['60%', '50%'], // 饼图向右移动，为左侧图例留出空间
           data: completedModules.map(m => ({
             value: m.duration,
             name: m.name,
@@ -959,7 +967,7 @@ export default function ExamTimer() {
         <div ref={reportRef} className="space-y-6 p-4 bg-white">
           <Row gutter={16}>
             <Col span={12}>
-              <Card>
+              <Card className="py-2">
                 <Statistic
                   title="总用时"
                   value={formatTime(totalTime)}
@@ -968,7 +976,7 @@ export default function ExamTimer() {
               </Card>
             </Col>
             <Col span={12}>
-              <Card>
+              <Card className="py-2">
                 <Statistic
                   title="完成模块"
                   value={`${state.modules.filter(m => m.status === 'completed').length} / ${state.modules.length}`}
@@ -1016,8 +1024,7 @@ export default function ExamTimer() {
                         </div>
                         {module.status === 'completed' && module.startTime && module.endTime && (
                           <div className="text-xs text-gray-400">
-                            <div>{new Date(module.startTime).toLocaleTimeString()}</div>
-                            <div>{new Date(module.endTime).toLocaleTimeString()}</div>
+                            {new Date(module.startTime).toLocaleTimeString()} - {new Date(module.endTime).toLocaleTimeString()}
                           </div>
                         )}
                       </div>
