@@ -13,6 +13,7 @@ import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
 import OrderConfirm from './pages/OrderConfirm';
 import OrderDetail from './pages/OrderDetail';
+import TestLearningJourney from './pages/TestLearningJourney';
 import type { ReactNode } from 'react';
 
 interface RouteConfig {
@@ -111,6 +112,12 @@ const routes: RouteConfig[] = [
     name: '订单详情',
     path: '/order-detail/:orderNo',
     element: <OrderDetail />,
+    visible: false,
+  },
+  {
+    name: '学习历程测试',
+    path: '/test-learning-journey',
+    element: <TestLearningJourney />,
     visible: false,
   },
 ];

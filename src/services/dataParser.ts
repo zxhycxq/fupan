@@ -630,5 +630,13 @@ export function parseExamData(
   console.log('总共解析到', moduleScores.length, '个模块');
   console.log('模块列表:', moduleScores.map(m => m.module_name).join(', '));
 
+  // 计算总题数
+  const totalQuestions = moduleScores.reduce((sum, module) => sum + (module.total_questions || 0), 0);
+  console.log('总题数:', totalQuestions);
+
+  // 更新examRecord，添加question_count和duration_seconds
+  examRecord.question_count = totalQuestions;
+  examRecord.duration_seconds = timeUsedSeconds;
+
   return { examRecord, moduleScores };
 }

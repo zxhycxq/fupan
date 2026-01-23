@@ -1164,3 +1164,107 @@ export async function getUserVipStatus(): Promise<{
   }
 }
 
+// ==================== 学习历程相关 API ====================
+
+// 学习历程数据接口
+export interface LearningJourneyData {
+  firstExamDate: string | null; // 第一次考试日期
+  milestones: {
+    score60?: { date: string; score: number }; // 首次突破60分
+    score70?: { date: string; score: number }; // 首次突破70分
+    score80?: { date: string; score: number }; // 首次突破80分
+    score90?: { date: string; score: number }; // 首次突破90分
+  };
+  examCount: number; // 参与考试次数
+  studyDays: number; // 备考天数
+  totalQuestions: number; // 累计做题数
+  totalHours: number; // 累计考试时长（小时）
+}
+
+// 获取用户学习历程数据
+export async function getLearningJourney(): Promise<LearningJourneyData> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error('用户未登录');
+    }
+
+    // 获取里程碑数据
+    const { data: milestones, error: milestonesError } = await supabase
+      .from('user_milestones')
+      .select('*')
+      .eq('user_id', user.id);
+
+    if (milestonesError) {
+      console.error('获取里程碑数据失败:', milestonesError);
+      throw milestonesError;
+    }
+
+    // 获取考试统计数据
+    const { data: examStats, error: statsError } = await supabase
+      .from('exam_records')
+      .select('created_at, question_count, duration_seconds')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: true });
+
+    if (statsError) {
+      console.error('获取考试统计数据失败:', statsError);
+      throw statsError;
+    }
+
+    // 处理里程碑数据
+    const milestonesMap: LearningJourneyData['milestones'] = {};
+    let firstExamDate: string | null = null;
+
+    if (milestones && milestones.length > 0) {
+      milestones.forEach(m => {
+        if (m.milestone_type === 'first_exam') {
+          firstExamDate = m.milestone_date;
+        } else if (m.milestone_type === 'score_60') {
+          milestonesMap.score60 = { date: m.milestone_date, score: m.score };
+        } else if (m.milestone_type === 'score_70') {
+          milestonesMap.score70 = { date: m.milestone_date, score: m.score };
+        } else if (m.milestone_type === 'score_80') {
+          milestonesMap.score80 = { date: m.milestone_date, score: m.score };
+        } else if (m.milestone_type === 'score_90') {
+          milestonesMap.score90 = { date: m.milestone_date, score: m.score };
+        }
+      });
+    }
+
+    // 计算统计数据
+    const examCount = examStats?.length || 0;
+    const totalQuestions = examStats?.reduce((sum, exam) => sum + (exam.question_count || 0), 0) || 0;
+    const totalSeconds = examStats?.reduce((sum, exam) => sum + (exam.duration_seconds || 0), 0) || 0;
+    const totalHours = Math.round((totalSeconds / 3600) * 10) / 10; // 保留1位小数
+
+    // 计算备考天数
+    let studyDays = 0;
+    if (firstExamDate) {
+      const firstDate = new Date(firstExamDate);
+      const now = new Date();
+      studyDays = Math.ceil((now.getTime() - firstDate.getTime()) / (1000 * 60 * 60 * 24));
+    }
+
+    return {
+      firstExamDate,
+      milestones: milestonesMap,
+      examCount,
+      studyDays,
+      totalQuestions,
+      totalHours,
+    };
+  } catch (error) {
+    console.error('获取学习历程数据失败:', error);
+    // 返回空数据而不是抛出错误
+    return {
+      firstExamDate: null,
+      milestones: {},
+      examCount: 0,
+      studyDays: 0,
+      totalQuestions: 0,
+      totalHours: 0,
+    };
+  }
+}
+

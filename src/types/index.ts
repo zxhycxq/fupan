@@ -21,6 +21,8 @@ export interface ExamRecord {
   difficulty?: number;
   beat_percentage?: number;
   time_used?: number;
+  question_count?: number; // 做题数量
+  duration_seconds?: number; // 考试时长（秒）
   image_url?: string;
   notes?: string; // 考试备注(最多500字) - 保留用于向后兼容
   improvements?: string; // 有进步的地方
