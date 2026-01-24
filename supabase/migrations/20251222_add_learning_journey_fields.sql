@@ -201,3 +201,19 @@ BEGIN
     END IF;
   END LOOP;
 END $$;
+
+-- 更新现有exam_records的question_count和duration_seconds
+-- 1. 从time_used字段复制到duration_seconds
+UPDATE exam_records
+SET duration_seconds = time_used
+WHERE (duration_seconds = 0 OR duration_seconds IS NULL) AND time_used IS NOT NULL;
+
+-- 2. 从模块数据汇总到question_count（只统计一级模块，避免重复计数）
+UPDATE exam_records er
+SET question_count = (
+  SELECT COALESCE(SUM(ms.total_questions), 0)
+  FROM module_scores ms
+  WHERE ms.exam_record_id = er.id
+    AND ms.parent_module IS NULL
+)
+WHERE er.question_count = 0 OR er.question_count IS NULL;
