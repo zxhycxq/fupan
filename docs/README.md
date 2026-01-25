@@ -452,7 +452,7 @@ MIT License - 详见 [LICENSE](../LICENSE) 文件
 
 ## 🔄 更新日志
 
-查看 [CHANGELOG.md](../CHANGELOG.md) 了解详细的版本更新历史。
+查看 [CHANGELOG.md](../icon.md) 了解详细的版本更新历史。
 
 ---
 

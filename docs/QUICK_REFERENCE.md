@@ -179,7 +179,7 @@ DELETE FROM exam_records;
 
 ## 📚 相关文档
 
-- [更新日志](../CHANGELOG.md)
+- [更新日志](../icon.md)
 - [故障排查指南](./TROUBLESHOOTING.md)
 - [API迁移说明](./API_MIGRATION.md)
 - [更新总结](./UPDATE_SUMMARY.md)

@@ -104,7 +104,7 @@ Vite、TypeScript、React、Supabase
 
 - 🚀 [快速调试指南](./docs/HOW_TO_DEBUG.md) - **遇到问题先看这里!**
 - ⏱️ [时间编辑功能](./docs/TIME_EDIT_FEATURE.md) - **如何编辑和管理模块时间**
-- 📖 [更新日志](./CHANGELOG.md) - 查看系统更新历史
+- 📖 [更新日志](icon.md) - 查看系统更新历史
 - 🔧 [故障排查指南](./docs/TROUBLESHOOTING.md) - 解决常见问题
 - 🐛 [调试指南](./docs/DEBUG_GUIDE.md) - 如何查看和分析调试日志
 - 🧪 [测试指南](./docs/TESTING_GUIDE.md) - 如何测试图片识别功能
