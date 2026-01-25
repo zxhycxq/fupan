@@ -50,7 +50,7 @@ const routes: RouteConfig[] = [
   },
   {
     name: '数据总览',
-    path: '/',
+    path: '/dashboard',
     element: <Dashboard />,
     visible: true,
   },

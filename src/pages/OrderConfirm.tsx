@@ -43,7 +43,7 @@ export default function OrderConfirm() {
   useEffect(() => {
     if (!sku) {
       message.error('无效的套餐类型');
-      navigate('/');
+      navigate('/dashboard');
     }
   }, [sku, navigate]);
 

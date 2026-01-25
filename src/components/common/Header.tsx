@@ -35,7 +35,7 @@ const Header: React.FC = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo和标题 */}
           <div className="flex items-center gap-2">
-            <Link to="/" className="flex items-center gap-2">
+            <Link to="/dashboard" className="flex items-center gap-2">
               <BarChartOutlined className="text-2xl sm:text-3xl text-blue-600" />
               <span className="text-base sm:text-xl font-bold text-blue-600 whitespace-nowrap">
                 考试成绩分析系统

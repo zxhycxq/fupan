@@ -159,7 +159,7 @@ export default function Register() {
     try {
       await updateUsername(username);
       message.success('注册成功');
-      navigate('/');
+      navigate('/dashboard');
     } catch (error: any) {
       if (error.message?.includes('duplicate') || error.message?.includes('已存在')) {
         message.error('用户名已被使用');
@@ -175,7 +175,7 @@ export default function Register() {
    * 跳过设置用户名
    */
   const handleSkip = () => {
-    navigate('/');
+    navigate('/dashboard');
   };
 
   /**

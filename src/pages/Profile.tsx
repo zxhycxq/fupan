@@ -304,7 +304,7 @@ export default function Profile() {
       
       // 延迟跳转，让用户看到成功消息
       setTimeout(() => {
-        navigate('/');
+        navigate('/dashboard');
         window.location.reload();
       }, 1000);
     } catch (error) {

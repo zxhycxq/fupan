@@ -29,7 +29,7 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
 
     // 已登录且访问登录/注册页，重定向到首页
     if (user && isPublicRoute) {
-      navigate('/');
+      navigate('/dashboard');
     }
   }, [user, loading, location.pathname, navigate]);
 

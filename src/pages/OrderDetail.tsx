@@ -107,7 +107,7 @@ export default function OrderDetail() {
           title="订单不存在"
           subTitle="抱歉，您访问的订单不存在或已被删除"
           extra={
-            <Button type="primary" onClick={() => navigate('/')}>
+            <Button type="primary" onClick={() => navigate('/dashboard')}>
               返回首页
             </Button>
           }
@@ -128,7 +128,7 @@ export default function OrderDetail() {
             title="支付成功！"
             subTitle={`订单号：${order.order_no}`}
             extra={[
-              <Button type="primary" key="home" onClick={() => navigate('/')}>
+              <Button type="primary" key="home" onClick={() => navigate('/dashboard')}>
                 返回首页
               </Button>,
             ]}

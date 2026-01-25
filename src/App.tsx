@@ -154,7 +154,10 @@ function App() {
                         element={route.element}
                       />
                     ))}
-                    <Route path="*" element={<Navigate to="/" replace />} />
+                    {/* 根路径重定向到 /dashboard */}
+                    <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                    {/* 其他未匹配路径重定向到 /dashboard */}
+                    <Route path="*" element={<Navigate to="/dashboard" replace />} />
                   </Routes>
                 </main>
               </div>
