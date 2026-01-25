@@ -5,7 +5,7 @@ import { getUserProfile, updateUsername, checkUsernameAvailability, softDeleteUs
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 import VipPaymentModal from '@/components/common/VipPaymentModal';
-import LearningJourney from '@/components/profile/LearningJourney';
+// import LearningJourney from '@/components/profile/LearningJourney'; // 暂时注释掉
 
 const { Title, Text } = Typography;
 
@@ -486,8 +486,8 @@ export default function Profile() {
         />
       </Card>
 
-      {/* 我的来时路 */}
-      <LearningJourney />
+      {/* 我的来时路 - 暂时注释掉 */}
+      {/* <LearningJourney /> */}
 
       {/* 订单功能预留区域 */}
       <Card title="我的订单" className="mb-6">

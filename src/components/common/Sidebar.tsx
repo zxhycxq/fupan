@@ -19,7 +19,7 @@ import { message } from 'antd';
 
 // 菜单图标映射
 const menuIcons: Record<string, React.ReactNode> = {
-  '/': <DashboardOutlined />,
+  '/dashboard': <DashboardOutlined />,
   '/module-analysis': <LineChartOutlined />,
   '/upload': <CloudUploadOutlined />,
   '/exams': <FileTextOutlined />,
