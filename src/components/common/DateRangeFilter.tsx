@@ -5,7 +5,7 @@ import dayjs, { Dayjs } from 'dayjs';
 const { RangePicker } = DatePicker;
 
 interface DateRangeFilterProps {
-  value: [Dayjs, Dayjs] | null;
+  value: [Dayjs | null, Dayjs | null] | null;
   onChange: (dates: [Dayjs, Dayjs] | null) => void;
   className?: string;
   minDate?: Dayjs | null; // 最早可选日期
@@ -60,7 +60,7 @@ export default function DateRangeFilter({
         {showLabel && <span className="text-sm font-medium text-gray-700 dark:text-gray-300">时间筛选：</span>}
         <RangePicker
             value={value}
-            onChange={(dates) => onChange(dates)}
+            onChange={(dates) => onChange(dates as [Dayjs, Dayjs] | null)}
             placeholder={['开始日期', '结束日期']}
             format="YYYY-MM-DD"
             allowClear

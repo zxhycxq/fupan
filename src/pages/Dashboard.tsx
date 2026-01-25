@@ -251,7 +251,7 @@ export default function Dashboard() {
     const filteredIndices: number[] = [];
     
     // 找出符合日期范围的考试索引
-    moduleTrendData.exam_dates.forEach((date, index) => {
+    moduleTrendData.exam_dates?.forEach((date, index) => {
       if (date) {
         const examDate = dayjs(date);
         if (examDate.isSameOrAfter(startDate, 'day') && examDate.isSameOrBefore(endDate, 'day')) {
@@ -262,8 +262,8 @@ export default function Dashboard() {
     
     return {
       exam_numbers: filteredIndices.map(i => moduleTrendData.exam_numbers[i]),
-      exam_names: filteredIndices.map(i => moduleTrendData.exam_names[i]),
-      exam_dates: filteredIndices.map(i => moduleTrendData.exam_dates[i]),
+      exam_names: filteredIndices.map(i => moduleTrendData.exam_names?.[i]),
+      exam_dates: filteredIndices.map(i => moduleTrendData.exam_dates?.[i]),
       modules: moduleTrendData.modules.map(module => ({
         module_name: module.module_name,
         data: filteredIndices.map(i => module.data[i])
@@ -281,7 +281,7 @@ export default function Dashboard() {
     const filteredIndices: number[] = [];
     
     // 找出符合日期范围的考试索引
-    moduleTimeTrendData.exam_dates.forEach((date, index) => {
+    moduleTimeTrendData.exam_dates?.forEach((date, index) => {
       if (date) {
         const examDate = dayjs(date);
         if (examDate.isSameOrAfter(startDate, 'day') && examDate.isSameOrBefore(endDate, 'day')) {
@@ -292,8 +292,8 @@ export default function Dashboard() {
     
     return {
       exam_numbers: filteredIndices.map(i => moduleTimeTrendData.exam_numbers[i]),
-      exam_names: filteredIndices.map(i => moduleTimeTrendData.exam_names[i]),
-      exam_dates: filteredIndices.map(i => moduleTimeTrendData.exam_dates[i]),
+      exam_names: filteredIndices.map(i => moduleTimeTrendData.exam_names?.[i]),
+      exam_dates: filteredIndices.map(i => moduleTimeTrendData.exam_dates?.[i]),
       modules: moduleTimeTrendData.modules.map(module => ({
         module_name: module.module_name,
         data: filteredIndices.map(i => module.data[i])
@@ -1001,7 +1001,7 @@ export default function Dashboard() {
   filteredExamRecords.forEach(record => {
     examInfoMap.set(record.sort_order, {
       name: record.exam_name || `第${record.sort_order}期`,
-      date: record.exam_date,
+      date: record.exam_date || null,
     });
   });
 
@@ -1513,7 +1513,7 @@ export default function Dashboard() {
   const headerRender = ({ value, type, onChange, onTypeChange }: any) => {
     const year = value.year();
     const month = value.month();
-    const monthOptions = [];
+    const monthOptions: React.ReactElement[] = [];
     
     for (let i = 0; i < 12; i++) {
       monthOptions.push(
@@ -1523,7 +1523,7 @@ export default function Dashboard() {
       );
     }
 
-    const yearOptions = [];
+    const yearOptions: React.ReactElement[] = [];
     const currentYear = dayjs().year();
     for (let i = currentYear - 10; i <= currentYear + 10; i++) {
       yearOptions.push(
