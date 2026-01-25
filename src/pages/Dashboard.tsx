@@ -19,7 +19,7 @@ import StatCard from '@/components/common/StatCard';
 import { getGradeLabelsByTheme } from '@/config/gradeLabels';
 import { getSeriesStyle, LEGEND_CONFIG, TOOLTIP_CONFIG } from '@/config/chartStyles';
 import { MOTIVATIONAL_POEMS } from '@/config/constants';
-import { VipFeatureWrapper } from '@/components/common/VipFeatureWrapper';
+import { VipButton } from '@/components/common/VipButton';
 
 // 扩展dayjs
 dayjs.extend(dayOfYear);
@@ -2125,20 +2125,16 @@ export default function Dashboard() {
                   />
                 </Tooltip>
               )}
-              <VipFeatureWrapper
+              <VipButton
                 featureName="export_excel"
-                showBadge={true}
-                tooltip="导出Excel需要VIP会员"
+                type="primary"
+                icon={<DownloadOutlined />}
+                onClick={handleExportExcel}
+                size="middle"
+                style={{ minWidth: '140px' }}
               >
-                <Button 
-                  type="primary" 
-                  icon={<DownloadOutlined />}
-                  onClick={handleExportExcel}
-                  size="middle"
-                >
-                  导出Excel
-                </Button>
-              </VipFeatureWrapper>
+                导出Excel
+              </VipButton>
             </div>
           }
         >

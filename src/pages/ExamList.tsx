@@ -16,7 +16,7 @@ import WangEditor, { type WangEditorRef } from '@/components/common/WangEditor';
 import DateRangeFilter from '@/components/common/DateRangeFilter';
 import { PERCENTAGE_RANGE_OPTIONS, RATING_OPTIONS } from '@/config/formOptions';
 import * as XLSX from 'xlsx';
-import { VipFeatureWrapper } from '@/components/common/VipFeatureWrapper';
+import { VipButton } from '@/components/common/VipButton';
 import { useVipStatus } from '@/hooks/useVipStatus';
 
 // 拖拽手柄
@@ -987,21 +987,17 @@ export default function ExamList() {
                 </Button>
               </>
             )}
-            <VipFeatureWrapper
+            <VipButton
               featureName="export_excel"
-              showBadge={true}
-              tooltip="导出Excel需要VIP会员"
+              icon={<DownloadOutlined />}
+              onClick={handleExportExcel}
+              loading={isExporting}
+              disabled={isSavingSort || isExporting || filteredRecords.length === 0}
+              size="large"
+              style={{ minWidth: '140px' }}
             >
-              <Button
-                icon={<DownloadOutlined />}
-                onClick={handleExportExcel}
-                loading={isExporting}
-                disabled={isSavingSort || isExporting || filteredRecords.length === 0}
-                size="large"
-              >
-                导出Excel
-              </Button>
-            </VipFeatureWrapper>
+              导出Excel
+            </VipButton>
             <Button
               type="primary"
               icon={<PlusOutlined />}
