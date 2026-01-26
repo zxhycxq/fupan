@@ -74,10 +74,10 @@ function App() {
   // 初始化主题
   useEffect(() => {
     const root = document.documentElement;
-    
+
     // 移除所有主题类
     root.classList.remove('theme-blue', 'theme-green', 'theme-purple', 'theme-orange', 'theme-red', 'theme-cyan', 'theme-pink');
-    
+
     // 添加主题类
     root.classList.add(`theme-${currentTheme}`);
   }, [currentTheme]);
@@ -131,7 +131,7 @@ function App() {
   }), [currentTheme]);
 
   return (
-    <ConfigProvider 
+    <ConfigProvider
       locale={zhCN}
       theme={antdThemeConfig}
     >
@@ -141,7 +141,7 @@ function App() {
             <div className="flex h-screen overflow-hidden bg-gray-50">
               {/* 左侧导航栏 */}
               <Sidebar />
-              
+
               {/* 右侧主内容区域 */}
               <div className="flex-1 flex flex-col overflow-hidden">
                 {/* 主内容 */}
@@ -161,7 +161,7 @@ function App() {
                   </Routes>
                 </main>
               </div>
-              
+
               {/* 全局返回顶部按钮 */}
               <FloatButton.BackTop
                 tooltip="返回顶部"
@@ -171,9 +171,9 @@ function App() {
                   bottom: 24,
                 }}
               />
-              
+
               {/* PWA安装提示 */}
-              <PWAInstallPrompt />
+              {/*<PWAInstallPrompt />*/}
             </div>
           </RouteGuard>
         </ErrorBoundary>

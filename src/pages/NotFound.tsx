@@ -19,14 +19,14 @@ export default function NotFound() {
           />
 
           <p className="mt-10 mb-6 text-base text-gray-700 dark:text-gray-400 sm:text-lg">
-            页面可能已被删除或不存在，请检查网址是否正确。
+            页面可能已被删除或不存在，请检查输入的网址是否正确。如果无误，请给管理员提 bug
           </p>
 
           <Link
             to="/dashboard"
             className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-5 py-3.5 text-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200"
           >
-            返回首页
+            返回首页看看
           </Link>
         </div>
         {/* <!-- Footer --> */}

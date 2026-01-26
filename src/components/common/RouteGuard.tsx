@@ -5,8 +5,13 @@ import { useAuth } from '@/contexts/AuthContext';
 /**
  * 公开路由列表（不需要登录即可访问）
  */
-const PUBLIC_ROUTES = ['/login', '/register'];
+const PUBLIC_ROUTES = ['/login', '/register', '/tools'];
 
+
+/**
+ * 认证相关路由（已登录用户不应访问）
+ */
+const AUTH_ROUTES = ['/login', '/register'];
 /**
  * 路由守卫组件
  * 用于保护需要登录才能访问的路由
@@ -21,16 +26,18 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
     if (loading) return;
 
     const isPublicRoute = PUBLIC_ROUTES.includes(location.pathname);
+    const isAuthRoute = AUTH_ROUTES.includes(location.pathname);
 
-    // 未登录且访问受保护路由，重定向到登录页
+
+      // 未登录且访问受保护路由，重定向到登录页
     if (!user && !isPublicRoute) {
       navigate('/login', { state: { from: location.pathname } });
     }
 
-    // 已登录且访问登录/注册页，重定向到首页
-    if (user && isPublicRoute) {
-      navigate('/dashboard');
-    }
+      // 已登录且访问登录/注册页，重定向到首页
+      if (user && isAuthRoute) {
+          navigate('/dashboard');
+      }
   }, [user, loading, location.pathname, navigate]);
 
   // 加载中显示空白

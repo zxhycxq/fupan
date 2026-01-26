@@ -27,8 +27,6 @@
 - OrderDetail.tsx（订单详情）
 - Tools.tsx（工具）
 - DebugData.tsx（调试数据）
-- Privacy.tsx（隐私协议）
-- Terms.tsx（用户条款）
 - NotFound.tsx（404页面）
 - SamplePage.tsx（示例页面）
 
