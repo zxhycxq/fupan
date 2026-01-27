@@ -66,21 +66,17 @@ export interface OcrRequest {
 
 // 通用文字识别API响应类型
 export interface OcrResponse {
-  status: number;
-  msg: string;
-  data: {
     log_id: number;
     direction?: number;
     words_result_num: number;
     words_result: Array<{
-      words: string;
-      probability?: {
-        average: number;
-        variance: number;
-        min: number;
-      };
+        words: string;
+        probability?: {
+            average: number;
+            variance: number;
+            min: number;
+        };
     }>;
-  };
 }
 
 // 上传表单数据类型

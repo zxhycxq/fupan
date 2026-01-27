@@ -8,13 +8,13 @@ function validateExamScreenshot(text: string): { isValid: boolean; reason?: stri
   const moduleKeywords = ['政治理论', '常识判断', '言语理解', '数量关系', '判断推理', '资料分析'];
 
   // 检查是否包含"得分"关键词
-  const hasScore = requiredKeywords.some(keyword => text.includes(keyword));
-  if (!hasScore) {
-    return {
-      isValid: false,
-      reason: '未识别到成绩信息，请确保上传的是考试成绩截图',
-    };
-  }
+  // const hasScore = requiredKeywords.some(keyword => text.includes(keyword));
+  // if (!hasScore) {
+  //   return {
+  //     isValid: false,
+  //     reason: '未识别到成绩信息，请确保上传的是考试成绩截图',
+  //   };
+  // }
 
   // 检查是否包含至少一个模块名称
   const hasModule = moduleKeywords.some(keyword => text.includes(keyword));
@@ -340,9 +340,9 @@ export function parseExamData(
         const simpleRegex = new RegExp(simplePattern, 'i');
         moduleMatch = textToUse.match(simpleRegex);
 
-        console.log(`尝试简化格式匹配: ${module.name}`);
-        console.log(`正则表达式: ${simplePattern}`);
-        console.log(`匹配结果:`, moduleMatch ? moduleMatch[0].substring(0, 100) : '未匹配');
+        // console.log(`尝试简化格式匹配: ${module.name}`);
+        // console.log(`正则表达式: ${simplePattern}`);
+        // console.log(`匹配结果:`, moduleMatch ? moduleMatch[0].substring(0, 100) : '未匹配');
 
         if (moduleMatch) {
           // 标记为简化格式
@@ -364,7 +364,7 @@ export function parseExamData(
             moduleMatch[3],  // 用时
           ];
 
-          console.log(`简化格式解析: 总题数=${totalQuestions}, 正确率=${accuracyRate}%, 计算答对数=${correctAnswers}`);
+          // console.log(`简化格式解析: 总题数=${totalQuestions}, 正确率=${accuracyRate}%, 计算答对数=${correctAnswers}`);
         }
       }
 
@@ -617,7 +617,7 @@ export function parseExamData(
   }
 
   console.log('\n=== 解析完成 ===');
-  console.log('总共解析到', moduleScores.length, '个模块');
+  // console.log('总共解析到', moduleScores.length, '个模块');
   // console.log('模块列表:', moduleScores.map(m => m.module_name).join(', '));
 
   // 计算总题数
