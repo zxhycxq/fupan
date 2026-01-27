@@ -122,7 +122,7 @@ export default function Dashboard() {
   const loadData = async () => {
     try {
       setIsLoading(true);
-      
+
       // 并行加载所有数据
       const [allRecords, avgScores, trendData, timeTrendData, detailedStats, settings, config] = await Promise.all([
         getAllExamRecords(),
@@ -133,42 +133,36 @@ export default function Dashboard() {
         getUserSettings(),
         getExamConfig(),
       ]);
-      
-      // 【重要】过滤出参与统计的记录（include_in_stats !== false）
-      // 只有参与统计的记录才会在数据总览中显示和计算
+
+      // 【重要】过滤出参与统计的记录（include_in_stats !== false）只有参与统计的记录才会在数据总览中显示和计算
       const records = allRecords.filter(record => record.include_in_stats !== false);
-      
-      console.log('=== Dashboard 数据加载完成 ===');
-      console.log('所有考试记录数量:', allRecords.length);
-      console.log('参与统计的考试记录数量:', records.length);
-      console.log('考试记录列表:', records.map(r => `索引${r.sort_order} - ${r.exam_name}`).join(', '));
-      
-      console.log('\n模块详细统计数量:', detailedStats.length);
+
+      // console.log('=== Dashboard 数据加载完成 ===');
+
       const statsExamNumbers = Array.from(new Set(detailedStats.map(s => s.exam_number))).sort((a, b) => a - b);
-      console.log('有模块数据的考试期数:', statsExamNumbers.join(', '));
-      
+
       const recordIndexNumbers = records.map(r => r.sort_order).sort((a, b) => a - b);
       const missingIndexNumbers = recordIndexNumbers.filter(idx => !statsExamNumbers.includes(idx));
       if (missingIndexNumbers.length > 0) {
         console.warn('⚠️ 警告：以下考试记录没有模块数据:', missingIndexNumbers.join(', '));
         missingIndexNumbers.forEach(idx => {
           const record = records.find(r => r.sort_order === idx);
-          console.warn(`  - 索引${idx}: ${record?.exam_name}, 考试日期: ${record?.exam_date || '无'}`);
+          // console.warn(`  - 索引${idx}: ${record?.exam_name}, 考试日期: ${record?.exam_date || '无'}`);
         });
       }
-      
+
       setExamRecords(records);
       setModuleAvgScores(avgScores);
       setModuleTrendData(trendData);
       setModuleTimeTrendData(timeTrendData);
       setModuleDetailedStats(detailedStats);
       setUserSettings(settings);
-      
+
       // 设置考试配置（倒计时会在useEffect中自动计算）
       if (config && config.exam_type && config.exam_date) {
         setExamConfig(config);
       }
-      
+
       // 设置今日古诗词（基于日期）
       const dayOfYear = dayjs().dayOfYear();
       const poemIndex = dayOfYear % MOTIVATIONAL_POEMS.length;
@@ -185,9 +179,9 @@ export default function Dashboard() {
     const now = new Date();
     const exam = new Date(examDate);
     exam.setHours(9, 0, 0, 0); // 假设考试时间为上午9点
-    
+
     const diff = exam.getTime() - now.getTime();
-    
+
     if (diff > 0) {
       const days = Math.floor(diff / (1000 * 60 * 60 * 24));
       const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
@@ -203,12 +197,10 @@ export default function Dashboard() {
     if (examConfig?.exam_date) {
       // 立即计算一次最新值
       calculateCountdown(examConfig.exam_date);
-      
       // 设置定时器每分钟更新
       const timer = setInterval(() => {
         calculateCountdown(examConfig.exam_date!);
       }, 60000); // 每分钟更新一次
-
       return () => clearInterval(timer);
     }
   }, [examConfig?.exam_date]); // 依赖于exam_date而不是整个examConfig对象
@@ -218,7 +210,7 @@ export default function Dashboard() {
     if (!dateRange || !dateRange[0] || !dateRange[1]) {
       return examRecords;
     }
-    
+
     const [startDate, endDate] = dateRange;
     return examRecords.filter(record => {
       if (!record.exam_date) return false;
@@ -232,7 +224,7 @@ export default function Dashboard() {
     if (!dateRange || !dateRange[0] || !dateRange[1]) {
       return moduleDetailedStats;
     }
-    
+
     const [startDate, endDate] = dateRange;
     return moduleDetailedStats.filter(stat => {
       if (!stat.exam_date) return false;
@@ -246,10 +238,10 @@ export default function Dashboard() {
     if (!dateRange || !dateRange[0] || !dateRange[1]) {
       return moduleTrendData;
     }
-    
+
     const [startDate, endDate] = dateRange;
     const filteredIndices: number[] = [];
-    
+
     // 找出符合日期范围的考试索引
     moduleTrendData.exam_dates?.forEach((date, index) => {
       if (date) {
@@ -259,7 +251,7 @@ export default function Dashboard() {
         }
       }
     });
-    
+
     return {
       exam_numbers: filteredIndices.map(i => moduleTrendData.exam_numbers[i]),
       exam_names: filteredIndices.map(i => moduleTrendData.exam_names?.[i]),
@@ -276,10 +268,10 @@ export default function Dashboard() {
     if (!dateRange || !dateRange[0] || !dateRange[1]) {
       return moduleTimeTrendData;
     }
-    
+
     const [startDate, endDate] = dateRange;
     const filteredIndices: number[] = [];
-    
+
     // 找出符合日期范围的考试索引
     moduleTimeTrendData.exam_dates?.forEach((date, index) => {
       if (date) {
@@ -289,7 +281,7 @@ export default function Dashboard() {
         }
       }
     });
-    
+
     return {
       exam_numbers: filteredIndices.map(i => moduleTimeTrendData.exam_numbers[i]),
       exam_names: filteredIndices.map(i => moduleTimeTrendData.exam_names?.[i]),
@@ -312,7 +304,7 @@ export default function Dashboard() {
 
     // 按模块名称分组统计
     const moduleStats = new Map<string, { totalCorrect: number; totalQuestions: number }>();
-    
+
     firstLevelStats.forEach(stat => {
       const existing = moduleStats.get(stat.module_name) || { totalCorrect: 0, totalQuestions: 0 };
       moduleStats.set(stat.module_name, {
@@ -324,8 +316,8 @@ export default function Dashboard() {
     // 计算平均正确率
     const avgScores: { module_name: string; avg_accuracy: number }[] = [];
     moduleStats.forEach((stats, moduleName) => {
-      const avgAccuracy = stats.totalQuestions > 0 
-        ? (stats.totalCorrect / stats.totalQuestions) * 100 
+      const avgAccuracy = stats.totalQuestions > 0
+        ? (stats.totalCorrect / stats.totalQuestions) * 100
         : 0;
       avgScores.push({
         module_name: moduleName,
@@ -360,42 +352,42 @@ export default function Dashboard() {
   // 计算练习天数
   const practiceDays = useMemo(() => {
     if (filteredExamRecords.length === 0) return 0;
-    
+
     // 找到最早的考试日期
     const earliestDate = filteredExamRecords
       .filter(r => r.exam_date)
       .map(r => new Date(r.exam_date!))
       .sort((a, b) => a.getTime() - b.getTime())[0];
-    
+
     if (!earliestDate) return 0;
-    
+
     const today = new Date();
     const diffTime = Math.abs(today.getTime() - earliestDate.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
+
     return diffDays;
   }, [filteredExamRecords]);
 
   // 计算累计做题时长（返回天数和小时数）
   const totalTime = useMemo(() => {
     if (filteredExamRecords.length === 0) return { days: 0, hours: 0 };
-    
+
     // time_used 单位是分钟
     const totalMinutes = filteredExamRecords
       .filter(r => r.time_used)
       .reduce((sum, r) => sum + (r.time_used || 0), 0);
-    
+
     const totalHours = Math.floor(totalMinutes / 60);
     const days = Math.floor(totalHours / 24);
     const hours = totalHours % 24;
-    
+
     return { days, hours };
   }, [filteredExamRecords]);
 
   // 计算做题数量
   const totalQuestions = useMemo(() => {
     if (filteredModuleDetailedStats.length === 0) return 0;
-    
+
     // 按考试编号分组，每个考试只计算一次
     const examGroups = filteredModuleDetailedStats.reduce((acc, stat) => {
       if (!acc[stat.exam_number]) {
@@ -404,13 +396,13 @@ export default function Dashboard() {
       acc[stat.exam_number].push(stat);
       return acc;
     }, {} as Record<number, typeof filteredModuleDetailedStats>);
-    
+
     // 计算每个考试的总题数
     const totalQuestions = Object.values(examGroups).reduce((sum, examStats) => {
       const examTotal = examStats.reduce((examSum, stat) => examSum + stat.total_questions, 0);
       return sum + examTotal;
     }, 0);
-    
+
     return totalQuestions;
   }, [filteredModuleDetailedStats]);
 
@@ -689,7 +681,7 @@ export default function Dashboard() {
     xAxis: {
       type: 'category',
       boundaryGap: ['5%', '5%'], // 左右留间隙
-      data: filteredModuleTrendData.exam_dates && filteredModuleTrendData.exam_names 
+      data: filteredModuleTrendData.exam_dates && filteredModuleTrendData.exam_names
         ? filteredModuleTrendData.exam_dates.map((date, idx) => {
             const name = filteredModuleTrendData.exam_names?.[idx] || `第${filteredModuleTrendData.exam_numbers[idx]}次`;
             return date ? `${name} ${date}` : name; // 调整格式：考试名称在前，日期在后
@@ -765,7 +757,7 @@ export default function Dashboard() {
     xAxis: {
       type: 'category',
       boundaryGap: ['5%', '5%'],
-      data: filteredModuleTimeTrendData.exam_dates && filteredModuleTimeTrendData.exam_names 
+      data: filteredModuleTimeTrendData.exam_dates && filteredModuleTimeTrendData.exam_names
         ? filteredModuleTimeTrendData.exam_dates.map((date, idx) => {
             const name = filteredModuleTimeTrendData.exam_names?.[idx] || `第${filteredModuleTimeTrendData.exam_numbers[idx]}次`;
             return date ? `${name} ${date}` : name; // 调整格式：考试名称在前，日期在后
@@ -857,8 +849,7 @@ export default function Dashboard() {
         ],
         label: {
           fontSize: isMobile ? 10 : 12,
-          formatter: (params: any) => {
-            // 饼图标签也换行显示
+          formatter: (params: any) => {            // 饼图标签也换行显示
             return `${params.name}:\n${params.value}次 (${params.percent.toFixed(1)}%)`;
           },
         },
@@ -935,7 +926,6 @@ export default function Dashboard() {
             // 只在区间中间位置显示等级称谓
             // 45, 55, 65, 75, 85 这些位置显示称谓
             // 40, 50, 60, 70, 80, 90 这些分界线位置不显示
-            
             if (value === 45) {
               return gradeLabels[0]?.label || '';
             } else if (value === 55) {
@@ -1019,7 +1009,7 @@ export default function Dashboard() {
           children: [],
         });
       }
-      
+
       const module = moduleMap.get(stat.module_name)!;
       // 直接设置，不累加
       module.exams.set(stat.exam_number, {
@@ -1032,7 +1022,7 @@ export default function Dashboard() {
     } else {
       // 子模块数据
       const parentName = stat.parent_module;
-      
+
       if (!moduleMap.has(parentName)) {
         moduleMap.set(parentName, {
           key: parentName,
@@ -1041,9 +1031,9 @@ export default function Dashboard() {
           children: [],
         });
       }
-      
+
       const parent = moduleMap.get(parentName)!;
-      
+
       // 查找或创建子模块
       let child = parent.children!.find(c => c.module_name === stat.module_name);
       if (!child) {
@@ -1054,7 +1044,7 @@ export default function Dashboard() {
         };
         parent.children!.push(child);
       }
-      
+
       // 添加子模块的考试数据
       child.exams.set(stat.exam_number, {
         exam_number: stat.exam_number,
@@ -1079,7 +1069,7 @@ export default function Dashboard() {
     let totalQuestions = 0;
     let totalCorrect = 0;
     let totalTime = 0;
-    
+
     // 只统计主模块的数据
     tableData.forEach(module => {
       const examData = module.exams.get(examNum);
@@ -1089,7 +1079,7 @@ export default function Dashboard() {
         totalTime += examData.time_used;
       }
     });
-    
+
     totalRow.exams.set(examNum, {
       exam_number: examNum,
       total_questions: totalQuestions,
@@ -1198,7 +1188,6 @@ export default function Dashboard() {
       fixed: 'left',
       width: 150,
       render: (text: string, record: TableDataType) => {
-        // 总计行加粗
         if (record.key === 'total') {
           return <strong>{text}</strong>;
         }
@@ -1214,7 +1203,7 @@ export default function Dashboard() {
       const examName = examInfo?.name || `第${examNum}期`;
       const examDate = examInfo?.date || '';
       const title = examDate ? `${examName} - ${examDate}` : examName;
-      
+
       return {
         title,
         key: `exam_${examNum}`,
@@ -1236,7 +1225,7 @@ export default function Dashboard() {
             if (!examData) {
               return <span className="text-muted-foreground">-</span>;
             }
-            
+
             // 汇总统计行特殊处理 - 合并单元格后显示对应的汇总数据
             if (record.key === 'summary_time') {
               // 总时长
@@ -1259,7 +1248,7 @@ export default function Dashboard() {
               // 得分
               return <strong className="text-lg text-green-600 dark:text-green-400">{examData.accuracy.toFixed(2)}</strong>;
             }
-            
+
             const content = `${examData.total_questions}/${examData.correct_answers}`;
             return record.key === 'total' ? <strong>{content}</strong> : content;
           },
@@ -1281,22 +1270,22 @@ export default function Dashboard() {
             if (!examData) {
               return <span className="text-muted-foreground">-</span>;
             }
-            
+
             // 只有低于50%才标红
             const isLow = examData.accuracy < 50 && record.key !== 'total';
-            
+
             // 保留1位小数
             const content = `${examData.accuracy.toFixed(1)}%`;
-            
+
             if (record.key === 'total') {
               return <strong>{content}</strong>;
             }
-            
+
             return (
-              <span 
-                style={{ 
-                  color: isLow ? '#ef4444' : 'inherit', 
-                  fontWeight: isLow ? 'bold' : 'normal' 
+              <span
+                style={{
+                  color: isLow ? '#ef4444' : 'inherit',
+                  fontWeight: isLow ? 'bold' : 'normal'
                 }}
               >
                 {content}
@@ -1344,7 +1333,7 @@ export default function Dashboard() {
       const examDate = dayjs(record.exam_date);
       return examDate.isSame(date, 'day');
     });
-    
+
     // 去重：使用Map按id去重，保留第一个出现的记录
     const uniqueMap = new Map();
     filtered.forEach(record => {
@@ -1352,7 +1341,7 @@ export default function Dashboard() {
         uniqueMap.set(record.id, record);
       }
     });
-    
+
     return Array.from(uniqueMap.values());
   };
 
@@ -1373,10 +1362,10 @@ export default function Dashboard() {
         {exams.map(exam => (
           <li key={exam.id}>
             <Tooltip title={`${exam.exam_name || `第${exam.sort_order}期`} - ${exam.total_score}分`}>
-              <Badge 
-                status={getScoreColor(exam.total_score || 0)} 
+              <Badge
+                status={getScoreColor(exam.total_score || 0)}
                 text={
-                  <span 
+                  <span
                     className="text-xs cursor-pointer hover:underline"
                     onClick={() => navigate(`/exam/${exam.id}`)}
                   >
@@ -1410,7 +1399,7 @@ export default function Dashboard() {
     const exams = getExamsForDate(date);
     const lunarDay = getLunarInfo(date);
     const isWeekend = date.day() === 0 || date.day() === 6; // 0是周日，6是周六
-    
+
     return (
       <div className="h-full flex flex-col">
         <div className="text-right pr-2 pt-1">
@@ -1422,10 +1411,10 @@ export default function Dashboard() {
             {exams.map(exam => (
               <li key={exam.id}>
                 <Tooltip title={`${exam.exam_name || `第${exam.sort_order}期`} - ${exam.total_score}分`}>
-                  <Badge 
-                    status={getScoreColor(exam.total_score || 0)} 
+                  <Badge
+                    status={getScoreColor(exam.total_score || 0)}
                     text={
-                      <span 
+                      <span
                         className="text-xs cursor-pointer hover:underline"
                         onClick={() => navigate(`/exam/${exam.id}`)}
                       >
@@ -1449,24 +1438,23 @@ export default function Dashboard() {
       // 如果日期不属于当前显示的月份，返回null（不显示）
       const currentMonth = calendarValue.month();
       const currentYear = calendarValue.year();
-      
+
       if (current.month() !== currentMonth || current.year() !== currentYear) {
         return null;
       }
-      
+
       return fullCellRender(current);
-    } else if (info.type === 'month') {
-      // 年视图 - 显示月份
+    } else if (info.type === 'month') {     // 年视图 - 显示月份
       const month = current.month() + 1;
       const lunarMonth = getLunarMonthInfo(current);
-      
+
       // 获取该月的所有考试
       const filtered = examRecords.filter(exam => {
         if (!exam.exam_date) return false;
         const examDate = dayjs(exam.exam_date);
         return examDate.year() === current.year() && examDate.month() === current.month();
       });
-      
+
       // 去重：使用Map按id去重
       const uniqueMap = new Map();
       filtered.forEach(exam => {
@@ -1487,10 +1475,10 @@ export default function Dashboard() {
               {monthExams.map(exam => (
                 <li key={exam.id}>
                   <Tooltip title={`${exam.exam_name || `第${exam.sort_order}期`} - ${exam.total_score}分`}>
-                    <Badge 
-                      status={getScoreColor(exam.total_score || 0)} 
+                    <Badge
+                      status={getScoreColor(exam.total_score || 0)}
                       text={
-                        <span 
+                        <span
                           className="text-xs cursor-pointer hover:underline"
                           onClick={() => navigate(`/exam/${exam.id}`)}
                         >
@@ -1514,7 +1502,7 @@ export default function Dashboard() {
     const year = value.year();
     const month = value.month();
     const monthOptions: React.ReactElement[] = [];
-    
+
     for (let i = 0; i < 12; i++) {
       monthOptions.push(
         <Select.Option key={i} value={i}>
@@ -1580,35 +1568,35 @@ export default function Dashboard() {
     try {
       // 准备导出数据
       const exportData: any[] = [];
-      
+
       // 添加表头行
       const headerRow: any = { '模块名称': '模块名称' };
       allExamNumbers.forEach(examNum => {
         // 查找对应的考试记录获取考试名称
         const examRecord = examRecords.find(r => r.sort_order === examNum);
         const examName = examRecord?.exam_name || `第${examNum}期`;
-        
+
         headerRow[`${examName}_题目数/答对数`] = '题目数/答对数';
         headerRow[`${examName}_正确率`] = '正确率';
         headerRow[`${examName}_用时`] = '用时(m)';
       });
       exportData.push(headerRow);
-      
+
       // 添加数据行
       const addRowData = (record: TableDataType, isChild = false) => {
         const rowData: any = {
           '模块名称': isChild ? `  ${record.module_name}` : record.module_name
         };
-        
+
         allExamNumbers.forEach(examNum => {
           const examData = record.exams.get(examNum);
           const examRecord = examRecords.find(r => r.sort_order === examNum);
           const examName = examRecord?.exam_name || `第${examNum}期`;
-          
+
           if (examData) {
             rowData[`${examName}_题目数/答对数`] = `${examData.total_questions}/${examData.correct_answers}`;
             rowData[`${examName}_正确率`] = `${examData.accuracy.toFixed(1)}%`;
-            
+
             // 只有大模块显示用时
             if (!isChild && record.children && record.children.length > 0) {
               rowData[`${examName}_用时`] = (examData.time_used / 60).toFixed(1);
@@ -1621,15 +1609,15 @@ export default function Dashboard() {
             rowData[`${examName}_用时`] = '-';
           }
         });
-        
+
         exportData.push(rowData);
       };
-      
+
       // 遍历所有模块数据
       tableDataWithTotal.forEach(module => {
         // 添加主模块
         addRowData(module);
-        
+
         // 添加子模块
         if (module.children && module.children.length > 0 && module.key !== 'total') {
           module.children.forEach(child => {
@@ -1637,7 +1625,7 @@ export default function Dashboard() {
           });
         }
       });
-      
+
       // 添加汇总统计行（总时长、总答对、总题量、总正确率、得分）
       const summaryRowsData = [
         {
@@ -1674,15 +1662,15 @@ export default function Dashboard() {
         const rowData: any = {
           '模块名称': summaryRow.module_name
         };
-        
+
         allExamNumbers.forEach(examNum => {
           const examRecord = examRecords.find(r => r.sort_order === examNum);
           const examName = examRecord?.exam_name || `第${examNum}期`;
-          
+
           // 找到总计行的数据
           const totalRowData = tableDataWithTotal.find(m => m.key === 'total');
           const examData = totalRowData?.exams.get(examNum);
-          
+
           // 根据不同的汇总类型获取值
           let value: string;
           if (summaryRow.key === 'summary_score') {
@@ -1690,20 +1678,20 @@ export default function Dashboard() {
           } else {
             value = summaryRow.getValue(examData);
           }
-          
+
           // 将值填充到所有三列（题目数/答对数、正确率、用时）
           // 只在第一列显示值，其他列显示空
           rowData[`${examName}_题目数/答对数`] = value;
           rowData[`${examName}_正确率`] = '';
           rowData[`${examName}_用时`] = '';
         });
-        
+
         exportData.push(rowData);
       });
-      
+
       // 创建工作表
       const ws = XLSX.utils.json_to_sheet(exportData, { skipHeader: true });
-      
+
       // 设置列宽
       const colWidths = [{ wch: 20 }]; // 模块名称列
       allExamNumbers.forEach(() => {
@@ -1712,18 +1700,17 @@ export default function Dashboard() {
         colWidths.push({ wch: 12 }); // 用时
       });
       ws['!cols'] = colWidths;
-      
+
       // 创建工作簿
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, '模块详细数据');
-      
+
       // 生成文件名（包含当前日期）
       const date = new Date().toISOString().split('T')[0];
       const fileName = `考试成绩模块详细数据_${date}.xlsx`;
-      
+
       // 导出文件
       XLSX.writeFile(wb, fileName);
-      
       message.success('导出成功！');
     } catch (error) {
       console.error('导出失败:', error);
@@ -1760,10 +1747,9 @@ export default function Dashboard() {
     return (
       <div className="container mx-auto py-8 px-4">
         <Card>
-          
             <p className="text-muted-foreground mb-4">暂无考试记录</p>
             <a href="/upload" className="text-primary hover:underline">
-              立即上传第一份成绩
+              点我去上传模考成绩
             </a>
           </Card>
       </div>
@@ -1773,8 +1759,8 @@ export default function Dashboard() {
   return (
     <div className="container mx-auto py-8 px-4">
       {/* 日期范围筛选器 */}
-      <DateRangeFilter 
-        value={dateRange} 
+      <DateRangeFilter
+        value={dateRange}
         onChange={setDateRange}
         minDate={dateRangeLimits.minDate}
         maxDate={dateRangeLimits.maxDate}
@@ -1822,9 +1808,9 @@ export default function Dashboard() {
         </Col>
 
         <Col xs={12} sm={8} md={4}>
-          <Card 
+          <Card
             className="stat-card stat-card-info p-1.5"
-            style={{ 
+            style={{
               background: generateGradientStyle(DASHBOARD_GRADIENTS[3]),
               height: isMobile ? 'auto' : '100%',
               minHeight: '90px'
@@ -1836,7 +1822,7 @@ export default function Dashboard() {
                 <ClockCircleOutlined className="stat-icon text-yellow-600 dark:text-yellow-300 text-lg flex-shrink-0" />
                 <div className="stat-title text-gray-800 dark:text-gray-200 text-xs font-semibold">累计做题时长</div>
               </div>
-              
+
               {/* 数值 */}
               <div className="flex-1 flex items-center">
                 <div className="text-gray-900 dark:text-gray-100 font-semibold leading-tight">
@@ -1848,7 +1834,7 @@ export default function Dashboard() {
                   </div>
                 </div>
               </div>
-              
+
               {/* 描述 */}
               <div className="text-xs opacity-80 mt-1 text-gray-700 dark:text-gray-300">所有考试花费时间</div>
             </div>
@@ -1913,20 +1899,20 @@ export default function Dashboard() {
                     <div className="text-4xl">📅</div>
                     <div className="flex-1">
                       <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-                        {examConfig.exam_type === '其他' && examConfig.exam_name 
-                          ? `${examConfig.exam_name}倒计时` 
+                        {examConfig.exam_type === '其他' && examConfig.exam_name
+                          ? `${examConfig.exam_name}倒计时`
                           : `${examConfig.exam_type}倒计时`}
                       </div>
                       <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                         {countdown.days > 0 ? (
                           <>
-                            <span className="text-3xl">{countdown.days}</span> 天 
-                            <span className="text-xl ml-2">{countdown.hours}</span> 时 
+                            <span className="text-3xl">{countdown.days}</span> 天
+                            <span className="text-xl ml-2">{countdown.hours}</span> 时
                             <span className="text-xl ml-1">{countdown.minutes}</span> 分
                           </>
                         ) : countdown.hours > 0 || countdown.minutes > 0 ? (
                           <>
-                            <span className="text-3xl">{countdown.hours}</span> 时 
+                            <span className="text-3xl">{countdown.hours}</span> 时
                             <span className="text-xl ml-2">{countdown.minutes}</span> 分
                           </>
                         ) : (
@@ -1962,7 +1948,7 @@ export default function Dashboard() {
       {/* 考试日历 */}
       <Row gutter={[16, 16]} className="mt-8">
         <Col xs={24}>
-          <Card 
+          <Card
             title="考试日历"
             extra={
               <div className="flex items-center gap-4 text-xs">
@@ -1973,7 +1959,7 @@ export default function Dashboard() {
             }
             className="calendar-card"
           >
-            <Calendar 
+            <Calendar
               cellRender={cellRender}
               headerRender={headerRender}
               className="exam-calendar"
@@ -1985,7 +1971,7 @@ export default function Dashboard() {
       {/* 图表 */}
       <Row gutter={[16, 16]} className="mt-8">
         <Col xs={24}>
-          <Card 
+          <Card
             title="总分趋势"
             extra={
               <div className="flex items-center gap-2">
@@ -2008,9 +1994,9 @@ export default function Dashboard() {
               </div>
             }
           >
-            <ReactECharts 
-              option={scoreTrendOption} 
-              style={{ height: isMobile ? '300px' : '400px' }} 
+            <ReactECharts
+              option={scoreTrendOption}
+              style={{ height: isMobile ? '300px' : '400px' }}
             />
           </Card>
         </Col>
@@ -2040,9 +2026,9 @@ export default function Dashboard() {
               </div>
             }
           >
-            <ReactECharts 
-              option={moduleTrendOption} 
-              style={{ height: isMobile ? '350px' : '450px' }} 
+            <ReactECharts
+              option={moduleTrendOption}
+              style={{ height: isMobile ? '350px' : '450px' }}
             />
           </Card>
         </Col>
@@ -2072,9 +2058,9 @@ export default function Dashboard() {
               </div>
             }
           >
-            <ReactECharts 
-              option={moduleTimeTrendOption} 
-              style={{ height: isMobile ? '350px' : '450px' }} 
+            <ReactECharts
+              option={moduleTimeTrendOption}
+              style={{ height: isMobile ? '350px' : '450px' }}
             />
           </Card>
         </Col>
@@ -2084,9 +2070,9 @@ export default function Dashboard() {
             title="模块平均正确率"
             extra={<span className="text-sm text-gray-500">各模块平均表现</span>}
           >
-            <ReactECharts 
-              option={moduleAvgOption} 
-              style={{ height: isMobile ? '300px' : '400px' }} 
+            <ReactECharts
+              option={moduleAvgOption}
+              style={{ height: isMobile ? '300px' : '400px' }}
             />
           </Card>
         </Col>
@@ -2096,9 +2082,9 @@ export default function Dashboard() {
             title="得分分布"
             extra={<span className="text-sm text-gray-500">各分数段分布情况</span>}
           >
-            <ReactECharts 
-              option={scoreDistributionOption} 
-              style={{ height: isMobile ? '300px' : '400px' }} 
+            <ReactECharts
+              option={scoreDistributionOption}
+              style={{ height: isMobile ? '300px' : '400px' }}
             />
           </Card>
         </Col>
@@ -2106,7 +2092,7 @@ export default function Dashboard() {
 
       {/* 模块详细统计表格 - 独立展示，占满屏幕宽度 */}
       <div className="mt-8">
-        <Card 
+        <Card
           title="历次考试各模块详细数据表"
           extra={
             <div className="flex items-center gap-4">
@@ -2157,11 +2143,9 @@ export default function Dashboard() {
               bordered
               scroll={{ x: 'max-content' }}
               rowClassName={(record, index) => {
-                // 总计行使用特殊样式
                 if (record.key === 'total') {
                   return 'bg-muted/50';
                 }
-                // 汇总统计行使用特殊样式
                 if (record.key?.startsWith('summary_')) {
                   // 得分行使用绿色背景
                   if (record.key === 'summary_score') {
@@ -2179,102 +2163,7 @@ export default function Dashboard() {
               }}
             />
           )}
-          
-          {/* 原来的独立汇总统计表格 - 保留注释以备后用 */}
-          {/* <div className="mt-4 overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20">
-                  <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center font-semibold text-gray-700 dark:text-gray-300 min-w-[150px]">
-                    考试期数
-                  </th>
-                  {allExamNumbers.map(examNum => {
-                    const examInfo = examInfoMap.get(examNum);
-                    const examName = examInfo?.name || `第${examNum}期`;
-                    return (
-                      <th key={examNum} className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center font-semibold text-gray-700 dark:text-gray-300 min-w-[120px]">
-                        {examName}
-                      </th>
-                    );
-                  })}
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                  <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 font-medium text-gray-700 dark:text-gray-300">
-                    总时长
-                  </td>
-                  {allExamNumbers.map(examNum => {
-                    const examData = totalRow.exams.get(examNum);
-                    const minutes = examData ? (examData.time_used / 60).toFixed(1) : '0.0';
-                    return (
-                      <td key={examNum} className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center text-gray-800 dark:text-gray-200">
-                        {minutes}分
-                      </td>
-                    );
-                  })}
-                </tr>
-                
-                <tr className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                  <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 font-medium text-gray-700 dark:text-gray-300">
-                    总答对
-                  </td>
-                  {allExamNumbers.map(examNum => {
-                    const examData = totalRow.exams.get(examNum);
-                    return (
-                      <td key={examNum} className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center text-gray-800 dark:text-gray-200">
-                        {examData?.correct_answers || 0}
-                      </td>
-                    );
-                  })}
-                </tr>
-                
-                <tr className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                  <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 font-medium text-gray-700 dark:text-gray-300">
-                    总题量
-                  </td>
-                  {allExamNumbers.map(examNum => {
-                    const examData = totalRow.exams.get(examNum);
-                    return (
-                      <td key={examNum} className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center text-gray-800 dark:text-gray-200">
-                        {examData?.total_questions || 0}
-                      </td>
-                    );
-                  })}
-                </tr>
-                
-                <tr className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                  <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 font-medium text-gray-700 dark:text-gray-300">
-                    总正确率
-                  </td>
-                  {allExamNumbers.map(examNum => {
-                    const examData = totalRow.exams.get(examNum);
-                    const accuracy = examData?.accuracy || 0;
-                    return (
-                      <td key={examNum} className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center text-gray-800 dark:text-gray-200">
-                        {accuracy.toFixed(1)}%
-                      </td>
-                    );
-                  })}
-                </tr>
-                
-                <tr className="bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 hover:from-green-100 hover:to-green-200 dark:hover:from-green-900/30 dark:hover:to-green-800/30">
-                  <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 font-semibold text-gray-700 dark:text-gray-300">
-                    得分
-                  </td>
-                  {allExamNumbers.map(examNum => {
-                    const exam = examRecords.find(r => r.sort_order === examNum);
-                    const score = exam?.total_score || 0;
-                    return (
-                      <td key={examNum} className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center font-semibold text-lg text-green-600 dark:text-green-400">
-                        {score.toFixed(2)}
-                      </td>
-                    );
-                  })}
-                </tr>
-              </tbody>
-            </table>
-          </div> */}
+
         </Card>
       </div>
 
@@ -2284,7 +2173,7 @@ export default function Dashboard() {
         onCancel={() => setShowLandscapeModal({ visible: false, title: '', type: 'chart' })}
         footer={null}
         width="100vw"
-        style={{ 
+        style={{
           top: 0,
           maxWidth: '100vw',
           margin: 0,
@@ -2297,7 +2186,7 @@ export default function Dashboard() {
         }}
         className="landscape-modal"
       >
-        <div 
+        <div
           className="w-full h-full flex items-center justify-center bg-white dark:bg-gray-900"
           style={{
             transform: 'rotate(90deg)',
@@ -2311,7 +2200,7 @@ export default function Dashboard() {
             marginTop: '-50vw',
           }}
         >
-          <div 
+          <div
             className="w-full h-full p-4"
             style={{
               overflow: 'auto',
@@ -2323,27 +2212,27 @@ export default function Dashboard() {
             {showLandscapeModal.type === 'chart' && (
               <>
                 {showLandscapeModal.content === 'scoreTrend' && (
-                  <ReactECharts 
-                    option={scoreTrendOption} 
-                    style={{ height: 'calc(100% - 60px)', width: '100%' }} 
+                  <ReactECharts
+                    option={scoreTrendOption}
+                    style={{ height: 'calc(100% - 60px)', width: '100%' }}
                   />
                 )}
                 {showLandscapeModal.content === 'moduleTrend' && (
-                  <ReactECharts 
-                    option={moduleTrendOption} 
-                    style={{ height: 'calc(100% - 60px)', width: '100%' }} 
+                  <ReactECharts
+                    option={moduleTrendOption}
+                    style={{ height: 'calc(100% - 60px)', width: '100%' }}
                   />
                 )}
                 {showLandscapeModal.content === 'moduleTimeTrend' && (
-                  <ReactECharts 
-                    option={moduleTimeTrendOption} 
-                    style={{ height: 'calc(100% - 60px)', width: '100%' }} 
+                  <ReactECharts
+                    option={moduleTimeTrendOption}
+                    style={{ height: 'calc(100% - 60px)', width: '100%' }}
                   />
                 )}
               </>
             )}
             {showLandscapeModal.type === 'table' && showLandscapeModal.content === 'detailTable' && (
-              <div 
+              <div
                 className="h-[calc(100%-60px)]"
                 style={{
                   overflow: 'auto',
@@ -2357,7 +2246,7 @@ export default function Dashboard() {
                   pagination={false}
                   size="small"
                   bordered
-                  scroll={{ 
+                  scroll={{
                     x: 'max-content',
                     y: undefined, // 移除y轴滚动，使用外层容器滚动
                   }}

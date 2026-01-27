@@ -28,8 +28,8 @@ export const SUB_MODULE_COLORS: Record<string, string> = {
   
   // 政治理论
   '马克思主义': '#eb2f96',
-  '理论与政策': '#722ed1',
-  '时政热点': '#f5222d',
+  '新思想': '#722ed1',
+  '时事政治': '#f5222d',
   
   // 资料分析
   '文字资料': '#1890ff',
@@ -74,7 +74,7 @@ export const MODULE_CONFIG: ModuleConfig[] = [
   {
     name: '政治理论',
     color: '#eb2f96',
-    subModules: ['马克思主义', '理论与政策', '时政热点']
+    subModules: ['马克思主义', '新思想', '时事政治']
   },
   {
     name: '资料分析',

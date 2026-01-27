@@ -3,7 +3,7 @@ import type { ExamRecord, ModuleScore } from '@/types';
 // 模块配置
 const MODULE_CONFIG = {
   '政治理论': {
-    subModules: ['马克思主义', '理论与政策', '时政热点'],
+    subModules: ['马克思主义', '新思想', '时事政治'],
     totalQuestions: 20,
     avgCorrectRate: 0.75,
   },

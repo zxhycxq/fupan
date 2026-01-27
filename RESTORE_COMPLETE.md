@@ -25,7 +25,6 @@
 - OrderConfirm.tsx（订单确认）
 - OrderDetail.tsx（订单详情）
 - Tools.tsx（工具）
-- DebugData.tsx（调试数据）
 - NotFound.tsx（404页面）
 
 ✅ **3个 Edge Functions**:

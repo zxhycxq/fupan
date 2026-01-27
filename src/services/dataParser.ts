@@ -211,7 +211,7 @@ export function parseExamData(
   const moduleStructure = [
     {
       name: '政治理论',
-      children: ['马克思主义', '理论与政策', '时政热点'],
+      children: ['马克思主义', '新思想', '时事政治'],
     },
     {
       name: '常识判断',

@@ -9,22 +9,22 @@ export async function recognizeText(request: OcrRequest): Promise<string> {
     // 构建表单数据
     const formData = new URLSearchParams();
     formData.append('image', request.image);
-    
+
     // 默认使用中英文混合识别
     formData.append('language_type', request.language_type || 'CHN_ENG');
-    
+
     // 启用方向检测，提高手机截图识别准确度
     formData.append('detect_direction', 'true');
-    
+
     // 启用概率值返回，用于判断识别质量
     formData.append('probability', 'true');
-    
+
     // 启用段落信息，保持文本结构
     formData.append('paragraph', 'true');
-    
+
     // 针对长截图：启用识别颗粒度（big - 更适合长文本）
     formData.append('recognize_granularity', 'big');
-    
+
     // 针对长截图：启用垂直文本检测
     formData.append('vertexes_location', 'true');
 
@@ -57,24 +57,22 @@ export async function recognizeText(request: OcrRequest): Promise<string> {
       .join('\n');
 
     console.log('=== OCR识别完成 ===');
-    console.log('识别到', result.data.words_result_num, '行文字');
-    console.log('识别结果:', text);
-    console.log('前300字符:', text.substring(0, 300));
-    
+    console.log('识别到', result.data.words_result_num, '行文字','识别结果:', text);
+
     // 输出识别质量信息
     if (result.data.words_result.some(item => item.probability)) {
       const avgProbability = result.data.words_result
         .filter(item => item.probability)
-        .reduce((sum, item) => sum + (item.probability?.average || 0), 0) / 
+        .reduce((sum, item) => sum + (item.probability?.average || 0), 0) /
         result.data.words_result.length;
       console.log('平均识别置信度:', (avgProbability * 100).toFixed(2) + '%');
-      
+
       // 如果置信度较低，给出警告
       if (avgProbability < 0.8) {
         console.warn('⚠️ 识别置信度较低，可能是长截图或图片质量问题');
       }
     }
-    
+
     return text;
   } catch (error) {
     console.error('文字识别失败:', error);
@@ -128,8 +126,8 @@ function enhanceImage(canvas: HTMLCanvasElement, isLongScreenshot: boolean = fal
         const bottom = tempData[((y + 1) * canvas.width + x) * 4 + c];
         const left = tempData[(y * canvas.width + (x - 1)) * 4 + c];
         const right = tempData[(y * canvas.width + (x + 1)) * 4 + c];
-        
-        const sharpened = center * (1 + 4 * sharpness) - 
+
+        const sharpened = center * (1 + 4 * sharpness) -
                          (top + bottom + left + right) * sharpness;
         data[i] = Math.max(0, Math.min(255, sharpened));
       }
@@ -140,13 +138,13 @@ function enhanceImage(canvas: HTMLCanvasElement, isLongScreenshot: boolean = fal
   if (isLongScreenshot) {
     const denoiseData = new Uint8ClampedArray(data);
     const radius = 1;
-    
+
     for (let y = radius; y < canvas.height - radius; y++) {
       for (let x = radius; x < canvas.width - radius; x++) {
         for (let c = 0; c < 3; c++) {
           let sum = 0;
           let count = 0;
-          
+
           // 3x3邻域平均
           for (let dy = -radius; dy <= radius; dy++) {
             for (let dx = -radius; dx <= radius; dx++) {
@@ -155,7 +153,7 @@ function enhanceImage(canvas: HTMLCanvasElement, isLongScreenshot: boolean = fal
               count++;
             }
           }
-          
+
           const i = (y * canvas.width + x) * 4 + c;
           // 轻度降噪：70%原值 + 30%平均值
           data[i] = denoiseData[i] * 0.7 + (sum / count) * 0.3;
@@ -169,7 +167,7 @@ function enhanceImage(canvas: HTMLCanvasElement, isLongScreenshot: boolean = fal
 
 // 压缩图片 - 针对手机截图优化（支持安卓长截图）
 export function compressImage(
-  file: File, 
+  file: File,
   maxWidth: number = 2400,  // 提高最大宽度以保留更多细节
   quality: number = 0.95    // 提高质量以保留文字清晰度
 ): Promise<File> {
@@ -193,11 +191,11 @@ export function compressImage(
               let height = img.height;
 
               console.log(`原始图片尺寸: ${width}x${height}`);
-              
+
               // 判断是否为长截图（高度/宽度比例 > 2.5）
               const aspectRatio = height / width;
               const isLongScreenshot = aspectRatio > 2.5;
-              
+
               if (isLongScreenshot) {
                 console.log(`检测到长截图，高宽比: ${aspectRatio.toFixed(2)}`);
               }
@@ -223,7 +221,7 @@ export function compressImage(
               ctx.drawImage(img, 0, 0, width, height);
 
               // 对手机截图进行图像增强（长截图使用增强参数）
-              console.log(isLongScreenshot ? '应用长截图增强处理...' : '应用图像增强处理...');
+              // console.log(isLongScreenshot ? '应用长截图增强处理...' : '应用图像增强处理...');
               enhanceImage(canvas, isLongScreenshot);
 
               // 转换为blob
@@ -241,7 +239,7 @@ export function compressImage(
                     lastModified: Date.now(),
                   });
 
-                  console.log(`图片处理完成: ${(file.size / 1024 / 1024).toFixed(2)}MB -> ${(compressedFile.size / 1024 / 1024).toFixed(2)}MB`);
+                  // console.log(`图片处理完成: ${(file.size / 1024 / 1024).toFixed(2)}MB -> ${(compressedFile.size / 1024 / 1024).toFixed(2)}MB`);
                   resolve(compressedFile);
                 },
                 'image/jpeg',
@@ -273,4 +271,3 @@ export function compressImage(
     }
   });
 }
-

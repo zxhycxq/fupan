@@ -50,7 +50,7 @@ export default function ModuleAnalysis() {
   const loadData = async () => {
     try {
       setIsLoading(true);
-      
+
       // 获取所有考试记录
       const { data: allExams, error: examsError } = await supabase
         .from('exam_records')
@@ -58,11 +58,9 @@ export default function ModuleAnalysis() {
         .order('sort_order', { ascending: true });
 
       if (examsError) throw examsError;
-      
-      // 【重要】过滤出参与统计的记录（include_in_stats !== false）
-      // 只有参与统计的记录才会在各模块分析中显示和计算
+
+      // 【重要】过滤出参与统计的记录（include_in_stats !== false） 只有参与统计的记录才会在各模块分析中显示和计算
       const exams = (allExams || []).filter(record => record.include_in_stats !== false);
-      
       setExamRecords(exams);
     } catch (error) {
       console.error('加载数据失败:', error);
@@ -76,7 +74,7 @@ export default function ModuleAnalysis() {
     if (!dateRange || !dateRange[0] || !dateRange[1]) {
       return examRecords;
     }
-    
+
     const [startDate, endDate] = dateRange;
     return examRecords.filter(record => {
       // 如果没有exam_date，使用created_at作为默认日期
@@ -87,7 +85,7 @@ export default function ModuleAnalysis() {
       }
       const examDate = dayjs(dateToUse);
       const isInRange = examDate.isSameOrAfter(startDate, 'day') && examDate.isSameOrBefore(endDate, 'day');
-      
+
       // 添加调试日志
       if (!isInRange) {
         console.log('考试记录不在日期范围内:', {
@@ -99,7 +97,7 @@ export default function ModuleAnalysis() {
           endDate: endDate.format('YYYY-MM-DD'),
         });
       }
-      
+
       return isInRange;
     });
   }, [examRecords, dateRange]);
@@ -157,14 +155,14 @@ export default function ModuleAnalysis() {
         throw error;
       }
 
-      console.log('查询到的模块分数数据:', moduleScores);
-      console.log('过滤后的考试记录数:', filteredRecords.length);
-      console.log('查询到的模块分数记录数:', moduleScores?.length || 0);
+      // console.log('查询到的模块分数数据:', moduleScores);
+      // console.log('过滤后的考试记录数:', filteredRecords.length);
+      // console.log('查询到的模块分数记录数:', moduleScores?.length || 0);
 
       // 检查哪些考试记录没有模块数据
       const examIdsWithModuleScores = new Set(moduleScores?.map((s: any) => s.exam_record_id) || []);
       const examRecordsWithoutModuleScores = filteredRecords.filter(r => !examIdsWithModuleScores.has(r.id));
-      
+
       if (examRecordsWithoutModuleScores.length > 0) {
         console.warn('以下考试记录没有模块数据:', examRecordsWithoutModuleScores.map(r => ({
           id: r.id,
@@ -175,18 +173,18 @@ export default function ModuleAnalysis() {
 
       // 按考试期数分组
       const examMap = new Map<number, { exam_name?: string; exam_date?: string | null; modules: Map<string, number> }>();
-      
+
       moduleScores?.forEach((score: any) => {
         const examNumber = score.exam_records.sort_order;
         const examName = score.exam_records.exam_name;
         const examDate = score.exam_records.exam_date;
-        
+
         if (!examMap.has(examNumber)) {
           examMap.set(examNumber, { exam_name: examName, exam_date: examDate, modules: new Map() });
         }
-        
+
         const examData = examMap.get(examNumber)!;
-        
+
         // 使用accuracy_rate字段，如果没有则计算
         let accuracy = 0;
         if (score.accuracy_rate !== null && score.accuracy_rate !== undefined) {
@@ -194,7 +192,7 @@ export default function ModuleAnalysis() {
         } else if (score.correct_answers && score.total_questions) {
           accuracy = (score.correct_answers / score.total_questions) * 100;
         }
-        
+
         examData.modules.set(score.module_name, accuracy);
       });
 
@@ -204,7 +202,7 @@ export default function ModuleAnalysis() {
       const examNumbers = Array.from(examMap.keys()).sort((a, b) => a - b);
       const examNames = examNumbers.map(num => examMap.get(num)?.exam_name || `第${num}期`);
       const examDates = examNumbers.map(num => examMap.get(num)?.exam_date || null);
-      
+
       const series = subModules.map(moduleName => ({
         name: moduleName,
         data: examNumbers.map(num => {
@@ -213,7 +211,7 @@ export default function ModuleAnalysis() {
         })
       }));
 
-      console.log('生成的图表数据:', { examNumbers, examNames, examDates, series });
+      // console.log('生成的图表数据:', { examNumbers, examNames, examDates, series });
 
       return { examNumbers, examNames, examDates, series };
     } catch (error) {
@@ -224,9 +222,9 @@ export default function ModuleAnalysis() {
 
   // 生成图表配置
   const getChartOption = (
-    title: string, 
+    title: string,
     color: string,
-    examNumbers: number[], 
+    examNumbers: number[],
     examNames: string[],
     examDates: (string | null)[],
     series: { name: string; data: (number | null)[] }[]
@@ -355,7 +353,6 @@ export default function ModuleAnalysis() {
 
   return (
     <div className="p-6">
-
       <div className="mb-6">
         <h1 className="text-2xl font-bold">各模块分析</h1>
         <p className="text-gray-500 mt-2">
@@ -406,7 +403,7 @@ export default function ModuleAnalysis() {
         onCancel={() => setShowLandscapeModal({ visible: false, title: '', moduleName: '' })}
         footer={null}
         width="100vw"
-        style={{ 
+        style={{
           top: 0,
           maxWidth: '100vw',
           margin: 0,
@@ -419,7 +416,7 @@ export default function ModuleAnalysis() {
         }}
         className="landscape-modal"
       >
-        <div 
+        <div
           className="w-full h-full flex items-center justify-center bg-white dark:bg-gray-900"
           style={{
             transform: 'rotate(90deg)',
@@ -436,9 +433,9 @@ export default function ModuleAnalysis() {
           <div className="w-full h-full p-4">
             <div className="text-xl font-bold mb-4 text-center">{showLandscapeModal.title}</div>
             {MODULE_CONFIG.filter(c => c.name === showLandscapeModal.moduleName).map(config => (
-              <ModuleChart 
+              <ModuleChart
                 key={config.name}
-                config={config} 
+                config={config}
                 filteredRecords={filteredExamRecords}
                 landscapeMode={true}
               />

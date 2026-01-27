@@ -6,7 +6,6 @@ import ModuleAnalysis from './pages/ModuleAnalysis';
 import Tools from './pages/Tools';
 import Settings from './pages/Settings';
 import Profile from './pages/Profile';
-import DebugData from './pages/DebugData';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import OrderConfirm from './pages/OrderConfirm';
@@ -82,12 +81,7 @@ const routes: RouteConfig[] = [
     element: <ExamDetail />,
     visible: false,
   },
-  {
-    name: '数据调试',
-    path: '/debug',
-    element: <DebugData />,
-    visible: false,
-  },
+
   {
     name: '订单确认',
     path: '/order-confirm',

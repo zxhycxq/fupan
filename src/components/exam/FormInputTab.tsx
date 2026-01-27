@@ -10,7 +10,7 @@ const { Panel } = Collapse;
 const MODULE_CONFIG = [
   {
     name: '政治理论',
-    subModules: ['马克思主义', '理论与政策', '时政热点']
+    subModules: ['马克思主义', '新思想', '时事政治']
   },
   {
     name: '常识判断',
@@ -103,13 +103,7 @@ export default function FormInputTab({ examName, sortOrder, examType, onSubmitSt
 
       // 验证表单并获取所有字段值
       const formValues = form.getFieldsValue(true);
-      
-      console.log('=== 表单提交 ===');
-      console.log('考试名称:', examName);
-      console.log('排序号:', sortOrder);
-      console.log('考试类型:', examType);
-      console.log('表单值:', formValues);
-      
+
       const moduleScores: any[] = [];
       let totalScore = 0;
       let totalTime = 0;
@@ -119,19 +113,19 @@ export default function FormInputTab({ examName, sortOrder, examType, onSubmitSt
         // 先检查大模块总计
         const parentKey = `${parentModule.name}_总计`;
         const parentData = formValues[parentKey];
-        
+
         if (parentData && parentData.total_questions > 0) {
           const correctAnswers = parentData.correct_answers || 0;
           const totalQs = parentData.total_questions;
           const timeUsedMinutes = parentData.time_used || 1; // 默认1分钟
-          
+
           // 验证答对数量不能超过题目数量
           if (correctAnswers > totalQs) {
             message.error(`${parentModule.name}总计：答对数量(${correctAnswers})不能超过题目数量(${totalQs})`);
             hasValidationError = true;
             return;
           }
-          
+
           const timeUsedSeconds = timeUsedMinutes * 60; // 分钟转秒
           const accuracyRate = totalQs > 0 ? (correctAnswers / totalQs) * 100 : 0;
 
@@ -145,33 +139,33 @@ export default function FormInputTab({ examName, sortOrder, examType, onSubmitSt
             accuracy_rate: Number(accuracyRate.toFixed(2)),
             time_used: timeUsedSeconds
           };
-          
+
           console.log('添加大模块得分:', moduleScore);
           moduleScores.push(moduleScore);
 
           totalScore += correctAnswers;
           totalTime += timeUsedSeconds;
         }
-        
+
         // 再处理子模块
         parentModule.subModules.forEach(subModule => {
           const key = `${parentModule.name}_${subModule}`;
           const data = formValues[key];
-          
+
           console.log(`检查模块 ${key}:`, data);
-          
+
           if (data && data.total_questions > 0) {
             const correctAnswers = data.correct_answers || 0;
             const totalQs = data.total_questions;
             const timeUsedMinutes = data.time_used || 1; // 默认1分钟
-            
+
             // 验证答对数量不能超过题目数量
             if (correctAnswers > totalQs) {
               message.error(`${subModule}：答对数量(${correctAnswers})不能超过题目数量(${totalQs})`);
               hasValidationError = true;
               return;
             }
-            
+
             const timeUsedSeconds = timeUsedMinutes * 60; // 分钟转秒
             const accuracyRate = totalQs > 0 ? (correctAnswers / totalQs) * 100 : 0;
 
@@ -185,7 +179,7 @@ export default function FormInputTab({ examName, sortOrder, examType, onSubmitSt
               accuracy_rate: Number(accuracyRate.toFixed(2)),
               time_used: timeUsedSeconds
             };
-            
+
             console.log('添加模块得分:', moduleScore);
             moduleScores.push(moduleScore);
 
@@ -194,15 +188,13 @@ export default function FormInputTab({ examName, sortOrder, examType, onSubmitSt
           }
         });
       });
-      
+
       // 如果有验证错误，停止提交
       if (hasValidationError) {
         return;
       }
 
-      console.log('总共收集到', moduleScores.length, '个模块');
-      console.log('总分:', totalScore);
-      console.log('总用时(秒):', totalTime);
+      console.log('总共收集到', moduleScores.length, '个模块','总分:', totalScore,totalTime);
 
       if (moduleScores.length === 0) {
         message.error('请至少填写一个模块的数据');
@@ -252,12 +244,12 @@ export default function FormInputTab({ examName, sortOrder, examType, onSubmitSt
       <Form form={form} layout="vertical">
         <Collapse defaultActiveKey={[]} className="bg-white">
           {MODULE_CONFIG.map((parentModule) => (
-            <Panel 
+            <Panel
               header={
                 <div className="font-medium text-base">
                   {parentModule.name}
                 </div>
-              } 
+              }
               key={parentModule.name}
             >
               <div className="space-y-3">

@@ -201,9 +201,6 @@ export default function ExamList() {
                 setCurrentPage(totalPages);
             }
 
-            if (records.length === 0) {
-                console.warn('未获取到考试记录数据');
-            }
         } catch (error) {
             console.error('加载考试记录失败:', error);
             const errorMessage = '加载考试记录失败。可能是网络问题或浏览器扩展（如广告拦截器）阻止了请求。请尝试：\n1. 禁用广告拦截器\n2. 刷新页面重试\n3. 检查网络连接';
@@ -318,7 +315,6 @@ export default function ExamList() {
     const handleExportExcel = () => {
         try {
             setIsExporting(true);
-
             // 使用筛选后的数据
             const dataToExport = filteredRecords;
 
@@ -358,7 +354,7 @@ export default function ExamList() {
                 { wch: 12 }, // 击败率
                 { wch: 12 }, // 考试日期
                 { wch: 10 }, // 星级评定
-                { wch: 14 }, // 是否计入统计
+                { wch: 16 }, // 是否计入统计
                 { wch: 18 }, // 上传时间
             ];
             worksheet['!cols'] = colWidths;
@@ -451,10 +447,8 @@ export default function ExamList() {
         try {
             // 调用API更新数据库
             await updateExamIncludeInStats(id, includeInStats);
-
             // 显示成功提示
             message.success(includeInStats ? '已开启参与统计' : '已关闭参与统计');
-
             // 更新本地状态
             setExamRecords(prev =>
                 prev.map(record =>
@@ -541,7 +535,6 @@ export default function ExamList() {
     const handleSaveSort = async () => {
         try {
             setIsSavingSort(true); // 开始保存，显示loading
-
             // 更新每条记录的 sort_order
             const updates = examRecords.map((record, index) => ({
                 id: record.id,
@@ -748,7 +741,6 @@ export default function ExamList() {
                 showTitle: false,
             },
             render: (value: string, record: ExamRecord) => {
-                // 如果有报告链接，显示为可点击的链接
                 if (record.report_url && record.report_url.trim()) {
                     return (
                         <Tooltip title={value}>
@@ -785,20 +777,30 @@ export default function ExamList() {
                 return <Tag color={color} bordered>{type}</Tag>;
             },
         },
+
         {
-            title: '总分',
-            dataIndex: 'total_score',
-            key: 'total_score',
-            width: 70,
-            render: (value: number) => (
-                <span
-                    className={`font-semibold ${
-                        value >= 80 ? 'text-green-600' : value >= 60 ? 'text-blue-600' : 'text-orange-600'
-                    }`}
-                >
-          {value.toFixed(1)}
-        </span>
+            title: (
+                <Space size={4}>
+                    <span>参与统计</span>
+                    <Tooltip title="默认开启，关闭代表不参与数据总览和各模块分析的统计分析">
+                        <InfoCircleOutlined className="text-gray-400 text-xs" />
+                    </Tooltip>
+                </Space>
             ),
+            dataIndex: 'include_in_stats',
+            key: 'include_in_stats',
+            width: 96,
+            render: (value: boolean | null | undefined, record: ExamRecord) => {
+                const isIncluded = value !== false; // 默认为 true
+                return (
+                    <Switch
+                        size="small"
+                        checked={isIncluded}
+                        onChange={(checked) => handleIncludeInStatsChange(record.id, checked)}
+                        disabled={isSavingSort}
+                    />
+                );
+            },
         },
         {
             title: (
@@ -814,7 +816,6 @@ export default function ExamList() {
             width: 85,
             render: (value: number | null) => {
                 if (!value) return '-';
-
                 // 数据库存储的是秒，需要转换为分钟
                 const minutes = Math.round(value / 60);
                 const isOvertime = minutes > 115;
@@ -826,28 +827,19 @@ export default function ExamList() {
             },
         },
         {
-            title: (
-                <Space size={4}>
-                    <span>参与统计</span>
-                    <Tooltip title="默认开启，关闭代表不参与数据总览和各模块分析的统计分析">
-                        <InfoCircleOutlined className="text-gray-400 text-xs" />
-                    </Tooltip>
-                </Space>
+            title: '总分',
+            dataIndex: 'total_score',
+            key: 'total_score',
+            width: 70,
+            render: (value: number) => (
+                <span
+                    className={`font-semibold ${
+                        value >= 80 ? 'text-green-600' : value >= 60 ? 'text-blue-600' : 'text-orange-600'
+                    }`}
+                >
+          {value.toFixed(1)}
+        </span>
             ),
-            dataIndex: 'include_in_stats',
-            key: 'include_in_stats',
-            width: 90,
-            render: (value: boolean | null | undefined, record: ExamRecord) => {
-                const isIncluded = value !== false; // 默认为 true
-                return (
-                    <Switch
-                        size="small"
-                        checked={isIncluded}
-                        onChange={(checked) => handleIncludeInStatsChange(record.id, checked)}
-                        disabled={isSavingSort}
-                    />
-                );
-            },
         },
         {
             title: '平均分',
@@ -1003,7 +995,6 @@ export default function ExamList() {
 
     return (
         <div className="container mx-auto py-4 px-2 xl:py-8 xl:px-4 bg-gray-50 min-h-screen">
-
             <div className="mb-6">
                 <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 mb-4">
                     <div className="flex items-center gap-2">
@@ -1163,7 +1154,6 @@ export default function ExamList() {
                                         value={dateRange}
                                         onChange={(dates) => {
                                             setDateRange(dates);
-                                            // 不需要立即触发筛选，等用户点击搜索按钮
                                         }}
                                         showLabel={false}
                                         className="mb-0"
@@ -1293,7 +1283,6 @@ export default function ExamList() {
                     layout="vertical"
                     autoComplete="off"
                 >
-                    {/* 1. 考试名称 */}
                     <Form.Item
                         label="考试名称"
                         name="exam_name"
@@ -1307,8 +1296,6 @@ export default function ExamList() {
                             placeholder="请输入考试名称"
                         />
                     </Form.Item>
-
-                    {/* 2. 总分 */}
                     <Form.Item
                         label="总分"
                         name="total_score"
@@ -1325,8 +1312,6 @@ export default function ExamList() {
                             placeholder="请输入总分"
                         />
                     </Form.Item>
-
-                    {/* 3. 考试日期 */}
                     <Form.Item
                         label="考试日期"
                         name="exam_date"
@@ -1344,8 +1329,6 @@ export default function ExamList() {
                             }}
                         />
                     </Form.Item>
-
-                    {/* 4. 用时（分钟） */}
                     <Form.Item
                         label="用时（分钟）"
                         name="time_used"
@@ -1356,8 +1339,6 @@ export default function ExamList() {
                             placeholder="请输入用时"
                         />
                     </Form.Item>
-
-                    {/* 5. 平均分 */}
                     <Form.Item
                         label="平均分"
                         name="average_score"
@@ -1370,8 +1351,6 @@ export default function ExamList() {
                             placeholder="请输入平均分"
                         />
                     </Form.Item>
-
-                    {/* 6. 击败率（%） */}
                     <Form.Item
                         label="击败率（%）"
                         name="pass_rate"
@@ -1384,8 +1363,6 @@ export default function ExamList() {
                             placeholder="请输入击败率"
                         />
                     </Form.Item>
-
-                    {/* 7. 考试类型 */}
                     <Form.Item
                         label="考试类型"
                         name="exam_type"
@@ -1401,8 +1378,6 @@ export default function ExamList() {
                             ]}
                         />
                     </Form.Item>
-
-                    {/* 8. 考试报告链接 */}
                     <Form.Item
                         label="考试报告链接"
                         name="report_url"

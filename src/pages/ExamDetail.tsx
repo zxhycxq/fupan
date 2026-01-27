@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import ReactECharts from 'echarts-for-react';
-import { 
-  Card, 
-  Button, 
-  Skeleton, 
-  Tag, 
-  Input, 
-  Modal, 
-  Tooltip, 
+import {
+  Card,
+  Button,
+  Skeleton,
+  Tag,
+  Input,
+  Modal,
+  Tooltip,
   message,
   Row,
   Col,
@@ -17,17 +17,17 @@ import {
   Tabs,
   Descriptions
 } from 'antd';
-import { 
-  ArrowLeftOutlined, 
-  ClockCircleOutlined, 
-  AimOutlined, 
-  RiseOutlined, 
-  WarningOutlined, 
-  EditOutlined, 
-  CalendarOutlined, 
-  FileTextOutlined, 
-  LinkOutlined, 
-  InfoCircleOutlined, 
+import {
+  ArrowLeftOutlined,
+  ClockCircleOutlined,
+  AimOutlined,
+  RiseOutlined,
+  WarningOutlined,
+  EditOutlined,
+  CalendarOutlined,
+  FileTextOutlined,
+  LinkOutlined,
+  InfoCircleOutlined,
   FileOutlined,
   CheckCircleOutlined,
   CloseCircleOutlined,
@@ -146,7 +146,7 @@ export default function ExamDetail() {
   // 计算所有模块的总用时（分钟）
   const calculateTotalTime = (excludeModuleId?: string): number => {
     if (!examDetail) return 0;
-    
+
     return examDetail.module_scores
       .filter(m => m.id !== excludeModuleId && !m.parent_module) // 只计算大模块，排除正在编辑的模块
       .reduce((total, m) => total + secondsToMinutes(m.time_used || 0), 0);
@@ -166,17 +166,11 @@ export default function ExamDetail() {
     // 计算其他模块的总用时
     const otherModulesTime = calculateTotalTime(module.id);
     const totalTime = otherModulesTime + minutes;
-
-    console.log('=== 用时验证调试信息 ===');
-    console.log('当前编辑模块:', module.module_name);
-    console.log('新用时(分钟):', minutes);
-    console.log('其他模块总用时(分钟):', otherModulesTime);
-    console.log('总用时(分钟):', totalTime);
-    console.log('所有模块:', examDetail.module_scores.map(m => ({
-      name: m.module_name,
-      parent: m.parent_module,
-      time: secondsToMinutes(m.time_used || 0)
-    })));
+    // console.log('所有模块:', examDetail.module_scores.map(m => ({
+    //   name: m.module_name,
+    //   parent: m.parent_module,
+    //   time: secondsToMinutes(m.time_used || 0)
+    // })));
 
     // 验证总时长不超过120分钟
     if (totalTime > 120) {
@@ -190,23 +184,23 @@ export default function ExamDetail() {
 
     try {
       setIsSaving(true);
-      
+
       // 更新模块用时
       await updateModuleScore(module.id, { time_used: newTime });
-      
+
       // 更新本地模块状态
       const updatedModuleScores = examDetail.module_scores.map(m =>
         m.id === module.id ? { ...m, time_used: newTime } : m
       );
-      
+
       // 计算所有大模块的总用时（秒）
       const totalTimeInSeconds = updatedModuleScores
         .filter(m => !m.parent_module) // 只计算大模块
         .reduce((total, m) => total + (m.time_used || 0), 0);
-      
+
       // 更新考试记录的总用时
       await updateExamRecord(id, { time_used: totalTimeInSeconds });
-      
+
       // 更新本地状态
       setExamDetail({
         ...examDetail,
@@ -258,7 +252,6 @@ export default function ExamDetail() {
       updateData.unanswered = 0; // 默认未答题数为0
     } else if (editingField.field === 'correct') {
       updateData.correct_answers = value;
-      // 验证答对数不能超过总题数
       if (value > module.total_questions) {
         message.error("答对数不能超过总题数");
         setEditingField(null);
@@ -279,7 +272,7 @@ export default function ExamDetail() {
     try {
       setIsSaving(true);
       await updateModuleScore(module.id, updateData);
-      
+
       // 更新本地状态
       setExamDetail({
         ...examDetail,
@@ -324,7 +317,7 @@ export default function ExamDetail() {
     try {
       setIsSaving(true);
       await updateExamNotes(id, improvements, mistakes);
-      
+
       // 更新本地状态
       setExamDetail({
         ...examDetail,
@@ -333,7 +326,7 @@ export default function ExamDetail() {
       });
 
       message.success('备注保存成功');
-      
+
       setIsEditingNotes(false);
     } catch (error) {
       console.error('保存备注失败:', error);
@@ -405,7 +398,7 @@ export default function ExamDetail() {
       );
       const currentSubTotal = currentSubModules.reduce((sum, m) => sum + (m.total_questions || 0), 0);
       const newTotal = currentSubTotal + parseInt(newModuleTotal);
-      
+
       if (newTotal > parentModule.total_questions) {
         message.error(`子模块总题数不能超过父模块总题数（${parentModule.total_questions}题）`);
         return;
@@ -461,7 +454,7 @@ export default function ExamDetail() {
 
     Modal.confirm({
       title: '确认删除',
-      content: `确定要删除子模块"${moduleName}"吗？此操作不可恢复。`,
+      content: `确定要删除子模块"${moduleName}"吗？此操作不可恢复！`,
       okText: '确定',
       cancelText: '取消',
       onOk: async () => {
@@ -492,19 +485,13 @@ export default function ExamDetail() {
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
           {[...Array(4)].map((_, i) => (
             <Card key={i}>
-              
                 <Skeleton className="h-4 w-24" />
-              
-              
                 <Skeleton className="h-8 w-16" />
               </Card>
           ))}
         </div>
         <Card>
-          
             <Skeleton className="h-6 w-32" />
-          
-          
             <Skeleton className="h-96 w-full" />
           </Card>
       </div>
@@ -539,11 +526,11 @@ export default function ExamDetail() {
 
   // 计算所有大模块的总用时（秒）
   const totalModulesTime = mainModules.reduce((sum, m) => sum + (m.time_used || 0), 0);
-  
+
   // 优先使用各大模块用时总和
   // 只有当用户在列表页手动修改过总用时（与模块总和差异较大）时，才使用用户设置的值
   const displayTime = totalModulesTime || examDetail.time_used || 0;
-  
+
   // 判断是否应该标红（低于目标值或默认50%）
   const shouldHighlightRed = (moduleName: string, accuracyRate: number | undefined): boolean => {
     if (!accuracyRate) return true; // 没有数据时标红
@@ -551,7 +538,7 @@ export default function ExamDetail() {
     const threshold = setting?.target_accuracy || 50; // 默认50%
     return accuracyRate < threshold;
   };
-  
+
   // 获取弱势模块(正确率低于60%)
   const weakModules = mainModules.filter(m => (m.accuracy_rate || 0) < 60);
 
@@ -567,14 +554,14 @@ export default function ExamDetail() {
       trigger: 'item',
       formatter: (params: any) => {
         if (!params || !params.value) return '';
-        
+
         const seriesName = params.seriesName; // '实际' 或 '目标'
         const values = params.value; // 数组，包含所有指标的值
         const color = seriesName === '实际' ? '#1890FF' : '#52C41A';
-        
+
         let result = `<div style="padding: 8px;">`;
         result += `<div style="font-weight: bold; margin-bottom: 8px;">${seriesName}</div>`;
-        
+
         mainModules.forEach((module, index) => {
           result += `
             <div style="display: flex; align-items: center; margin-bottom: 4px;">
@@ -583,7 +570,7 @@ export default function ExamDetail() {
             </div>
           `;
         });
-        
+
         result += `</div>`;
         return result;
       },
@@ -764,7 +751,7 @@ export default function ExamDetail() {
           const from = searchParams.get('from');
           const page = searchParams.get('page');
           const pageSize = searchParams.get('pageSize');
-          
+
           if (from === 'list' && page) {
             // 返回到列表页的指定页码
             navigate(`/exams?page=${page}${pageSize ? `&pageSize=${pageSize}` : ''}`);
@@ -781,9 +768,9 @@ export default function ExamDetail() {
 
       <div className="mb-6">
         <h1 className="text-3xl font-bold mb-4">{examDetail.exam_name} - 详情</h1>
-        
-        <Descriptions 
-          bordered 
+
+        <Descriptions
+          bordered
           column={{ xxl: 3, xl: 3, lg: 2, md: 2, sm: 1, xs: 1 }}
           size="middle"
         >
@@ -821,7 +808,7 @@ export default function ExamDetail() {
             )}
           </Descriptions.Item>
         </Descriptions>
-        
+
         {/* 备注区域 - 两列布局 */}
         <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* 有进步的地方 */}
@@ -831,7 +818,7 @@ export default function ExamDetail() {
               <span className="text-sm font-medium text-green-700 dark:text-green-300">有进步的地方</span>
             </div>
             {examDetail.improvements ? (
-              <div 
+              <div
                 className="text-sm break-words text-gray-700 dark:text-gray-300 prose prose-sm max-w-none"
                 dangerouslySetInnerHTML={{ __html: examDetail.improvements }}
               />
@@ -847,7 +834,7 @@ export default function ExamDetail() {
               <span className="text-sm font-medium text-red-700 dark:text-red-300">出错的地方</span>
             </div>
             {examDetail.mistakes ? (
-              <div 
+              <div
                 className="text-sm break-words text-gray-700 dark:text-gray-300 prose prose-sm max-w-none"
                 dangerouslySetInnerHTML={{ __html: examDetail.mistakes }}
               />
@@ -860,7 +847,7 @@ export default function ExamDetail() {
 
       {/* 统计卡片 */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 mb-8">
-        <Card 
+        <Card
           className="exam-stat-card shadow-lg hover:shadow-xl transition-shadow duration-300"
           style={{ background: generateGradientStyle(EXAM_DETAIL_GRADIENTS[0]) }}
         >
@@ -874,7 +861,7 @@ export default function ExamDetail() {
           <p className="text-xs text-white opacity-80">满分100分</p>
         </Card>
 
-        <Card 
+        <Card
           className="exam-stat-card shadow-lg hover:shadow-xl transition-shadow duration-300"
           style={{ background: generateGradientStyle(EXAM_DETAIL_GRADIENTS[1]) }}
         >
@@ -888,7 +875,7 @@ export default function ExamDetail() {
           <p className="text-xs text-white opacity-80">m</p>
         </Card>
 
-        <Card 
+        <Card
           className="exam-stat-card shadow-lg hover:shadow-xl transition-shadow duration-300"
           style={{ background: generateGradientStyle(EXAM_DETAIL_GRADIENTS[2]) }}
         >
@@ -902,7 +889,7 @@ export default function ExamDetail() {
           <p className="text-xs text-white opacity-80">考生平均分</p>
         </Card>
 
-        <Card 
+        <Card
           className="exam-stat-card shadow-lg hover:shadow-xl transition-shadow duration-300"
           style={{ background: generateGradientStyle(EXAM_DETAIL_GRADIENTS[3]) }}
         >
@@ -916,7 +903,7 @@ export default function ExamDetail() {
           <p className="text-xs text-white opacity-80">难度系数(0-5)</p>
         </Card>
 
-        <Card 
+        <Card
           className="exam-stat-card shadow-lg hover:shadow-xl transition-shadow duration-300"
           style={{ background: generateGradientStyle(EXAM_DETAIL_GRADIENTS[4]) }}
         >
@@ -934,14 +921,7 @@ export default function ExamDetail() {
       {/* 弱势模块提醒 */}
       {weakModules.length > 0 && (
         <Card className="mb-8 border-orange-200 bg-orange-50 shadow-md">
-          
-            
-              <WarningOutlined className="mr-2 h-5 w-5" />
-              弱势模块提醒
-            
-            以下模块正确率低于60%,需要重点加强
-          
-          
+              <WarningOutlined className="mr-2 h-5 w-5" />             弱势模块提醒            以下模块正确率低于60%,需要重点加强
             <div className="flex flex-wrap gap-2">
               {weakModules.map(m => (
                 <Tag key={m.id} className="border-orange-300 text-orange-700">
@@ -956,9 +936,9 @@ export default function ExamDetail() {
       <div className="grid gap-6 md:grid-cols-2 mb-8">
         <Card className="shadow-md hover:shadow-lg transition-shadow duration-300">
             <div className="mb-4">
-              <TitleWithTooltip 
-                title="各模块正确率" 
-                tooltip="雷达图展示各个考试模块的正确率分布情况，可以直观地看出各模块的强弱项。正确率越高，该模块掌握越好。"
+              <TitleWithTooltip
+                title="各模块正确率"
+                tooltip="雷达图展示各个考试模块的正确率分布情况，可以直观地看出各模块的强弱项。正确率越高，表示该模块掌握得越好。"
               />
             </div>
             {mainModules.length > 0 ? (
@@ -975,8 +955,8 @@ export default function ExamDetail() {
         <Card
           className="shadow-md hover:shadow-lg transition-shadow duration-300"
           title={
-            <TitleWithTooltip 
-              title="各模块用时对比" 
+            <TitleWithTooltip
+              title="各模块用时对比"
               tooltip="展示各模块的答题用时统计，帮助分析时间分配是否合理。饼图显示用时占比，柱状图显示具体用时。"
             />
           }
@@ -994,16 +974,16 @@ export default function ExamDetail() {
         >
           {mainModules.length > 0 ? (
             timeChartType === 'pie' ? (
-              <ReactECharts 
+              <ReactECharts
                 key="pie-chart"
-                option={timeComparisonPieOption} 
-                style={{ height: '400px' }} 
+                option={timeComparisonPieOption}
+                style={{ height: '400px' }}
               />
             ) : (
-              <ReactECharts 
+              <ReactECharts
                 key="bar-chart"
-                option={timeComparisonOption} 
-                style={{ height: '400px' }} 
+                option={timeComparisonOption}
+                style={{ height: '400px' }}
               />
             )
           ) : (
@@ -1017,8 +997,8 @@ export default function ExamDetail() {
       {/* 模块详情表格 */}
       <Card className="shadow-md">
         <div className="mb-4">
-          <TitleWithTooltip 
-            title="模块详细数据" 
+          <TitleWithTooltip
+            title="模块详细数据"
             tooltip="详细展示各个模块和子模块的答题情况，包括总题数、答对题数、正确率和用时。可以点击编辑按钮修改数据。"
           />
         </div>
@@ -1040,7 +1020,7 @@ export default function ExamDetail() {
                       正确率: {mainModule.accuracy_rate?.toFixed(1)}%
                     </Tag>
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
                     <div className="flex items-center gap-1">
                       <FileOutlined className="text-muted-foreground" />
@@ -1199,8 +1179,8 @@ export default function ExamDetail() {
                   {subModules.length > 0 && (
                     <div className="mt-4 space-y-2">
                       {subModules.map(subModule => (
-                        <div 
-                          key={subModule.id} 
+                        <div
+                          key={subModule.id}
                           className="bg-gradient-to-r from-muted/30 to-muted/50 rounded-md p-4 text-sm border-l-4 border-primary/30 shadow-sm hover:shadow-md transition-all"
                         >
                           <div className="flex items-center justify-between mb-3">
@@ -1209,7 +1189,7 @@ export default function ExamDetail() {
                               <span className="font-medium text-base">{subModule.module_name}</span>
                             </div>
                             <div className="flex items-center gap-2">
-                              <Tag 
+                              <Tag
                                 className="text-xs"
                                 color={
                                   (subModule.accuracy_rate || 0) >= 80 ? 'green' :
@@ -1219,7 +1199,6 @@ export default function ExamDetail() {
                               >
                                 正确率: {subModule.accuracy_rate?.toFixed(1)}%
                               </Tag>
-                              {/* 所有子模块都可以删除 */}
                               <Button
                                 type="text"
                                 size="small"
@@ -1232,7 +1211,7 @@ export default function ExamDetail() {
                               </Button>
                             </div>
                           </div>
-                          
+
                           {/* 第一行：总题数、答对 */}
                           <div className="grid grid-cols-2 gap-4 mb-2">
                             <div className="flex items-center gap-1">
@@ -1334,7 +1313,7 @@ export default function ExamDetail() {
                               )}
                             </div>
                           </div>
-                          
+
                           {/* 第二行：答错、用时 */}
                           <div className="grid grid-cols-2 gap-4">
                             <div className="flex items-center gap-1">
@@ -1420,13 +1399,13 @@ export default function ExamDetail() {
         </Card>
 
       {/* 编辑备注对话框 */}
-      <Modal 
+      <Modal
         title={
           editingNoteType === 'improvements' ? '编辑有进步的地方' :
           editingNoteType === 'mistakes' ? '编辑出错的地方' :
           '编辑备注'
         }
-        open={isEditingNotes} 
+        open={isEditingNotes}
         onCancel={() => setIsEditingNotes(false)}
         onOk={handleSaveNotes}
         okText="确定"
