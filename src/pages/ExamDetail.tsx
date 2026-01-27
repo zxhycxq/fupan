@@ -454,7 +454,11 @@ export default function ExamDetail() {
 
     Modal.confirm({
       title: '确认删除',
-      content: `确定要删除子模块"${moduleName}"吗？此操作不可恢复！`,
+      content:(
+          <div>
+              确定要删除子模块"<span style={{ color: '#ff4d4f', fontWeight: 'bold' }}>{moduleName}</span>"吗？此操作不可恢复！
+          </div>
+      ),
       okText: '确定',
       cancelText: '取消',
       onOk: async () => {

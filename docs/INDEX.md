@@ -108,8 +108,6 @@ OCR识别测试指南。
 
 ## 🔄 迁移文档
 
-### 27. [API_MIGRATION.md](./API_MIGRATION.md)
-API迁移指南。
 
 ### 28. [PWA开发环境问题解决.md](./PWA开发环境问题解决.md)
 PWA开发环境问题解决方案。
@@ -177,7 +175,6 @@ PWA开发环境问题解决方案。
 
 ### API相关
 - [API_REFERENCE.md](./API_REFERENCE.md)
-- [API_MIGRATION.md](./API_MIGRATION.md)
 
 ### 界面优化
 - [图表视觉优化说明.md](./图表视觉优化说明.md)

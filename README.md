@@ -108,7 +108,6 @@ Vite、TypeScript、React、Supabase
 - 🔧 [故障排查指南](./docs/TROUBLESHOOTING.md) - 解决常见问题
 - 🐛 [调试指南](./docs/DEBUG_GUIDE.md) - 如何查看和分析调试日志
 - 🧪 [测试指南](./docs/TESTING_GUIDE.md) - 如何测试图片识别功能
-- 📚 [API迁移说明](./docs/API_MIGRATION.md) - API变更详情
 - 📝 [快速参考](./docs/QUICK_REFERENCE.md) - 常用操作速查
 - 💡 [改进总结](./docs/IMPROVEMENTS_SUMMARY.md) - 系统改进详情
 
