@@ -86,7 +86,6 @@ interface FilterParams {
 
 // localStorage键名
 const PAGINATION_STORAGE_KEY = 'examList_pagination';
-const FILTER_STORAGE_KEY = 'examList_filters';
 
 // 从localStorage读取分页状态
 const loadPaginationFromStorage = () => {
@@ -210,7 +209,6 @@ export default function ExamList() {
             const errorMessage = '加载考试记录失败。可能是网络问题或浏览器扩展（如广告拦截器）阻止了请求。请尝试：\n1. 禁用广告拦截器\n2. 刷新页面重试\n3. 检查网络连接';
             setLoadError(errorMessage);
             message.error('加载考试记录失败，请查看页面提示');
-            // 即使失败也设置空数组，避免页面崩溃
             setExamRecords([]);
             setFilteredRecords([]);
         } finally {

@@ -53,7 +53,7 @@ export default function Upload() {
   useEffect(() => {
     const checkRecordLimit = async () => {
       if (!user) return;
-      
+
       try {
         const result = await canCreateExamRecord();
         setRecordLimit(result);
@@ -61,7 +61,7 @@ export default function Upload() {
         console.error('检查记录限制失败:', error);
       }
     };
-    
+
     checkRecordLimit();
   }, [user]);
 
@@ -87,7 +87,7 @@ export default function Upload() {
         window.scrollTo(0, parseInt(scrollY || '0') * -1);
       }
     }
-    
+
     // 清理函数
     return () => {
       document.body.style.overflow = '';
@@ -99,7 +99,7 @@ export default function Upload() {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    
+
     if (files.length === 0) return;
 
     const validFiles: FileWithPreview[] = [];
@@ -171,7 +171,7 @@ export default function Upload() {
         // 压缩图片
         setUploadProgress(((i + 0.3) / totalSteps) * 100);
         let processedFile = file;
-        
+
         // 压缩图片以提高OCR识别准确度
         // 注意：即使图片较小也进行处理，因为会应用图像增强
         console.log(`图片 ${i + 1} 大小: ${(file.size / 1024 / 1024).toFixed(2)}MB`);
@@ -187,20 +187,20 @@ export default function Upload() {
         // 识别文字
         setCurrentStep(`正在识别第 ${i + 1}/${selectedFiles.length} 张图片...`);
         setUploadProgress(((i + 0.6) / totalSteps) * 100);
-        
+
         try {
           // 将图片转换为base64
           const base64Image = await fileToBase64(processedFile);
-          
+
           // 保存图片的base64（用于显示）
           allImageUrls.push(base64Image);
-          
+
           // 调用OCR识别
           const ocrText = await recognizeText({
             image: base64Image,
             language_type: 'CHN_ENG',
           });
-          
+
           if (ocrText && ocrText.trim()) {
             allRecognizedTexts.push(ocrText);
           }
@@ -216,17 +216,16 @@ export default function Upload() {
       setCurrentStep('正在解析数据...');
       setUploadProgress(((selectedFiles.length + 1) / totalSteps) * 100);
       const combinedText = allRecognizedTexts.join('\n\n');
-      
+
       // 传入用户输入的用时(分钟转秒)
       const timeUsedSeconds = timeUsedMinutes * 60;
       const { examRecord, moduleScores } = parseExamData(
-        combinedText, 
+        combinedText,
         sortOrder, // 使用 sortOrder 作为 exam_number
         timeUsedSeconds
       );
 
-      console.log('=== 准备保存数据 ===');
-      console.log('解析到的模块数量:', moduleScores.length);
+      console.log('=== 准备保存数据 ===，解析到的模块数量:', moduleScores.length);
       console.log('模块列表:', moduleScores.map(m => `${m.parent_module ? m.parent_module + ' > ' : ''}${m.module_name}`).join(', '));
 
       // 获取下一个可用的索引号
@@ -253,9 +252,9 @@ export default function Upload() {
       // 保存到数据库
       setCurrentStep('正在保存数据...');
       setUploadProgress(((selectedFiles.length + 2) / totalSteps) * 100);
-      
+
       const savedRecord = await createExamRecord(recordWithNameAndSortOrder);
-      console.log('考试记录已保存, ID:', savedRecord.id);
+      // console.log('考试记录已保存, ID:', savedRecord.id);
 
       // 保存模块得分
       if (moduleScores.length > 0) {
@@ -263,9 +262,9 @@ export default function Upload() {
           ...score,
           exam_record_id: savedRecord.id,
         }));
-        console.log('准备保存', scoresWithExamId.length, '个模块数据');
+        // console.log('准备保存', scoresWithExamId.length, '个模块数据');
         const savedScores = await createModuleScores(scoresWithExamId);
-        console.log('实际保存了', savedScores.length, '个模块数据');
+        // console.log('实际保存了', savedScores.length, '个模块数据');
       } else {
         console.warn('警告: 没有解析到任何模块数据!');
       }
@@ -298,8 +297,8 @@ export default function Upload() {
               <Spin size="large" />
               <div className="mt-4 text-lg font-medium">{currentStep}</div>
               <div className="mt-4">
-                <Progress 
-                  percent={Math.round(uploadProgress)} 
+                <Progress
+                  percent={Math.round(uploadProgress)}
                   status="active"
                   strokeColor={{
                     '0%': '#1890ff',
@@ -315,7 +314,7 @@ export default function Upload() {
         </div>
       )}
 
-      <Card 
+      <Card
         title="上传考试成绩"
         className="max-w-4xl mx-auto"
       >
@@ -547,8 +546,8 @@ export default function Upload() {
             disabled={isUploading || selectedFiles.length === 0 || !recordLimit.canCreate}
             block
           >
-            {isUploading 
-              ? '处理中...' 
+            {isUploading
+              ? '处理中...'
               : !recordLimit.canCreate
               ? '已达到上限，请升级VIP'
               : `上传并解析 (${selectedFiles.length} 张图片)`

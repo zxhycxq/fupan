@@ -247,7 +247,6 @@ testOcrParser();
 ### 新增的文件
 1. `docs/OCR优化说明.md` - 详细的优化说明
 2. `docs/测试OCR识别.md` - 测试指南
-3. `src/utils/testOcrParser.ts` - 自动化测试工具
 4. `docs/OCR识别修复总结.md` - 本文档
 
 ### 代码行数

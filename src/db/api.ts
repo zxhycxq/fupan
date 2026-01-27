@@ -17,7 +17,6 @@ export async function getAllExamRecords(): Promise<ExamRecord[]> {
     return Array.isArray(data) ? data : [];
   } catch (error) {
     console.error('获取考试记录异常:', error);
-    // 返回空数组而不是抛出错误，避免页面崩溃
     return [];
   }
 }
@@ -182,7 +181,7 @@ export async function getModuleAverageScores(): Promise<{ module_name: string; a
 
   // 计算每个模块的平均正确率
   const moduleMap = new Map<string, number[]>();
-  
+
   for (const item of data) {
     if (item.accuracy_rate !== null && item.accuracy_rate !== undefined) {
       if (!moduleMap.has(item.module_name)) {
@@ -640,17 +639,17 @@ export async function getNextIndexNumber(): Promise<number> {
 
 // 更新考试记录的备注（进步和错误）
 export async function updateExamNotes(
-  id: string, 
-  improvements: string, 
+  id: string,
+  improvements: string,
   mistakes: string
 ): Promise<void> {
   console.log('更新备注 - ID:', id);
   console.log('更新备注 - improvements:', improvements);
   console.log('更新备注 - mistakes:', mistakes);
-  
+
   const { data, error } = await supabase
     .from('exam_records')
-    .update({ 
+    .update({
       improvements,
       mistakes,
       updated_at: new Date().toISOString()
@@ -667,7 +666,7 @@ export async function updateExamNotes(
     });
     throw new Error(`更新备注失败: ${error.message}`);
   }
-  
+
   console.log('更新备注成功 - 返回数据:', data);
 }
 
@@ -736,7 +735,7 @@ export async function checkUsernameAvailability(username: string): Promise<{
   try {
     // 获取当前用户
     const { data: { user } } = await supabase.auth.getUser();
-    
+
     const { data, error } = await supabase.rpc('check_username_availability', {
       username_input: username,
       current_user_id: user?.id || null,
@@ -827,14 +826,14 @@ export async function getUserProfile(): Promise<{
 }
 
 // 检查用户VIP状态
-export async function checkUserVipStatus(): Promise<{ 
-  isVip: boolean; 
+export async function checkUserVipStatus(): Promise<{
+  isVip: boolean;
   vipEndDate: string | null;
   daysRemaining: number | null;
 }> {
   try {
     const { data: { user } } = await supabase.auth.getUser();
-    
+
     if (!user) {
       return { isVip: false, vipEndDate: null, daysRemaining: null };
     }
@@ -858,13 +857,13 @@ export async function checkUserVipStatus(): Promise<{
     // 检查是否过期
     const now = new Date();
     const endDate = data.vip_end_date ? new Date(data.vip_end_date) : null;
-    
+
     if (!endDate) {
       return { isVip: false, vipEndDate: null, daysRemaining: null };
     }
 
     const isVip = data.is_vip && endDate > now;
-    const daysRemaining = isVip 
+    const daysRemaining = isVip
       ? Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
       : null;
 
@@ -1069,8 +1068,8 @@ export async function canCreateExamRecord(): Promise<{
       .eq('user_id', user.id)
       .maybeSingle();
 
-    const isVip = vipData?.is_vip && 
-      vipData?.vip_end_date && 
+    const isVip = vipData?.is_vip &&
+      vipData?.vip_end_date &&
       new Date(vipData.vip_end_date) > new Date();
 
     // VIP用户无限制
@@ -1267,4 +1266,3 @@ export async function getLearningJourney(): Promise<LearningJourneyData> {
     };
   }
 }
-

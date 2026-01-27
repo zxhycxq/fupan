@@ -22,13 +22,11 @@
 - Register.tsx（注册）
 - Profile.tsx（个人资料）
 - ModuleAnalysis.tsx（模块分析）
-- TestLearningJourney.tsx（学习历程测试）
 - OrderConfirm.tsx（订单确认）
 - OrderDetail.tsx（订单详情）
 - Tools.tsx（工具）
 - DebugData.tsx（调试数据）
 - NotFound.tsx（404页面）
-- SamplePage.tsx（示例页面）
 
 ✅ **3个 Edge Functions**:
 - admin-activate-vip（管理员激活VIP）
