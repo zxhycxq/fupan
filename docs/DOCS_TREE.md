@@ -151,8 +151,6 @@ README.md (入口)
 
 ### 遇到问题时
 1. 查看 [TROUBLESHOOTING.md](./TROUBLESHOOTING.md)
-2. 查看对应功能的专题文档
-3. 查看 [DEBUG_GUIDE.md](./DEBUG_GUIDE.md)
 
 ### 开发新功能
 1. 查看 [API_REFERENCE.md](./API_REFERENCE.md)

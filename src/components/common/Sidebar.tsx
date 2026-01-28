@@ -111,7 +111,7 @@ export default function Sidebar() {
             >
                 {/* Logo 和标题 */}
                 <div className="h-20 flex flex-col items-center justify-center gap-1 px-2 border-b border-gray-200 dark:border-gray-700">
-                    <Link to={user ? "/dashboard" : "/tools"} className="flex flex-col items-center gap-1" onClick={() => setIsOpen(false)}>
+                    <Link to={user ? "https://www.kaogongfupanji.com/" : "/tools"} className="flex flex-col items-center gap-1" onClick={() => setIsOpen(false)}>
                         <BarChartOutlined className="text-3xl text-blue-600" />
                         <span className="text-sm font-bold text-blue-600 text-center leading-tight">
               考公复盘记

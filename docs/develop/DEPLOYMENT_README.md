@@ -112,9 +112,9 @@ cat DEPLOYMENT_INDEX.md
 ## 🆘 需要帮助？
 
 ### 查看文档
-- 📍 [部署文档导航](./DEPLOYMENT_INDEX.md) - **从这里开始**
-- 📖 [完整部署指南](./DEPLOYMENT_GUIDE.md)
-- 🚀 [快速参考卡片](./DEPLOYMENT_QUICK_REFERENCE.md)
+- 📍 [部署文档导航](DEPLOYMENT_INDEX.md) - **从这里开始**
+- 📖 [完整部署指南](DEPLOYMENT_GUIDE.md)
+- 🚀 [快速参考卡片](DEPLOYMENT_QUICK_REFERENCE.md)
 
 ### 常见问题
 | 问题 | 解决方案 |
@@ -124,8 +124,8 @@ cat DEPLOYMENT_INDEX.md
 | CORS 错误 | 在 Supabase 中添加域名 |
 
 ### 获取支持
-1. 查看 [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md) 的常见问题部分
-2. 查看 [故障排查指南](./docs/TROUBLESHOOTING.md)
+1. 查看 [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) 的常见问题部分
+2. 查看 [故障排查指南](../TROUBLESHOOTING.md)
 3. 提交 GitHub Issue
 4. 联系技术支持团队
 
@@ -205,7 +205,7 @@ Supabase URL: _______________
 ## 🎉 开始部署吧！
 
 **推荐步骤**：
-1. 📖 阅读 [DEPLOYMENT_INDEX.md](./DEPLOYMENT_INDEX.md)
+1. 📖 阅读 [DEPLOYMENT_INDEX.md](DEPLOYMENT_INDEX.md)
 2. 🚀 运行 `./deploy-supabase.sh`
 3. 🌐 运行 `./deploy.sh`
 4. ✅ 测试所有功能

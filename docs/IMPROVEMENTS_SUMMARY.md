@@ -149,7 +149,6 @@ console.log(`解析结果: 总题数=${totalQuestions}, 答对=${correctAnswers}
 
 2. **查看文档**:
    - 先查看[故障排查指南](./TROUBLESHOOTING.md)
-   - 需要详细调试时查看[调试指南](./DEBUG_GUIDE.md)
    - 测试功能时参考[测试指南](./TESTING_GUIDE.md)
 
 3. **反馈问题**:

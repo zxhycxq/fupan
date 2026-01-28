@@ -16,10 +16,10 @@ export interface WangEditorRef {
   getHtml: () => string;
 }
 
-const WangEditor = forwardRef<WangEditorRef, WangEditorProps>(({ 
-  value = '', 
-  onChange, 
-  placeholder = '请输入内容...',
+const WangEditor = forwardRef<WangEditorRef, WangEditorProps>(({
+  value = '',
+  onChange,
+  placeholder = '请输入本期复盘内容...',
   maxLength = 500,
   height = 300
 }, ref) => {

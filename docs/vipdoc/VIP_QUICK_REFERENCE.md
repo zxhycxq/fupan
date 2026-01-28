@@ -283,10 +283,10 @@ A:
 
 ## 📚 相关文档
 
-- [VIP_ACTIVATION_SECURITY.md](./VIP_ACTIVATION_SECURITY.md) - 完整的安全方案文档
-- [VIP_MANAGEMENT.md](./VIP_MANAGEMENT.md) - 管理员操作指南
-- [VIP_SETUP_GUIDE.md](./VIP_SETUP_GUIDE.md) - 配置和部署指南
-- [VIP_TODO.md](./VIP_TODO.md) - 任务清单和使用说明
+- [VIP_ACTIVATION_SECURITY.md](VIP_ACTIVATION_SECURITY.md) - 完整的安全方案文档
+- [VIP_MANAGEMENT.md](VIP_MANAGEMENT.md) - 管理员操作指南
+- [VIP_SETUP_GUIDE.md](VIP_SETUP_GUIDE.md) - 配置和部署指南
+- [VIP_TODO.md](../../VIP_TODO.md) - 任务清单和使用说明
 
 ---
 

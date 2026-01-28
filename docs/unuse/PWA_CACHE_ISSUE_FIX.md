@@ -264,9 +264,9 @@ npm run preview
 
 ## 🔗 相关资源
 
-- [详细文档](./docs/PWA开发环境问题解决.md)
+- [详细文档](PWA开发环境问题解决.md)
 - [清理工具页面](http://localhost:5173/unregister-sw.html)
-- [PWA使用指南](./PWA使用指南.md)
+- [PWA使用指南](../../PWA使用指南.md)
 
 ## 📞 获取帮助
 

@@ -7,13 +7,13 @@
 ## 🎯 我应该看哪个文档？
 
 ### 🚀 我想快速部署（10-15分钟）
-👉 查看 [**快速参考卡片**](./DEPLOYMENT_QUICK_REFERENCE.md)
+👉 查看 [**快速参考卡片**](DEPLOYMENT_QUICK_REFERENCE.md)
 - 一页纸快速指南
 - 清晰的步骤编号
 - 常见问题速查
 
 ### 📖 我想了解详细步骤
-👉 查看 [**完整部署指南**](./DEPLOYMENT_GUIDE.md)
+👉 查看 [**完整部署指南**](DEPLOYMENT_GUIDE.md)
 - 详细的分步教程
 - 完整的 SQL 脚本
 - 故障排查方案
@@ -30,7 +30,7 @@
 ```
 
 ### ⚙️ 我需要配置环境变量
-👉 查看 [**环境变量模板**](./.env.production.example)
+👉 查看 [**环境变量模板**](../../.env.production.example)
 - 完整的配置说明
 - 安全提示
 - 多平台配置方法
@@ -41,12 +41,12 @@
 
 | 文档 | 用途 | 适合人群 |
 |------|------|----------|
-| [DEPLOYMENT_QUICK_REFERENCE.md](./DEPLOYMENT_QUICK_REFERENCE.md) | 快速参考卡片 | ⭐ 所有用户 |
-| [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md) | 完整部署指南 | 详细了解 |
-| [deploy.sh](./deploy.sh) | 前端部署脚本 | 自动化部署 |
-| [deploy-supabase.sh](./deploy-supabase.sh) | 后端部署脚本 | 自动化部署 |
-| [.env.production.example](./.env.production.example) | 环境变量模板 | 配置参考 |
-| [README.md](./README.md#生产部署) | 项目说明 | 快速了解 |
+| [DEPLOYMENT_QUICK_REFERENCE.md](DEPLOYMENT_QUICK_REFERENCE.md) | 快速参考卡片 | ⭐ 所有用户 |
+| [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) | 完整部署指南 | 详细了解 |
+| [deploy.sh](../../deploy.sh) | 前端部署脚本 | 自动化部署 |
+| [deploy-supabase.sh](../../deploy-supabase.sh) | 后端部署脚本 | 自动化部署 |
+| [.env.production.example](../../.env.production.example) | 环境变量模板 | 配置参考 |
+| [README.md](../../README.md#生产部署) | 项目说明 | 快速了解 |
 
 ---
 
@@ -169,8 +169,8 @@
 ### 遇到问题？
 
 1. **查看文档**
-   - [快速参考](./DEPLOYMENT_QUICK_REFERENCE.md) - 常见问题速查
-   - [完整指南](./DEPLOYMENT_GUIDE.md) - 详细故障排查
+   - [快速参考](DEPLOYMENT_QUICK_REFERENCE.md) - 常见问题速查
+   - [完整指南](DEPLOYMENT_GUIDE.md) - 详细故障排查
 
 2. **检查日志**
    - Supabase: Dashboard → Logs
@@ -320,8 +320,8 @@ _______________
 4. 邀请用户使用
 
 **需要帮助？**
-- 📖 查看 [完整部署指南](./DEPLOYMENT_GUIDE.md)
-- 🚀 查看 [快速参考](./DEPLOYMENT_QUICK_REFERENCE.md)
+- 📖 查看 [完整部署指南](DEPLOYMENT_GUIDE.md)
+- 🚀 查看 [快速参考](DEPLOYMENT_QUICK_REFERENCE.md)
 - 💬 联系技术支持
 
 ---

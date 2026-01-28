@@ -114,6 +114,5 @@
 
 ## 更多信息
 
-- 📖 [完整调试指南](./DEBUG_GUIDE.md)
 - 🧪 [测试指南](./TESTING_GUIDE.md)
 - 🔧 [故障排查指南](./TROUBLESHOOTING.md)

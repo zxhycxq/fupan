@@ -184,7 +184,7 @@ sudo certbot renew
 
 ## 📚 更多信息
 
-详细部署文档请查看：[DEPLOYMENT.md](./DEPLOYMENT.md)
+详细部署文档请查看：[DEPLOYMENT.md](DEPLOYMENT.md)
 
 ---
 

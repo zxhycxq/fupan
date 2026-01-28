@@ -370,25 +370,6 @@ export default function FormInputTab({ examName, sortOrder, examType, onSubmitSt
         </Collapse>
       </Form>
 
-      {/* 表单填写提示 */}
-      <div className="my-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-        <div className="flex items-start">
-          <span className="text-yellow-600 text-lg mr-2">💡</span>
-          <div className="flex-1">
-            <div className="font-semibold text-gray-800 mb-2">填写说明</div>
-            <div className="space-y-1 text-sm text-gray-600">
-              <div>• 每个模块的<span className="font-medium text-red-600">总计题目数量为必填项</span></div>
-              <div>• 答对数量不能超过题目数量</div>
-              <div>• 用时默认为1分钟</div>
-              <div className="mt-2 text-orange-600">
-                <span className="font-medium">注意：</span>
-                <span className="ml-1">如果某个模块没有填写数据，该模块在各模块分析页面将不会显示。</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <Button
         type="primary"
         size="large"

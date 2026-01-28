@@ -311,7 +311,7 @@ WHERE phone IN ('+8613800138000', '+8613800138001', '+8613800138002');
 ## 九、技术支持
 
 如有问题，请参考：
-- [VIP_MANAGEMENT.md](./VIP_MANAGEMENT.md) - 详细的管理员操作指南
+- [VIP_MANAGEMENT.md](VIP_MANAGEMENT.md) - 详细的管理员操作指南
 - Supabase 官方文档：https://supabase.com/docs
 - 项目 GitHub Issues
 

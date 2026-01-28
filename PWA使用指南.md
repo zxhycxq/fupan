@@ -270,7 +270,7 @@ A: 浏览器支持情况：
 ## 技术支持
 
 如有问题，请查看：
-- [PWA.md](./PWA.md) - 详细技术文档
+- [PWA.md](docs/unuse/PWA.md) - 详细技术文档
 - [Chrome DevTools](https://developer.chrome.com/docs/devtools/) - 调试工具
 - [Lighthouse](https://developers.google.com/web/tools/lighthouse) - 性能测试
 

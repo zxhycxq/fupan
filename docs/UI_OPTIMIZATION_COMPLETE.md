@@ -175,9 +175,8 @@ Date:   2026-01-25 12:15:00 +0800
 ---
 
 ## 相关文档
-- [UI优化说明](./UI_OPTIMIZATION.md)
-- [路由更新说明](./ROUTE_UPDATE.md)
-- [路由和依赖优化完成总结](./OPTIMIZATION_COMPLETE.md)
+- [路由更新说明](../ROUTE_UPDATE.md)
+- [路由和依赖优化完成总结](../OPTIMIZATION_COMPLETE.md)
 
 ---
 

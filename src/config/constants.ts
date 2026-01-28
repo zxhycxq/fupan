@@ -23,7 +23,7 @@ export const MOTIVATIONAL_POEMS = [
 ];
 
 // 应用名称
-export const APP_NAME = '考试成绩分析系统';
+export const APP_NAME = '考公复盘记';
 
 // 应用版本
 export const APP_VERSION = 'v1.0.0';

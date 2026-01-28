@@ -350,5 +350,5 @@ if (!result.canCreate) {
 ## 📞 支持
 
 如有问题，请参考：
-- [VIP开通安全方案](./VIP_ACTIVATION_SECURITY.md)
-- [VIP快速参考](./VIP_QUICK_REFERENCE.md)
+- [VIP开通安全方案](VIP_ACTIVATION_SECURITY.md)
+- [VIP快速参考](VIP_QUICK_REFERENCE.md)

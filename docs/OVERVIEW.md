@@ -294,8 +294,6 @@ OCR服务的完整说明和迁移指南。
 
 ### 技术问题
 - 查看 [TROUBLESHOOTING.md](./TROUBLESHOOTING.md)
-- 查看 [DEBUG_GUIDE.md](./DEBUG_GUIDE.md)
-- 提交 Issue
 
 ### 部署问题
 - 查看 [TENCENT_CLOUD_DEPLOYMENT.md](./TENCENT_CLOUD_DEPLOYMENT.md)

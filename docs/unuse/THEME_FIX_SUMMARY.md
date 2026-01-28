@@ -357,4 +357,4 @@ className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"
 - [Ant Design 主题定制](https://ant.design/docs/react/customize-theme-cn)
 - [Tailwind CSS 主题配置](https://tailwindcss.com/docs/theme)
 - [React useMemo 优化](https://react.dev/reference/react/useMemo)
-- [本项目主题系统文档](./THEME_SYSTEM.md)
+- [本项目主题系统文档](THEME_SYSTEM.md)

@@ -76,9 +76,6 @@ OCR识别测试指南。
 
 ## 🐛 调试和故障排查
 
-### 19. [DEBUG_GUIDE.md](./DEBUG_GUIDE.md)
-调试指南。
-
 ### 20. [HOW_TO_DEBUG.md](./HOW_TO_DEBUG.md)
 如何调试。
 
@@ -109,7 +106,7 @@ OCR识别测试指南。
 ## 🔄 迁移文档
 
 
-### 28. [PWA开发环境问题解决.md](./PWA开发环境问题解决.md)
+### 28. [PWA开发环境问题解决.md](unuse/PWA开发环境问题解决.md)
 PWA开发环境问题解决方案。
 
 ---
@@ -186,7 +183,6 @@ PWA开发环境问题解决方案。
 - [TIME_EDIT_FEATURE.md](./TIME_EDIT_FEATURE.md)
 
 ### 调试和测试
-- [DEBUG_GUIDE.md](./DEBUG_GUIDE.md)
 - [HOW_TO_DEBUG.md](./HOW_TO_DEBUG.md)
 - [TROUBLESHOOTING.md](./TROUBLESHOOTING.md)
 - [TESTING_GUIDE.md](./TESTING_GUIDE.md)

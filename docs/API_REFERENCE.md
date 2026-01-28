@@ -1524,15 +1524,6 @@ export interface OcrRequest {
 - **image**: Base64编码的图片（不包含前缀）
 - **language_type**: 识别语言类型，可选值：
   - `CHN_ENG`: 中英文混合（默认）
-  - `ENG`: 英文
-  - `JAP`: 日文
-  - `KOR`: 韩文
-  - `FRE`: 法文
-  - `SPA`: 西班牙文
-  - `POR`: 葡萄牙文
-  - `GER`: 德文
-  - `ITA`: 意大利文
-  - `RUS`: 俄文
 - **detect_direction**: 是否检测图像朝向
 - **probability**: 是否返回置信度
 
@@ -1542,9 +1533,6 @@ export interface OcrRequest {
 
 ```typescript
 export interface OcrResponse {
-  status: number;                // 状态码（0表示成功）
-  msg: string;                   // 消息
-  data: {
     log_id: number;              // 日志ID
     direction?: number;          // 图像方向
     words_result_num: number;    // 识别到的文字行数
@@ -1555,19 +1543,11 @@ export interface OcrResponse {
         variance: number;        // 方差
         min: number;             // 最小置信度
       };
-    }>;
-  };
-}
+    }
 ```
 
 **字段说明**:
 
-- **status**: 状态码
-  - `0`: 成功
-  - `非0`: 失败
-- **msg**: 消息
-  - 成功时为 "success"
-  - 失败时为错误信息
 - **data.log_id**: 日志ID，用于追踪
 - **data.direction**: 图像方向
   - `0`: 正向
@@ -2338,26 +2318,4 @@ PostgreSQL数据库
 
 ---
 
-## 更新日志
-
-### v1.0.0 (2024-12-09)
-- 初始版本
-- 完整的数据库API
-- OCR识别集成
-- 数据解析功能
-
-### v1.1.0 (2024-12-10)
-- 添加简化格式支持
-- 优化图片预处理
-- 改进错误处理
-- 添加详细日志
-
 ---
-
-## 联系方式
-
-如有问题或建议，请联系：
-
-- 项目仓库: [GitHub](https://github.com/your-repo)
-- 问题反馈: [Issues](https://github.com/your-repo/issues)
-- 邮箱: support@example.com

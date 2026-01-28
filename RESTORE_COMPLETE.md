@@ -2,15 +2,6 @@
 
 ## ✅ 恢复成功
 
-已成功恢复到 **v523 版本**（2026-01-24 16:58:52），这是移除PWA相关配置的版本。
-
-## 📋 恢复内容
-
-### 1. 代码版本
-- **Git Commit**: db0528ed660301ad1e396ef19b344d31b8d420e1
-- **提交时间**: 2026-01-24 16:58:52 +0800
-- **提交信息**: refactor: 移除PWA相关配置
-
 ### 2. 功能完整性
 ✅ **18个页面**:
 - Dashboard.tsx（数据分析）
@@ -124,42 +115,48 @@ npm run dev
 - **配置**: 必须在 Supabase 中配置短信服务商
 - **测试**: 建议先用测试号码测试
 
-### 2. 数据库
-- **数据保留**: 现有数据不会丢失
-- **迁移**: 如需重新应用迁移，使用 `supabase db push`
+```js
+const tencentcloud = require("tencentcloud-sdk-nodejs");
 
-### 3. VIP 功能
-- **支付**: 微信支付
-- **激活**: 可通过管理员手动激活
+// 导入对应产品模块的client models
+const smsClient = tencentcloud.sms.v20210111.Client;
 
-## 📝 修复记录
+// 实例化认证对象
+const clientConfig = {
+  credential: {
+    secretId: "您的SecretId",
+    secretKey: "您的SecretKey",
+  },
+  region: "ap-guangzhou", // 地域
+  profile: {
+    httpProfile: {
+      endpoint: "sms.tencentcloudapi.com",
+    },
+  },
+};
 
-### TypeScript 类型错误修复
-1. ✅ DateRangeFilter.tsx - 修复类型转换问题
-2. ✅ Dashboard.tsx - 修复可选属性访问问题
-3. ✅ Dashboard.tsx - 修复数组类型推断问题
+// 实例化请求对象
+const client = new smsClient(clientConfig);
+const params = {
+    "PhoneNumberSet": [
+        "+8613712345678" // 带国家码的手机号
+    ],
+    "SmsSdkAppId": "1400006666", // 短信应用ID
+    "TemplateId": "123456", // 模板ID
+    "SignName": "腾讯云", // 短信签名
+    "TemplateParamSet": [
+        "123456", // 验证码
+        "5" // 有效期(分钟)
+    ]
+};
 
-### 提交记录
-- `35ef55e` - 修复TypeScript类型错误
-- `b222ae8` - 添加v523版本恢复说明文档
-
-## 🔄 如何恢复到最新版本
-
-如果需要恢复到最新版本（v556+），执行：
-```bash
-git reset --hard 0dc8eb0a6b27d3c4ed15f88b9b8da00aa8168105
+// 调用发送短信接口
+client.SendSms(params).then(
+  (data) => {
+    console.log(data);
+  },
+  (err) => {
+    console.error("error", err);
+  }
+);
 ```
-
-## 📞 技术支持
-
-如有问题，请查看：
-1. `VERSION_RESTORE_v523.md` - 详细恢复说明
-2. Supabase Dashboard - 检查配置
-3. 浏览器控制台 - 查看错误信息
-
----
-
-**恢复完成时间**: 2026-01-25 11:45  
-**当前版本**: v523  
-**Git Commit**: b222ae820493d9d09d71d11b4632d5229e76daae  
-**状态**: ✅ 恢复成功，代码通过检查
