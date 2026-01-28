@@ -6,12 +6,12 @@ import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
 import Sidebar from '@/components/common/Sidebar';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
-import PWAInstallPrompt from '@/components/common/PWAInstallPrompt';
+// import PWAInstallPrompt from '@/components/common/PWAInstallPrompt';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { RouteGuard } from '@/components/common/RouteGuard';
 import routes from './routes';
 import { useTheme } from '@/hooks/use-theme';
-
+import { usePageTitle } from '@/hooks/use-page-title';
 // 设置 dayjs 为中文
 dayjs.locale('zh-cn');
 
@@ -74,7 +74,7 @@ function App() {
   // 初始化主题
   useEffect(() => {
     const root = document.documentElement;
-
+// usePageTitle()
     // 移除所有主题类
     root.classList.remove('theme-blue', 'theme-green', 'theme-purple', 'theme-orange', 'theme-red', 'theme-cyan', 'theme-pink');
 

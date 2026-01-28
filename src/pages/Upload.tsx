@@ -201,6 +201,7 @@ export default function Upload() {
             language_type: 'CHN_ENG',
           });
 
+          // console.log('%c--接口返回识别-- ', 'color:blue;', ocrText);
           if (ocrText && ocrText.trim()) {
             allRecognizedTexts.push(ocrText);
           }
@@ -225,12 +226,12 @@ export default function Upload() {
         timeUsedSeconds
       );
 
-      console.log('=== 准备保存数据 ===，解析到的模块数量:', moduleScores.length);
+      // console.log('=== 准备保存数据 ===，解析到的模块数量:', moduleScores.length);
       console.log('模块列表:', moduleScores.map(m => `${m.parent_module ? m.parent_module + ' > ' : ''}${m.module_name}`).join(', '));
 
       // 获取下一个可用的索引号
       const nextIndexNumber = await getNextIndexNumber();
-      console.log('获取到的索引号:', nextIndexNumber);
+      // console.log('获取到的索引号:', nextIndexNumber);
 
       // 检查用户是否登录
       if (!user?.id) {

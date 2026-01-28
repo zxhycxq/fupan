@@ -82,8 +82,8 @@ export function parseExamData(
 } {
   console.log('=== 开始解析OCR文本 ===');
   console.log('OCR原始文本长度:', ocrText.length);
-  console.log('用户输入用时:', timeUsedSeconds, '秒');
-
+  // console.log('用户输入用时:', timeUsedSeconds, '秒');
+console.log('%c--ocrText-- ', 'color:red;', ocrText);
   // 验证成绩截图格式
   const validation = validateExamScreenshot(ocrText);
   if (!validation.isValid) {

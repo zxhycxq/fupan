@@ -1,94 +1,56 @@
 import type {OcrRequest, OcrResponse} from '@/types';
 
-const APP_ID = import.meta.env.VITE_APP_ID;
-const API_BASE_URL = `/api/miaoda/runtime/apicenter/source/proxy/6KmAKxK9aE29irAwt32QRk`;
-const accurate_basic = 'https://aip.baidubce.com/rest/2.0/ocr/v1/accurate_basic';//高精度ocr识别地址
-
-// 获取token
-export async function getBDToken() {
-
-    const API_key = "xBy2a"
-    const sec_key = "bbv8mAeI"
-    const getATresponse = await fetch(`https://aip.baidubce.com/oauth/2.0/token?client_id=${API_key}&client_secret=${sec_key}=&grant_type=client_credentials`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-        }
-    });
-}
 
 
 // 调用通用文字识别(高精度版)API（支持长截图分段识别）
 export async function recognizeText(request: OcrRequest): Promise<string> {
     try {
-        // 构建表单数据
-        const formData = new URLSearchParams();
-        formData.append('image', request.image);
-
-        // 默认使用中英文混合识别
-        formData.append('language_type', request.language_type || 'CHN_ENG');
-
-        // 启用方向检测，提高手机截图识别准确度
-        formData.append('detect_direction', 'true');
-
-        // 启用概率值返回，用于判断识别质量
-        formData.append('probability', 'true');
-
-        // 启用段落信息，保持文本结构
-        formData.append('paragraph', 'true');
-
-        // 针对长截图：启用识别颗粒度（big - 更适合长文本）
-        formData.append('recognize_granularity', 'big');
-        const access_token = "24.a5efe8f89411b29c1143988e0653cfa4.2592000.1772110479.282335-121503918"
-        // 针对长截图：启用垂直文本检测
-        formData.append('vertexes_location', 'true');
-
-        const response = await fetch(`/api/rest/2.0/ocr/v1/accurate_basic?access_token=${access_token}`, {
+        // 发送请求到后端OCR服务
+        const response = await fetch('/api/ocr/recognize', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Type': 'application/json',
             },
-            body: formData.toString(),
+            body: JSON.stringify({
+                image: request.image,
+                language_type: request.language_type || 'CHN_ENG'
+            }),
         });
 
-        const result: OcrResponse = await response.json();
-        // console.log('%c--result-- ', 'color:red;', result);
+        const result:OcrResponse  = await response.json();
+        console.log('=== OCR识别完成 ===',result);
+        
+    // 将识别结果拼接成文本，保留更多结构信息
+    const text = result.words_result
+      .map(item => {
+        // 清理文本：去除多余空格，但保留必要的分隔符
+        const cleanedText = item.words
+          .replace(/\s+/g, ' ')  // 多个空格合并为一个
+          .trim();
+        return cleanedText;
+      })
+      .filter(line => line.length > 0)  // 过滤空行
+      .join('\n');
 
-        // if (result.status !== 0) {
-        //     console.error('OCR API返回错误:', result);
-        //     throw new Error(result.msg || '文字识别失败');
-        // }
-
-        // 将识别结果拼接成文本，保留更多结构信息
-        const text = result.words_result
-            .map(item => {
-                // 清理文本：去除多余空格，但保留必要的分隔符
-                const cleanedText = item.words
-                    .replace(/\s+/g, ' ')  // 多个空格合并为一个
-                    .trim();
-                return cleanedText;
-            })
-            .filter(line => line.length > 0)  // 过滤空行
-            .join('\n');
-
-        console.log('=== OCR识别完成 ===');
-        console.log('识别到', result.words_result_num, '行文字', '识别结果:', text);
-
-        // 输出识别质量信息
-        if (result.words_result.some(item => item.probability)) {
-            const avgProbability = result.words_result
-                    .filter(item => item.probability)
-                    .reduce((sum, item) => sum + (item.probability?.average || 0), 0) /
-                result.words_result.length;
-            console.log('平均识别置信度:', (avgProbability * 100).toFixed(2) + '%');
-
-            // 如果置信度较低，给出警告
-            if (avgProbability < 0.8) {
-                console.warn('⚠️ 识别置信度较低，可能是长截图或图片质量问题');
-            }
-        }
-
+    console.log('=== OCR识别完成 ===');
+    // console.log('识别到', result.words_result_num, '行文字');
+    // console.log('识别结果:', text);
+    // console.log('前300字符:', text.substring(0, 300));
+    
+    // 输出识别质量信息
+    if (result.words_result.some(item => item.probability)) {
+      const avgProbability = result.words_result
+        .filter(item => item.probability)
+        .reduce((sum, item) => sum + (item.probability?.average || 0), 0) / 
+        result.words_result.length;
+    //   console.log('平均识别置信度:', (avgProbability * 100).toFixed(2) + '%');
+      
+      // 如果置信度较低，给出警告
+      if (avgProbability < 0.8) {
+        console.warn('⚠️ 识别置信度较低，可能是长截图或图片质量问题');
+      }
+    }
+    
         return text;
     } catch (error) {
         console.error('文字识别失败:', error);

@@ -114,7 +114,6 @@ export default function Upload() {
         });
         
         allOcrTexts.push(ocrText);
-        
         setUploadProgress(((i + 1) / totalSteps) * 100);
       }
 
