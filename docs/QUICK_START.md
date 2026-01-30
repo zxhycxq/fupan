@@ -126,7 +126,7 @@ location /api/baidu/ocr/ {
 
 ### 方式二：迁移到腾讯云OCR
 
-详细步骤请参考 [OCR_INTEGRATION.md](./OCR_INTEGRATION.md) 文档。
+详细步骤请参考 [OCR_INTEGRATION.md](ocr/OCR_INTEGRATION.md) 文档。
 
 **简要步骤**:
 
@@ -338,7 +338,7 @@ npm run dev -- --port 3000
 ## 下一步
 
 - 📖 阅读 [部署文档](./DEPLOYMENT.md) 了解详细部署步骤
-- 📖 阅读 [OCR集成文档](./OCR_INTEGRATION.md) 了解OCR服务详情
+- 📖 阅读 [OCR集成文档](ocr/OCR_INTEGRATION.md) 了解OCR服务详情
 - 📖 阅读 [API参考文档](./API_REFERENCE.md) 了解所有API接口
 - 🔧 配置生产环境
 - 🚀 部署到服务器

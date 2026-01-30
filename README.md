@@ -103,12 +103,11 @@ Vite、TypeScript、React、Supabase
 ### 文档资源
 
 - 🚀 [快速调试指南](./docs/HOW_TO_DEBUG.md) - **遇到问题先看这里!**
-- ⏱️ [时间编辑功能](./docs/TIME_EDIT_FEATURE.md) - **如何编辑和管理模块时间**
+- ⏱️ [时间编辑功能](docs/业务/TIME_EDIT_FEATURE.md) - **如何编辑和管理模块时间**
 - 📖 [更新日志](icon.md) - 查看系统更新历史
 - 🔧 [故障排查指南](./docs/TROUBLESHOOTING.md) - 解决常见问题
 - 🧪 [测试指南](./docs/TESTING_GUIDE.md) - 如何测试图片识别功能
 - 📝 [快速参考](./docs/QUICK_REFERENCE.md) - 常用操作速查
-- 💡 [改进总结](./docs/IMPROVEMENTS_SUMMARY.md) - 系统改进详情
 
 ### 在线帮助
 

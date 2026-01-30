@@ -356,7 +356,7 @@ npm install tencentcloud-sdk-nodejs
 
 #### 4. 创建OCR服务
 
-参考 [OCR_INTEGRATION.md](./OCR_INTEGRATION.md#迁移指南) 文档。
+参考 [OCR_INTEGRATION.md](ocr/OCR_INTEGRATION.md#迁移指南) 文档。
 
 ---
 

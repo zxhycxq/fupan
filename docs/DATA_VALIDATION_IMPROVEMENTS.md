@@ -682,7 +682,7 @@ parseExamData('这是一张普通图片', 1, 600);
 ## 📚 相关文档
 
 - [API_REFERENCE.md](./API_REFERENCE.md) - API接口文档
-- [OCR_INTEGRATION.md](./OCR_INTEGRATION.md) - OCR集成文档
+- [OCR_INTEGRATION.md](ocr/OCR_INTEGRATION.md) - OCR集成文档
 - [USER_GUIDE.md](./USER_GUIDE.md) - 用户使用指南
 - [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) - 故障排查指南
 

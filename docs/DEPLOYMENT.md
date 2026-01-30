@@ -13,10 +13,6 @@
 
 ---
 
-## 系统概述
-
-考试成绩分析系统是一个基于Web的成绩管理和分析工具，通过OCR技术自动识别考试成绩截图，提取数据并进行多维度分析和可视化展示。
-
 ### 核心功能
 
 1. **图片上传与OCR识别**
@@ -46,12 +42,6 @@
 
 ### 前端技术栈
 
-- **框架**: React 18 + TypeScript
-- **构建工具**: Vite
-- **UI组件**: shadcn/ui + Tailwind CSS
-- **图表库**: ECharts
-- **路由**: React Router
-- **状态管理**: React Hooks
 
 ### 后端技术栈
 
@@ -262,12 +252,7 @@ module_scores
 **百度智能云 - 通用文字识别（高精度版）**
 
 - API文档: https://cloud.baidu.com/doc/OCR/s/1k3h7y3db
-- 识别准确率: 95%+
-- 支持语言: 中英文混合
-- 图片格式: JPG、PNG、BMP
-- 图片大小: 最大4MB
-- 图片尺寸: 最小15x15像素，最大4096x4096像素
-
+- 
 ### OCR配置参数
 
 系统使用以下参数优化识别效果：
@@ -321,97 +306,10 @@ module_scores
 8. 保存到数据库
 ```
 
-### OCR API调用
 
-**请求示例**:
-
-```typescript
-// 文件: src/services/imageRecognition.ts
-
-const formData = new URLSearchParams();
-formData.append('image', base64Image);
-formData.append('language_type', 'CHN_ENG');
-formData.append('detect_direction', 'true');
-formData.append('probability', 'true');
-formData.append('paragraph', 'true');
-formData.append('recognize_granularity', 'big');
-formData.append('vertexes_location', 'true');
-
-const response = await fetch(`${API_BASE_URL}/6KmAKxK9aE29irAwt32QRk`, {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/x-www-form-urlencoded',
-    'X-App-Id': APP_ID,
-  },
-  body: formData.toString(),
-});
-```
-
-**响应示例**:
-
-```json
-{
-  "status": 0,
-  "msg": "success",
-  "data": {
-    "log_id": 1234567890,
-    "direction": 0,
-    "words_result_num": 50,
-    "words_result": [
-      {
-        "words": "言语理解与表达",
-        "probability": {
-          "average": 0.98,
-          "variance": 0.01,
-          "min": 0.95
-        }
-      },
-      {
-        "words": "21",
-        "probability": {
-          "average": 0.99,
-          "variance": 0.001,
-          "min": 0.98
-        }
-      },
-      {
-        "words": "70%",
-        "probability": {
-          "average": 0.97,
-          "variance": 0.02,
-          "min": 0.94
-        }
-      }
-    ]
-  }
-}
-```
-
-### 识别质量监控
-
-系统会自动计算识别置信度：
-
-```typescript
-const avgProbability = result.data.words_result
-  .filter(item => item.probability)
-  .reduce((sum, item) => sum + (item.probability?.average || 0), 0) / 
-  result.data.words_result.length;
-
-console.log('平均识别置信度:', (avgProbability * 100).toFixed(2) + '%');
-
-// 如果置信度较低，给出警告
-if (avgProbability < 0.8) {
-  console.warn('⚠️ 识别置信度较低，可能是长截图或图片质量问题');
-}
-```
-
----
 
 ## API接口文档
 
-### 数据库API
-
-所有数据库操作都封装在 `src/db/api.ts` 中。
 
 #### 1. 考试记录相关
 
@@ -802,19 +700,6 @@ await saveExamConfig(
 
 #### 1.1 注册腾讯云账号
 
-1. 访问 [腾讯云官网](https://cloud.tencent.com/)
-2. 注册并完成实名认证
-3. 开通以下服务：
-   - 云服务器（CVM）或轻量应用服务器
-   - 对象存储（COS）- 可选
-   - 内容分发网络（CDN）- 可选
-
-#### 1.2 注册百度智能云账号
-
-1. 访问 [百度智能云官网](https://cloud.baidu.com/)
-2. 注册并完成实名认证
-3. 开通 **通用文字识别（高精度版）** 服务
-4. 创建应用，获取 API Key 和 Secret Key
 
 #### 1.3 注册Supabase账号
 
@@ -825,20 +710,6 @@ await saveExamConfig(
 
 ### 2. 本地开发环境配置
 
-#### 2.1 克隆项目
-
-```bash
-git clone <your-repository-url>
-cd app-7q11e4xackch
-```
-
-#### 2.2 安装依赖
-
-```bash
-npm install
-# 或
-pnpm install
-```
 
 #### 2.3 配置环境变量
 
@@ -855,51 +726,6 @@ VITE_APP_ID=your-app-id
 # API环境（可选）
 VITE_API_ENV=production
 ```
-
-#### 2.4 初始化数据库
-
-```bash
-# 运行数据库迁移
-# 在Supabase控制台的SQL编辑器中依次执行以下文件：
-# 1. supabase/migrations/00001_create_exam_tables.sql
-# 2. supabase/migrations/00002_add_exam_notes.sql
-# 3. supabase/migrations/00003_add_difficulty_beat_percentage.sql
-# 4. supabase/migrations/00004_add_exam_countdown.sql
-# 5. supabase/migrations/00005_add_user_settings.sql
-# 6. supabase/migrations/00006_add_sort_order.sql
-# 7. supabase/migrations/00007_add_exam_config.sql
-# 8. supabase/migrations/00008_add_exam_improvements_mistakes.sql
-# 9. supabase/migrations/00009_add_exam_date_report_url.sql
-# 10. supabase/migrations/00010_add_exam_name.sql
-# 11. supabase/migrations/00011_add_index_number.sql
-# 12. supabase/migrations/00012_add_rating.sql
-# 13. supabase/migrations/00013_disable_rls_exam_config.sql
-# 14. supabase/migrations/00014_disable_rls_user_settings.sql
-# 15. supabase/migrations/20251209_add_exam_type.sql
-```
-
-#### 2.5 启动开发服务器
-
-```bash
-npm run dev
-# 或
-pnpm dev
-```
-
-访问 `http://localhost:5173` 查看应用。
-
-### 3. 生产环境部署
-
-#### 3.1 构建项目
-
-```bash
-npm run build
-# 或
-pnpm build
-```
-
-构建产物位于 `dist/` 目录。
-
 #### 3.2 部署到腾讯云服务器
 
 ##### 方式一：使用Nginx
@@ -1102,41 +928,6 @@ VITE_API_ENV=production
 
 ## 常见问题
 
-### 1. OCR识别失败
-
-**问题**: 上传图片后提示"文字识别失败"
-
-**可能原因**:
-- 图片格式不支持
-- 图片大小超过限制（4MB）
-- 图片质量太差
-- OCR API配置错误
-- API调用次数超限
-
-**解决方案**:
-1. 检查图片格式（支持JPG、PNG、BMP）
-2. 压缩图片大小到4MB以下
-3. 提高图片清晰度
-4. 检查环境变量配置
-5. 查看百度智能云控制台的API调用情况
-
-### 2. 数据解析失败
-
-**问题**: OCR识别成功，但提示"解析到 0 个模块"
-
-**可能原因**:
-- OCR识别出的文本格式与预期不符
-- 模块名称不匹配
-- 数据格式不规范
-
-**解决方案**:
-1. 打开浏览器控制台（F12）查看详细日志
-2. 检查OCR识别出的原始文本
-3. 确认成绩截图包含必要的信息（模块名称、题数、正确率、用时）
-4. 参考系统支持的三种格式：
-   - 手机端格式：`共X题，答对Y题，正确率Z%，用时W秒`
-   - 网页版格式：`总题数 X题 答对 Y题 正确率 Z% 用时 W秒`
-   - 简化格式：`模块名称\n数字\n百分比\n数字`
 
 ### 3. 数据库连接失败
 
@@ -1153,47 +944,6 @@ VITE_API_ENV=production
 3. 检查数据库迁移是否全部执行成功
 4. 查看Supabase控制台的日志
 
-### 4. 图片上传失败
-
-**问题**: 上传图片时提示错误
-
-**可能原因**:
-- 文件大小超限
-- 文件格式不支持
-- 浏览器兼容性问题
-
-**解决方案**:
-1. 确认图片大小在合理范围内（建议<10MB）
-2. 使用支持的图片格式（JPG、PNG）
-3. 尝试使用其他浏览器
-4. 检查浏览器控制台的错误信息
-
-### 5. 图表显示异常
-
-**问题**: 图表不显示或显示错误
-
-**可能原因**:
-- 数据不足（少于2次考试记录）
-- 数据格式错误
-- ECharts加载失败
-
-**解决方案**:
-1. 确保至少有2次考试记录
-2. 检查数据库中的数据是否完整
-3. 清除浏览器缓存并刷新页面
-4. 查看浏览器控制台的错误信息
-
-### 6. 性能优化
-
-**问题**: 页面加载慢或卡顿
-
-**优化建议**:
-1. 启用Nginx的gzip压缩
-2. 配置静态资源缓存
-3. 使用CDN加速
-4. 优化图片大小
-5. 减少数据库查询次数
-6. 使用分页加载大量数据
 
 ### 7. 安全性建议
 
@@ -1206,58 +956,3 @@ VITE_API_ENV=production
 7. **定期备份**: 定期备份数据库数据
 
 ---
-
-## 技术支持
-
-如有问题，请联系：
-
-- 项目仓库: [GitHub](https://github.com/your-repo)
-- 文档: [在线文档](https://your-docs-url)
-- 邮箱: support@example.com
-
----
-
-## 更新日志
-
-### v1.0.0 (2024-12-09)
-
-- ✅ 初始版本发布
-- ✅ 支持OCR识别成绩截图
-- ✅ 支持多期考试数据管理
-- ✅ 支持成绩趋势分析
-- ✅ 支持模块对比分析
-- ✅ 支持个性化设置
-
-### v1.1.0 (2024-12-10)
-
-- ✅ 优化OCR识别准确率
-- ✅ 支持长截图识别
-- ✅ 添加简化格式支持
-- ✅ 改进数据解析逻辑
-- ✅ 优化用户界面
-
----
-
-## 许可证
-
-MIT License
-
-Copyright (c) 2024
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.

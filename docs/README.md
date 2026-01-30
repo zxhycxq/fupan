@@ -63,7 +63,7 @@
 
 ---
 
-### 4. [OCR集成文档](./OCR_INTEGRATION.md)
+### 4. [OCR集成文档](ocr/OCR_INTEGRATION.md)
 
 **适合人群**: 后端开发者、OCR集成工程师
 
@@ -116,7 +116,7 @@
 → 阅读 [腾讯云部署指南 - OCR服务配置](./TENCENT_CLOUD_DEPLOYMENT.md#ocr服务配置)
 
 #### 迁移到腾讯云OCR
-→ 阅读 [OCR集成文档 - 迁移指南](./OCR_INTEGRATION.md#迁移指南)
+→ 阅读 [OCR集成文档 - 迁移指南](ocr/OCR_INTEGRATION.md#迁移指南)
 
 #### 了解数据库设计
 → 阅读 [部署文档 - 数据库设计](./DEPLOYMENT.md#数据库设计)
@@ -125,7 +125,7 @@
 → 阅读 [API接口文档](./API_REFERENCE.md)
 
 #### 优化识别准确率
-→ 阅读 [OCR集成文档 - 识别流程](./OCR_INTEGRATION.md#识别流程)
+→ 阅读 [OCR集成文档 - 识别流程](ocr/OCR_INTEGRATION.md#识别流程)
 
 #### 排查问题
 → 阅读 [腾讯云部署指南 - 常见问题](./TENCENT_CLOUD_DEPLOYMENT.md#常见问题)

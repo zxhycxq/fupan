@@ -162,39 +162,3 @@ sudo ufw status
 # 查看错误日志
 sudo tail -50 /var/log/nginx/error.log
 ```
-
-### 数据无法加载
-
-1. 打开浏览器开发者工具（F12）
-2. 查看Network标签
-3. 检查API请求是否成功
-4. 验证Supabase配置是否正确
-
-### SSL证书问题
-
-```bash
-# 检查证书状态
-sudo certbot certificates
-
-# 手动续期
-sudo certbot renew
-```
-
----
-
-## 📚 更多信息
-
-详细部署文档请查看：[DEPLOYMENT.md](DEPLOYMENT.md)
-
----
-
-## 🆘 需要帮助？
-
-- 查看详细文档：DEPLOYMENT.md
-- 检查Nginx日志：`/var/log/nginx/exam-analysis-error.log`
-- 查看浏览器控制台错误
-- 参考Supabase文档：https://supabase.com/docs
-
----
-
-**祝您部署顺利！** 🎉
