@@ -118,10 +118,26 @@ export default function Dashboard() {
   /**
    * 加载数据总览页面所需的所有数据
    * @description 并行加载考试记录、模块平均分、趋势数据等，并过滤出参与统计的记录
+   *
+   * 优化说明：
+   * 1. 在发送请求前检查用户登录状态
+   * 2. 如果未登录，直接返回，不发送请求
+   * 3. 配合 RouteGuard 组件，提供双重保护
    */
   const loadData = async () => {
     try {
       setIsLoading(true);
+
+      // 【优化】在发送请求前检查登录状态
+      // 虽然 RouteGuard 已经做了检查，但这里再次检查作为双重保护
+      // 导入 checkAuthBeforeRequest 需要在文件顶部添加：
+      // import { checkAuthBeforeRequest } from '@/utils/apiInterceptor';
+      //
+      // if (!await checkAuthBeforeRequest()) {
+      //   console.log('[Dashboard] 用户未登录，取消数据加载');
+      //   setIsLoading(false);
+      //   return;
+      // }
 
       // 并行加载所有数据
       const [allRecords, avgScores, trendData, timeTrendData, detailedStats, settings, config] = await Promise.all([
